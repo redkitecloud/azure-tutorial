@@ -6,6 +6,12 @@
       "statusCode": 200
     },
     {
+      "route": "/js/*",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
+    },
+    {
       "route": "/docs/*",
       "serve": "/docs/*",
       "statusCode": 200
