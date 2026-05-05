@@ -3,13 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="RedKiteCloud — Free Azure tutorials for Indian IT professionals and certification aspirants. Learn Azure with India-focused examples, INR pricing, and practice questions." />
-  <meta name="keywords" content="Azure tutorials, AZ-900, AZ-104, Azure certification India, cloud computing tutorials, free azure course" />
-  <meta property="og:title" content="RedKiteCloud — Free Azure Tutorials for India" />
-  <meta property="og:description" content="Learn Azure with India-focused examples, INR pricing, and exam-ready practice questions." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.redkitecloud.com" />
-  <title>RedKiteCloud — Free Azure Tutorials for India</title>
+  <title>RedKiteCloud — Learn Azure, AWS &amp; Google Cloud</title>
+  <meta name="description" content="End-to-end cloud tutorials covering Azure, AWS, Google Cloud and DevOps. Every topic covered in depth. Fly high in your cloud career." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="css/style.css" />
@@ -17,144 +12,211 @@
 </head>
 <body>
 
-<div id="app">
+  <!-- Topbar -->
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="js/topbar.js"></script>
 
-  <!-- Topbar (rendered by topbar.js) -->
-  <header id="topbar"></header>
+  <div class="layout">
 
-  <!-- Sidebar (rendered by sidebar.js) -->
-  <nav id="sidebar" aria-label="Tutorial navigation"></nav>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="js/sidebar.js"></script>
 
-  <!-- Main -->
-  <main id="main">
+    <!-- Main -->
+    <main class="main">
 
-    <!-- Hero -->
-    <section class="hero">
-      <p class="hero-eyebrow">100% Free · India-focused · Exam-ready</p>
-      <h1 class="hero-title">
-        Master Azure.<br>
-        <span>Built for India.</span>
-      </h1>
-      <p class="hero-subtitle">
-        Deep-dive tutorials on every Azure service — with INR pricing, Indian region examples,
-        CLI commands, and practice questions designed for AZ-900, AZ-104, and beyond.
-      </p>
-      <div class="hero-cta">
-        <a href="docs/azure-fundamentals/what-is-cloud-computing.html" class="btn-primary">
-          Start Learning
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M3 8h10M9 4l4 4-4 4"/>
-          </svg>
-        </a>
-        <a href="https://github.com/redkitecloud/azure-tutorial" target="_blank" rel="noopener" class="btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-          </svg>
-          View on GitHub
-        </a>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-title">Learn Cloud &amp; DevOps —<br><span>End to End.</span></div>
+        <div class="hero-desc">From complete beginner to certified professional. Deep tutorials on Azure, AWS, Google Cloud and DevOps tools. Every topic covered. Nothing left out. 🪁</div>
+        <div class="hero-tags">
+          <span class="hero-tag">☁️ Microsoft Azure</span>
+          <span class="hero-tag">🟠 AWS — Coming Soon</span>
+          <span class="hero-tag">🔵 Google Cloud — Coming Soon</span>
+          <span class="hero-tag">🛠️ DevOps — Coming Soon</span>
+        </div>
       </div>
-    </section>
 
-    <!-- Stats -->
-    <div class="stats-bar">
-      <div class="stat">
-        <span class="stat-value">14<span>+</span></span>
-        <span class="stat-label">Azure Modules</span>
-      </div>
-      <div class="stat">
-        <span class="stat-value">150<span>+</span></span>
-        <span class="stat-label">Topics Planned</span>
-      </div>
-      <div class="stat">
-        <span class="stat-value">₹0</span>
-        <span class="stat-label">Cost to Learn</span>
-      </div>
-      <div class="stat">
-        <span class="stat-value">AZ<span>-900</span></span>
-        <span class="stat-label">Exam Ready</span>
-      </div>
-      <div class="stat">
-        <span class="stat-value">🇮🇳</span>
-        <span class="stat-label">India Focused</span>
-      </div>
+      <!-- Azure Modules -->
+      <div class="section-label">☁️ Microsoft Azure</div>
+      <div class="modules-grid" id="azure-grid"></div>
+
+      <!-- Other Clouds -->
+      <div class="section-label">🟠 AWS &nbsp;·&nbsp; 🔵 Google Cloud &nbsp;·&nbsp; 🛠️ DevOps</div>
+      <div class="modules-grid" id="others-grid"></div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
     </div>
+  </footer>
 
-    <!-- Modules -->
-    <section class="modules-section">
-      <div class="section-header">
-        <h2 class="section-title">All Modules</h2>
-        <span class="section-count">14 modules · 150+ topics</span>
-      </div>
-      <div class="modules-grid" id="modules-grid">
-        <!-- Rendered by JS below -->
-      </div>
-    </section>
+  <script>
+  // Module card data
+  const MODULE_CARDS = [
+    {
+      id: 'azure-fundamentals',
+      icon: '☁️', iconBg: 'rgba(0,120,212,0.12)',
+      title: 'Azure Fundamentals',
+      desc: 'Cloud computing basics, Azure overview, portal, CLI and pricing',
+      count: '15 topics', cert: 'AZ-900',
+      href: 'docs/azure-fundamentals/what-is-cloud-computing.html',
+      available: true
+    },
+    {
+      id: 'azure-virtual-machines',
+      icon: '🖥️', iconBg: 'rgba(229,9,20,0.12)',
+      title: 'Azure Virtual Machines',
+      desc: 'VM series, create, connect, disks, scaling, bastion and cost tips',
+      count: '14 topics', cert: 'AZ-104',
+      href: 'docs/azure-virtual-machines/overview.html',
+      available: true
+    },
+    {
+      id: 'azure-storage',
+      icon: '💾', iconBg: 'rgba(251,188,5,0.12)',
+      title: 'Azure Storage',
+      desc: 'Blob, Files, Queue, Table, redundancy, SAS and lifecycle',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-networking',
+      icon: '🌐', iconBg: 'rgba(52,168,83,0.12)',
+      title: 'Azure Networking',
+      desc: 'VNets, NSGs, Load Balancer, VPN, DNS, Firewall and more',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-databases',
+      icon: '🗄️', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Azure Databases',
+      desc: 'SQL, Cosmos DB, MySQL, PostgreSQL, Redis and Synapse',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-identity-security',
+      icon: '🔐', iconBg: 'rgba(234,67,53,0.12)',
+      title: 'Identity & Security',
+      desc: 'Entra ID, RBAC, MFA, Key Vault, Defender and Sentinel',
+      count: 'Coming Soon', cert: 'AZ-500',
+      available: false
+    },
+    {
+      id: 'azure-app-service',
+      icon: '🌍', iconBg: 'rgba(0,120,212,0.12)',
+      title: 'Azure App Service',
+      desc: 'Web apps, deployment slots, auto-scaling and custom domains',
+      count: 'Coming Soon', cert: 'AZ-204',
+      available: false
+    },
+    {
+      id: 'azure-functions',
+      icon: '⚡', iconBg: 'rgba(251,188,5,0.12)',
+      title: 'Azure Functions',
+      desc: 'Serverless triggers, bindings, hosting plans and durable functions',
+      count: 'Coming Soon', cert: 'AZ-204',
+      available: false
+    },
+    {
+      id: 'azure-containers',
+      icon: '🐳', iconBg: 'rgba(52,168,83,0.12)',
+      title: 'Azure Containers',
+      desc: 'Docker, ACR, ACI, AKS and Azure Container Apps',
+      count: 'Coming Soon', cert: 'AZ-204',
+      available: false
+    },
+    {
+      id: 'azure-monitoring',
+      icon: '📊', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Monitoring & Governance',
+      desc: 'Azure Monitor, Log Analytics, KQL, Alerts and Cost Management',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-devops',
+      icon: '🚀', iconBg: 'rgba(229,9,20,0.12)',
+      title: 'Azure DevOps & CI/CD',
+      desc: 'Boards, Repos, Pipelines, Bicep and Terraform on Azure',
+      count: 'Coming Soon', cert: 'AZ-400',
+      available: false
+    },
+    {
+      id: 'azure-ai-ml',
+      icon: '🤖', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Azure AI & ML',
+      desc: 'OpenAI, Cognitive Services, Vision, Speech and Machine Learning',
+      count: 'Coming Soon', cert: 'AI-900',
+      available: false
+    },
+    {
+      id: 'azure-architecture',
+      icon: '🏗️', iconBg: 'rgba(251,188,5,0.12)',
+      title: 'Azure Architecture',
+      desc: 'Well-Architected Framework, HA, DR, Landing Zones and patterns',
+      count: 'Coming Soon', cert: 'AZ-305',
+      available: false
+    }
+  ];
 
-    <!-- Footer -->
-    <footer id="footer">
-      <span>© 2025 RedKiteCloud · Free Azure tutorials for India</span>
-      <nav class="footer-links">
-        <a href="https://github.com/redkitecloud/azure-tutorial" target="_blank" rel="noopener">GitHub</a>
-        <a href="docs/azure-fundamentals/what-is-cloud-computing.html">Get Started</a>
-      </nav>
-    </footer>
+  const OTHER_CARDS = [
+    {
+      icon: '🟠', iconBg: 'rgba(255,153,0,0.12)',
+      title: 'Amazon Web Services',
+      desc: 'EC2, S3, Lambda, VPC, IAM, RDS and more',
+      count: 'Coming Soon', cert: 'AWS SAA',
+      available: false
+    },
+    {
+      icon: '🔵', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Google Cloud Platform',
+      desc: 'Compute Engine, GCS, GKE, BigQuery and more',
+      count: 'Coming Soon', cert: 'GCP ACE',
+      available: false
+    },
+    {
+      icon: '🛠️', iconBg: 'rgba(52,168,83,0.12)',
+      title: 'DevOps Tools',
+      desc: 'Docker, Kubernetes, Terraform, Jenkins and GitHub Actions',
+      count: 'Coming Soon', cert: '',
+      available: false
+    }
+  ];
 
-  </main>
-</div>
+  function buildCard(card) {
+    const tag   = card.available ? 'a' : 'div';
+    const href  = card.available ? `href="${card.href}"` : '';
+    const cls   = card.available ? 'module-card' : 'module-card disabled';
+    return `
+      <${tag} class="${cls}" ${href}>
+        <div class="module-icon" style="background:${card.iconBg}">${card.icon}</div>
+        <div class="module-title">${card.title}</div>
+        <div class="module-desc">${card.desc}</div>
+        <div class="module-footer">
+          <span class="module-count">${card.count}</span>
+          ${card.cert ? `<span class="module-cert">${card.cert}</span>` : ''}
+        </div>
+      </${tag}>
+    `;
+  }
 
-<script src="js/topbar.js"></script>
-<script src="js/sidebar.js"></script>
-<script>
-  // Render module cards from SIDEBAR_DATA
   document.addEventListener('DOMContentLoaded', () => {
-    const grid = document.getElementById('modules-grid');
-    if (!grid || typeof SIDEBAR_DATA === 'undefined') return;
-
-    const moduleDescriptions = {
-      'azure-fundamentals':      'Cloud concepts, Azure services overview, pricing, and governance. Perfect starting point for AZ-900.',
-      'azure-virtual-machines':  'Create, configure, and manage VMs. Covers sizes, disks, networking, scaling, and India pricing.',
-      'azure-storage':           'Blob, File, Queue, and Table storage. Tiers, replication, security, and Data Lake.',
-      'azure-networking':        'VNets, NSGs, Load Balancers, VPN Gateway, ExpressRoute, and Azure Firewall.',
-      'azure-databases':         'SQL Database, Cosmos DB, MySQL, PostgreSQL, Redis. Fully managed database services.',
-      'azure-app-service':       'Host web apps, APIs, and backends. Plans, deployment slots, custom domains.',
-      'azure-functions':         'Serverless compute. Triggers, bindings, Durable Functions, and consumption pricing.',
-      'azure-containers':        'ACI, AKS, Container Registry, and Container Apps for modern microservices.',
-      'azure-identity-security': 'Entra ID, RBAC, Key Vault, Defender for Cloud, and Azure Policy.',
-      'azure-monitoring':        'Azure Monitor, Log Analytics, Application Insights, and Alerts.',
-      'azure-devops':            'Repos, Pipelines, Boards, Artifacts, and GitHub Actions integration.',
-      'azure-ai-ml':             'Azure AI Services, Machine Learning, OpenAI, Cognitive Services, and Bot Service.',
-      'azure-integration':       'Service Bus, Event Grid, Event Hubs, Logic Apps, and API Management.',
-      'azure-architecture':      'Well-Architected Framework, Cloud Adoption Framework, HA, and DR patterns.',
-    };
-
-    let html = '';
-    SIDEBAR_DATA.forEach(mod => {
-      const doneCount = mod.topics.filter(t => t.done).length;
-      const total     = mod.topics.length;
-      const available = doneCount > 0;
-      const firstDone = mod.topics.find(t => t.done);
-      const href      = available && firstDone
-        ? `docs/${mod.id}/${firstDone.file}`
-        : '#';
-
-      html += `
-        <a class="module-card" href="${href}" ${!available ? 'style="cursor:default;"' : ''}>
-          <div class="module-icon">${mod.icon}</div>
-          <div class="module-name">${mod.label}</div>
-          <div class="module-desc">${moduleDescriptions[mod.id] || ''}</div>
-          <div class="module-footer">
-            <span class="module-count">${doneCount}/${total} topics</span>
-            <span class="module-status ${available ? 'status-available' : 'status-coming'}">
-              ${available ? 'Available' : 'Coming Soon'}
-            </span>
-          </div>
-        </a>
-      `;
-    });
-
-    grid.innerHTML = html;
+    document.getElementById('azure-grid').innerHTML  = MODULE_CARDS.map(buildCard).join('');
+    document.getElementById('others-grid').innerHTML = OTHER_CARDS.map(buildCard).join('');
   });
-</script>
+  </script>
 
 </body>
 </html>
