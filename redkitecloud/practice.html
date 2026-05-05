@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Practice Questions | RedKiteCloud</title>
+  <meta name="description" content="Practice questions for Azure, AWS, and GCP certifications. AI-generated questions coming soon." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+  <style>
+    .practice-page { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+    .pq-hero { text-align: center; padding: 3rem 1rem 2.5rem; }
+    .pq-hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 0.75rem; }
+    .pq-hero p { color: var(--text-3); font-size: 1rem; max-width: 560px; margin: 0 auto 1.5rem; }
+
+    /* Coming soon banner */
+    .coming-soon-banner {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      border: 1px solid #2d4a7a;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .coming-soon-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(96,165,250,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .csb-tag {
+      display: inline-block;
+      background: rgba(96,165,250,0.15);
+      border: 1px solid rgba(96,165,250,0.3);
+      color: #60a5fa;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.3rem 0.8rem; border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    .csb-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .csb-desc { color: var(--text-3); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.7; }
+
+    .csb-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.75rem; margin-bottom: 1.5rem;
+    }
+    .csb-feature {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 0.85rem 1rem;
+    }
+    .csb-feature-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
+    .csb-feature-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .csb-feature-desc { font-size: 0.78rem; color: var(--text-4); line-height: 1.5; }
+
+    .csb-note {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; color: var(--text-4);
+    }
+
+    /* Demo section */
+    .demo-section { margin-bottom: 3rem; }
+    .demo-header {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .demo-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .demo-badge {
+      background: var(--red); color: #fff;
+      font-size: 0.68rem; font-weight: 700;
+      padding: 0.2rem 0.6rem; border-radius: 999px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    /* Score bar */
+    .score-bar {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem 1.5rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+    }
+    .score-bar-text { font-size: 0.9rem; color: var(--text-3); }
+    .score-count { font-size: 1.5rem; font-weight: 800; color: var(--text-1); }
+    .score-count span { color: var(--red); }
+    .reset-btn {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-2); padding: 0.5rem 1.25rem;
+      border-radius: 8px; cursor: pointer;
+      font-size: 0.85rem; font-weight: 600;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* Module links */
+    .module-links-section { margin-top: 2rem; }
+    .module-links-title {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-4); margin-bottom: 1rem;
+    }
+    .module-links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.75rem;
+    }
+    .module-link-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.85rem 1rem;
+      text-decoration: none; display: flex;
+      align-items: center; justify-content: space-between;
+      transition: border-color 0.2s;
+    }
+    .module-link-card:hover { border-color: var(--red); }
+    .module-link-info { display: flex; flex-direction: column; gap: 0.2rem; }
+    .module-link-label { font-size: 0.7rem; color: var(--text-4); }
+    .module-link-title { font-size: 0.88rem; font-weight: 600; color: var(--text-1); }
+    .module-link-count { font-size: 0.75rem; color: var(--text-4); }
+    .module-link-arrow { color: var(--text-4); font-size: 0.85rem; }
+
+    @media (max-width: 600px) {
+      .csb-features { grid-template-columns: 1fr 1fr; }
+      .score-bar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="practice-page">
+
+        <div class="pq-hero">
+          <h1>📝 Practice Questions</h1>
+          <p>Test your knowledge with real exam-style questions. AI-powered infinite question banks are coming — try the demo below while we build.</p>
+        </div>
+
+        <!-- Coming Soon Banner -->
+        <div class="coming-soon-banner">
+          <div class="csb-tag">🤖 Coming Soon</div>
+          <div class="csb-title">AI-Powered Practice — Unlimited Questions, Zero Repetition</div>
+          <div class="csb-desc">
+            We're building an AI-powered practice engine that generates fresh, unique exam-style questions every single time. No question banks, no repetition — just an infinite stream of high-quality AZ-900, AZ-104, AWS, and GCP questions tailored to exactly what you're studying.
+          </div>
+
+          <div class="csb-features">
+            <div class="csb-feature">
+              <div class="csb-feature-icon">♾️</div>
+              <div class="csb-feature-title">Infinite Questions</div>
+              <div class="csb-feature-desc">Fresh questions every session — you'll never see the same question twice</div>
+            </div>
+            <div class="csb-feature">
+              <div class="csb-feature-icon">🎯</div>
+              <div class="csb-feature-title">Topic-Focused</div>
+              <div class="csb-feature-desc">Filter by topic, difficulty, and exam — practise exactly what you're weak on</div>
+            </div>
+            <div class="csb-feature">
+              <div class="csb-feature-icon">⏱️</div>
+              <div class="csb-feature-title">Timed Mock Exams</div>
+              <div class="csb-feature-desc">Full-length timed practice simulating real exam conditions</div>
+            </div>
+            <div class="csb-feature">
+              <div class="csb-feature-icon">📊</div>
+              <div class="csb-feature-title">Performance Tracking</div>
+              <div class="csb-feature-desc">See your accuracy per topic and track improvement over time</div>
+            </div>
+            <div class="csb-feature">
+              <div class="csb-feature-icon">💡</div>
+              <div class="csb-feature-title">Detailed Explanations</div>
+              <div class="csb-feature-desc">Every answer includes a thorough explanation of why it's correct</div>
+            </div>
+            <div class="csb-feature">
+              <div class="csb-feature-icon">🌐</div>
+              <div class="csb-feature-title">Multi-Cloud</div>
+              <div class="csb-feature-desc">Azure, AWS, and GCP questions — all in one place</div>
+            </div>
+          </div>
+
+          <div class="csb-note">
+            ⏳ &nbsp; Check back soon — we're actively building this. In the meantime, try the sample questions below or visit any tutorial page for 5 practice questions at the bottom.
+          </div>
+        </div>
+
+        <!-- Demo -->
+        <div class="demo-section">
+          <div class="demo-header">
+            <h2>Try a Sample — AZ-900 Questions</h2>
+            <span class="demo-badge">Live Demo</span>
+          </div>
+
+          <div class="practice-section" id="practice">
+
+            <div class="question">
+              <div class="question-text"><span class="question-num">Q1.</span> A company wants to migrate their on-premises application to the cloud with minimal code changes and needs full control over the operating system. Which Azure service model should they use?</div>
+              <div class="options">
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PaaS abstracts the operating system — the customer cannot control the OS. The company specifically needs OS control for this migration.')">
+                  <span class="option-label">A</span> PaaS — Azure App Service
+                </div>
+                <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! IaaS gives the customer full control over the OS, middleware, and applications. Azure Virtual Machines is the classic IaaS service — ideal for lift-and-shift migrations where OS control is required.')">
+                  <span class="option-label">B</span> IaaS — Azure Virtual Machines
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SaaS is complete software delivered over the internet — you cannot deploy your own custom application in a SaaS model.')">
+                  <span class="option-label">C</span> SaaS — Microsoft 365
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Serverless (Azure Functions) is a form of PaaS — the OS and infrastructure are fully managed by Microsoft, not the customer.')">
+                  <span class="option-label">D</span> Serverless — Azure Functions
+                </div>
+              </div>
+              <div class="answer-reveal"></div>
+            </div>
+
+            <div class="question">
+              <div class="question-text"><span class="question-num">Q2.</span> Which of the following best describes the benefit of Azure Availability Zones?</div>
+              <div class="options">
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones are within a single region — they protect against individual data centre failures, not entire regional outages. For regional protection, you need Region Pairs.')">
+                  <span class="option-label">A</span> They protect against an entire Azure region going offline
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones do not reduce cost — they increase cost slightly since you run resources across multiple physical locations.')">
+                  <span class="option-label">B</span> They reduce the cost of running virtual machines
+                </div>
+                <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Availability Zones are physically separate data centres within a region, each with independent power, cooling, and networking. Spreading resources across zones protects against individual data centre failures and improves your SLA from 99.9% to 99.99%.')">
+                  <span class="option-label">C</span> They protect against individual data centre failures, improving SLA to 99.99%
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones do not directly improve network speed for end users — that is the role of Azure CDN and Azure Front Door.')">
+                  <span class="option-label">D</span> They improve network speed for users in different countries
+                </div>
+              </div>
+              <div class="answer-reveal"></div>
+            </div>
+
+            <div class="question">
+              <div class="question-text"><span class="question-num">Q3.</span> What is the key financial benefit of moving from on-premises infrastructure to Azure?</div>
+              <div class="options">
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Moving to Azure does not eliminate all IT spending — you still pay for cloud services monthly. The spending model changes, not the fact that you spend.')">
+                  <span class="option-label">A</span> Eliminating all IT expenditure entirely
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure is not always cheaper than on-premises for every workload. The key benefit is the change in the spending model — not a guaranteed cost reduction.')">
+                  <span class="option-label">B</span> Azure is always cheaper than on-premises infrastructure
+                </div>
+                <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Moving to Azure shifts spending from CapEx (large upfront capital investment in hardware) to OpEx (ongoing pay-as-you-go operational spending). This removes the need for upfront hardware investment and gives full cost flexibility.')">
+                  <span class="option-label">C</span> Shifting from CapEx (upfront hardware) to OpEx (pay-as-you-go)
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure pricing varies by region and service — there is no single fixed global price. Cloud costs are variable by nature.')">
+                  <span class="option-label">D</span> Fixed predictable pricing with no variable costs
+                </div>
+              </div>
+              <div class="answer-reveal"></div>
+            </div>
+
+            <div class="question">
+              <div class="question-text"><span class="question-num">Q4.</span> An organisation needs to apply the same security policy across 20 Azure subscriptions simultaneously. What is the most efficient approach?</div>
+              <div class="options">
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Applying the policy 20 times individually is inefficient and error-prone. If a new subscription is added, you must apply it again manually.')">
+                  <span class="option-label">A</span> Apply the policy to each of the 20 subscriptions individually
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Applying across Resource Groups in 20 subscriptions would require hundreds of individual assignments — even more work.')">
+                  <span class="option-label">B</span> Apply the policy to each Resource Group across all subscriptions
+                </div>
+                <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Management Groups let you group multiple subscriptions and apply policies once at the group level. The policy automatically cascades to all subscriptions and resources beneath it — including any new subscriptions added in the future.')">
+                  <span class="option-label">C</span> Use a Management Group and apply the policy once at the group level
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Blueprints can deploy policies but is not the most efficient ongoing governance mechanism for this scenario.')">
+                  <span class="option-label">D</span> Use Azure Blueprints to deploy policies to each subscription
+                </div>
+              </div>
+              <div class="answer-reveal"></div>
+            </div>
+
+            <div class="question">
+              <div class="question-text"><span class="question-num">Q5.</span> A developer needs to run Azure CLI commands from a browser on a tablet without installing any software. What is the best option?</div>
+              <div class="options">
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CLI cannot be installed on a tablet — it requires a desktop OS. The question asks for a no-installation solution.')">
+                  <span class="option-label">A</span> Install Azure CLI directly on the tablet
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal is a GUI — it does not provide a command-line interface for running Azure CLI commands directly.')">
+                  <span class="option-label">B</span> Use the Azure Portal — it has a built-in CLI text field
+                </div>
+                <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cloud Shell at shell.azure.com is a browser-based terminal with Azure CLI and PowerShell pre-installed and pre-authenticated. It works in any modern browser on any device — including tablets — with zero installation required.')">
+                  <span class="option-label">C</span> Use Azure Cloud Shell at shell.azure.com — works in any browser, no install needed
+                </div>
+                <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure mobile app provides limited management capabilities — it does not give full Azure CLI command-line access.')">
+                  <span class="option-label">D</span> Use the Microsoft Azure mobile app — it includes a full CLI
+                </div>
+              </div>
+              <div class="answer-reveal"></div>
+            </div>
+
+          </div>
+
+          <div class="score-bar">
+            <div>
+              <div class="score-bar-text">Your score</div>
+              <div class="score-count"><span id="score-correct">0</span> / <span id="score-total">0</span> correct</div>
+            </div>
+            <button class="reset-btn" onclick="resetQuiz()">↺ Reset Quiz</button>
+          </div>
+        </div>
+
+        <!-- Links to all tutorial practice sections -->
+        <div class="module-links-section">
+          <div class="module-links-title">Practice by Topic — Azure Fundamentals (80 questions)</div>
+          <div class="module-links-grid">
+            <a class="module-link-card" href="docs/azure-fundamentals/what-is-cloud-computing.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">What is Cloud Computing?</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/iaas-paas-saas.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">IaaS vs PaaS vs SaaS</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/cloud-types.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Public vs Private vs Hybrid</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/what-is-azure.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">What is Microsoft Azure?</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/global-infrastructure.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Global Infrastructure</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/regions-availability-zones.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Regions &amp; Availability Zones</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/region-pairs.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Region Pairs</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/azure-portal.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Portal Walkthrough</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/azure-cli.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure CLI</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/azure-powershell.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure PowerShell</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/cloud-shell.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Cloud Shell</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/pricing.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Pricing &amp; Free Tier</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/resource-groups.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Resource Groups</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/subscriptions.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Subscriptions</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/management-groups.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Management Groups</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+            <a class="module-link-card" href="docs/azure-fundamentals/azure-arc.html#practice">
+              <div class="module-link-info">
+                <span class="module-link-label">Azure Fundamentals</span>
+                <span class="module-link-title">Azure Arc</span>
+                <span class="module-link-count">5 questions</span>
+              </div>
+              <span class="module-link-arrow">→</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+  <script>
+    let correct = 0;
+    let answered = 0;
+
+    window.checkAnswer = function(optionEl, isCorrect, explanation) {
+      const question = optionEl.closest('.question');
+      if (question.dataset.answered) return;
+      question.dataset.answered = 'true';
+      answered++;
+      if (isCorrect) correct++;
+      document.getElementById('score-correct').textContent = correct;
+      document.getElementById('score-total').textContent = answered;
+
+      const options = question.querySelectorAll('.option');
+      options.forEach(o => {
+        o.style.pointerEvents = 'none';
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+      });
+      if (!isCorrect) optionEl.classList.add('incorrect');
+
+      const reveal = question.querySelector('.answer-reveal');
+      if (reveal) {
+        reveal.textContent = explanation;
+        reveal.style.display = 'block';
+        reveal.style.marginTop = '0.75rem';
+        reveal.style.padding = '0.75rem 1rem';
+        reveal.style.borderRadius = '8px';
+        reveal.style.fontSize = '0.88rem';
+        reveal.style.lineHeight = '1.6';
+        reveal.style.background = isCorrect ? '#1a2a1a' : '#2a1a1a';
+        reveal.style.border = isCorrect ? '1px solid #2d5a2d' : '1px solid #5a2d2d';
+        reveal.style.color = 'var(--text-2)';
+      }
+    };
+
+    function resetQuiz() {
+      correct = 0; answered = 0;
+      document.getElementById('score-correct').textContent = 0;
+      document.getElementById('score-total').textContent = 0;
+      document.querySelectorAll('.question').forEach(q => {
+        delete q.dataset.answered;
+        q.querySelectorAll('.option').forEach(o => {
+          o.classList.remove('correct', 'incorrect');
+          o.style.pointerEvents = '';
+        });
+        const reveal = q.querySelector('.answer-reveal');
+        if (reveal) { reveal.textContent = ''; reveal.style.display = 'none'; }
+      });
+    }
+  </script>
+
+</body>
+</html>
