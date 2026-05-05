@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Arc | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Learn Azure Arc — Microsoft's hybrid and multi-cloud management platform. Manage on-premises, AWS, and GCP resources from a single Azure control plane." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Arc</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Arc</h1>
+
+        <p class="page-intro">
+          Most large organisations don't live entirely in one cloud. They have servers on-premises, resources on AWS or GCP, and workloads in Azure. Managing all of these from separate consoles is painful, inconsistent, and error-prone. Azure Arc solves this by extending the Azure control plane beyond Azure — letting you manage and govern resources anywhere in the world from a single pane of glass: the Azure Portal.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Azure Arc is and the problem it solves · Azure Arc-enabled Servers · Azure Arc-enabled Kubernetes · Azure Arc-enabled Data Services · How Arc brings Azure governance to non-Azure resources · When to use Azure Arc · Key benefits for enterprises
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-arc">What is Azure Arc?</a></li>
+            <li><a href="#problem">The Problem Azure Arc Solves</a></li>
+            <li><a href="#how-it-works">How Azure Arc Works</a></li>
+            <li><a href="#arc-servers">Arc-Enabled Servers</a></li>
+            <li><a href="#arc-kubernetes">Arc-Enabled Kubernetes</a></li>
+            <li><a href="#arc-data">Arc-Enabled Data Services</a></li>
+            <li><a href="#governance">Governance with Azure Arc</a></li>
+            <li><a href="#when-to-use">When to Use Azure Arc</a></li>
+            <li><a href="#arc-vs-stack">Azure Arc vs Azure Stack</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-arc">What is Azure Arc?</h2>
+          <p>Azure Arc is a set of technologies that extends Azure management, governance, and services to any infrastructure — whether it's running on-premises in your own data centre, on another cloud provider like AWS or GCP, or at the edge.</p>
+          <p>With Azure Arc, a Linux server sitting in your Mumbai office appears in the Azure Portal just like an Azure VM. You can apply Azure Policies to it, monitor it with Azure Monitor, secure it with Microsoft Defender — even if it never moves to Azure.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>One Line Definition</strong>
+              Azure Arc = Azure management capabilities extended to resources outside Azure. It brings non-Azure infrastructure into the Azure control plane without migrating it.
+            </div>
+          </div>
+
+          <h2 id="problem">The Problem Azure Arc Solves</h2>
+          <p>Consider a typical enterprise that has:</p>
+          <ul>
+            <li>50 on-premises Windows and Linux servers in their Chennai data centre</li>
+            <li>A Kubernetes cluster running on AWS EKS</li>
+            <li>Some VMs on Azure</li>
+            <li>Edge devices in retail stores</li>
+          </ul>
+          <p>Without Arc, managing these requires four separate consoles, four sets of policies, four monitoring dashboards, and four different ways to apply security. Teams use different tools, policies drift, and security gaps appear.</p>
+          <p>With Arc, all of these appear in the Azure Portal. One set of policies. One monitoring view. One security baseline. One place to manage access control.</p>
+
+          <h2 id="how-it-works">How Azure Arc Works</h2>
+          <p>Azure Arc works by installing a lightweight agent on the machine you want to manage — called the <strong>Azure Connected Machine agent</strong> (for servers) or the Arc-enabled Kubernetes agent.</p>
+          <p>Once installed, the agent:</p>
+          <ol>
+            <li>Registers the machine with Azure Resource Manager</li>
+            <li>Makes the machine appear as an Azure resource in the portal</li>
+            <li>Allows Azure policies, tags, RBAC, and monitoring to be applied to it</li>
+            <li>Reports health and compliance status back to Azure</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>The Machine Stays Where It Is</strong>
+              Installing the Arc agent does NOT move your workload to Azure. Your server stays on-premises (or on AWS, or wherever). Only management and monitoring happens through Azure. The physical machine and its data stay in their original location.
+            </div>
+          </div>
+
+          <h2 id="arc-servers">Arc-Enabled Servers</h2>
+          <p>Azure Arc-enabled Servers lets you manage physical and virtual machines running Windows or Linux — anywhere — through the Azure Portal, just as if they were Azure VMs.</p>
+
+          <h3>What You Can Do with Arc-Enabled Servers</h3>
+          <ul>
+            <li><strong>Apply Azure Policies</strong> — Enforce configuration standards (e.g., "All servers must have the monitoring agent installed")</li>
+            <li><strong>Use Azure Monitor</strong> — Collect logs and metrics from on-premises servers in the same Azure Monitor workspace as your Azure VMs</li>
+            <li><strong>Microsoft Defender for Servers</strong> — Get threat detection and security recommendations on non-Azure servers</li>
+            <li><strong>Azure Automation</strong> — Run update management and inventory tracking on on-premises servers</li>
+            <li><strong>Tags and RBAC</strong> — Tag on-premises servers and control who manages them using Azure RBAC</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real Example</strong>
+              A manufacturing company has 200 on-premises Linux servers running their production control systems — they can't migrate these to cloud. With Azure Arc, they onboard all 200 servers into Azure, apply a security baseline policy, and monitor them all from a single Azure Monitor dashboard — without moving a single workload.
+            </div>
+          </div>
+
+          <h2 id="arc-kubernetes">Arc-Enabled Kubernetes</h2>
+          <p>Azure Arc-enabled Kubernetes lets you attach any Kubernetes cluster — running on-premises, on AWS EKS, on Google GKE, or anywhere else — to Azure. Once attached, you can manage and govern it from the Azure Portal.</p>
+
+          <h3>What You Can Do</h3>
+          <ul>
+            <li>View cluster health and inventory in the Azure Portal</li>
+            <li>Deploy applications to the cluster using GitOps (Flux)</li>
+            <li>Apply Azure Policies to enforce cluster configuration standards</li>
+            <li>Monitor with Azure Monitor for containers</li>
+            <li>Use Microsoft Defender for Kubernetes threat protection</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>GitOps with Arc</strong>
+              Arc-enabled Kubernetes supports GitOps — a practice where your cluster configuration is stored in a Git repository and automatically applied to the cluster. Any change in Git is automatically deployed to the cluster. This works across all your clusters, regardless of where they run.
+            </div>
+          </div>
+
+          <h2 id="arc-data">Arc-Enabled Data Services</h2>
+          <p>Azure Arc-enabled Data Services lets you run Azure data services — specifically Azure SQL Managed Instance and PostgreSQL — on any infrastructure, while still being managed like Azure services.</p>
+          <p>This means you can run Azure SQL Managed Instance on your on-premises servers and get:</p>
+          <ul>
+            <li>Automatic updates and patching (Microsoft manages the data service layer)</li>
+            <li>Elastic scale — add or remove vCores without downtime</li>
+            <li>Built-in high availability</li>
+            <li>Azure data security features</li>
+          </ul>
+
+          <h2 id="governance">Governance with Azure Arc</h2>
+          <p>One of Arc's biggest value propositions is applying Azure's governance tools to non-Azure resources:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Azure Governance Tool</th><th>Works on Arc Resources?</th><th>What It Does</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Azure Policy</td><td>✅ Yes</td><td>Enforce configuration standards on any Arc resource</td></tr>
+                <tr><td>Azure RBAC</td><td>✅ Yes</td><td>Control who can manage Arc resources</td></tr>
+                <tr><td>Azure Tags</td><td>✅ Yes</td><td>Organise and track costs for non-Azure resources</td></tr>
+                <tr><td>Azure Monitor</td><td>✅ Yes</td><td>Collect logs and metrics from anywhere</td></tr>
+                <tr><td>Microsoft Defender</td><td>✅ Yes</td><td>Security monitoring and threat detection</td></tr>
+                <tr><td>Azure Update Manager</td><td>✅ Yes</td><td>Patch management for on-premises servers</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="when-to-use">When to Use Azure Arc</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Use Arc?</th><th>Why</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>On-premises servers you can't migrate</td><td>✅ Yes</td><td>Bring Azure governance to servers that must stay on-prem</td></tr>
+                <tr><td>Kubernetes clusters on AWS/GCP</td><td>✅ Yes</td><td>Manage multi-cloud K8s from one place</td></tr>
+                <tr><td>Hybrid cloud strategy</td><td>✅ Yes</td><td>Consistent governance across cloud and on-prem</td></tr>
+                <tr><td>All resources already in Azure</td><td>❌ Not needed</td><td>Azure-native resources are already managed by Azure</td></tr>
+                <tr><td>Edge devices and IoT</td><td>✅ Yes</td><td>Arc can manage edge devices like retail kiosks or factory machines</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="arc-vs-stack">Azure Arc vs Azure Stack</h2>
+          <p>These are two different Microsoft products for hybrid cloud — they're often confused:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Azure Arc</th><th>Azure Stack Hub</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>What it is</td><td>Management layer for non-Azure resources</td><td>Azure infrastructure running in your data centre</td></tr>
+                <tr><td>Requires Azure hardware?</td><td>No — works with any server</td><td>Yes — specific Microsoft-validated hardware</td></tr>
+                <tr><td>Runs Azure services locally?</td><td>No — management only</td><td>Yes — actual Azure VMs, App Service, etc. run on-prem</td></tr>
+                <tr><td>Best for</td><td>Governance of existing on-prem and multi-cloud resources</td><td>Full Azure IaaS/PaaS capabilities in disconnected environments</td></tr>
+                <tr><td>Cost</td><td>Pay per managed resource</td><td>Significant hardware investment</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Azure Arc = extend Azure management to resources outside Azure (on-premises, AWS, GCP). It does not move resources to Azure — the agent just makes them manageable from Azure. Know the types: Arc-enabled Servers, Arc-enabled Kubernetes, Arc-enabled Data Services.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What does Azure Arc enable?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Arc does not migrate workloads to Azure — it extends Azure management to where resources already are, without moving them.')">
+                <span class="option-label">A</span> Automatic migration of on-premises workloads to Azure
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Arc extends Azure management, governance, and services to resources running outside Azure — on-premises, on AWS, on GCP, or at the edge — without migrating them.')">
+                <span class="option-label">B</span> Managing resources outside Azure using the Azure control plane
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Arc does not provide free cloud storage — it is a management and governance platform.')">
+                <span class="option-label">C</span> Free cloud storage for on-premises backup
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Arc does not replace the Azure Portal — it extends the portal\'s management capabilities to non-Azure resources.')">
+                <span class="option-label">D</span> A replacement for the Azure Portal with a desktop application
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company has 100 on-premises Linux servers they cannot migrate to Azure due to regulatory constraints. They want to monitor and apply security policies to these servers using Azure tools. What should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Monitor alone cannot manage on-premises servers without Arc — Arc is the bridge that makes on-premises servers visible to Azure tools.')">
+                <span class="option-label">A</span> Azure Monitor only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Migrate is for moving workloads TO Azure — the company specifically cannot migrate these servers.')">
+                <span class="option-label">B</span> Azure Migrate
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Arc-enabled Servers is exactly the right solution. Install the Arc agent on the on-premises Linux servers, register them with Azure, and then use Azure Policy, Azure Monitor, and Microsoft Defender — all without moving the servers to Azure.')">
+                <span class="option-label">C</span> Azure Arc-enabled Servers
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Stack Hub requires specific Microsoft-validated hardware and runs Azure infrastructure on-premises — it does not manage existing servers.')">
+                <span class="option-label">D</span> Azure Stack Hub
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What happens to an on-premises server's workload when the Azure Arc agent is installed on it?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Installing the Arc agent does not migrate the server\'s workload to Azure. The workload stays exactly where it is.')">
+                <span class="option-label">A</span> The workload is automatically migrated to the nearest Azure region
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Installing the Arc agent does not copy data to Azure — only management metadata and telemetry are sent to Azure.')">
+                <span class="option-label">B</span> A copy of the workload is created in Azure as a backup
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Installing the Arc agent does NOT move the workload. The server and its data stay exactly where they are. Only management capabilities are extended — the server becomes visible and manageable through the Azure Portal.')">
+                <span class="option-label">C</span> Nothing — the workload stays on-premises; only management is extended to Azure
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The server is not shut down — it continues running its workloads normally while also being managed through Azure Arc.')">
+                <span class="option-label">D</span> The server is shut down and replaced with an Azure VM
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which of the following Azure governance tools can be applied to Arc-enabled resources?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Policy alone is not the complete answer — Arc supports multiple Azure governance tools including Policy, RBAC, Monitor, Defender, and Tags.')">
+                <span class="option-label">A</span> Azure Policy only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Monitor alone is not the complete answer — Arc supports many more governance tools than just monitoring.')">
+                <span class="option-label">B</span> Azure Monitor only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure RBAC alone is not the complete answer — Arc supports a full suite of Azure governance tools.')">
+                <span class="option-label">C</span> Azure RBAC only
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Arc-enabled resources support the full suite of Azure governance tools — Azure Policy, RBAC, Tags, Azure Monitor, Microsoft Defender, and Azure Update Manager all work on Arc resources just as they do on native Azure resources.')">
+                <span class="option-label">D</span> Azure Policy, RBAC, Tags, Monitor, and Defender — all work on Arc resources
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the key difference between Azure Arc and Azure Stack Hub?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Azure Arc and Azure Stack Hub are designed for hybrid scenarios — Arc is not Azure-only.')">
+                <span class="option-label">A</span> Azure Arc is for Azure-only resources; Azure Stack Hub is for on-premises resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Arc extends Azure management to existing resources outside Azure (no hardware needed). Azure Stack Hub runs actual Azure infrastructure on Microsoft-validated hardware in your data centre — it is a full Azure-in-a-box solution requiring significant hardware investment.')">
+                <span class="option-label">B</span> Azure Arc extends management to existing non-Azure resources; Azure Stack Hub runs Azure services in your own data centre on dedicated hardware
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Stack Hub is a separate product from Azure Stack HCI — they solve different problems. And Arc is not a cheaper version of Stack Hub.')">
+                <span class="option-label">C</span> Azure Arc is a cheaper version of Azure Stack Hub
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both products work with both Windows and Linux — OS support is not the differentiator.')">
+                <span class="option-label">D</span> Azure Arc is for Windows only; Azure Stack Hub is for Linux only
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="management-groups.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Management Groups</span>
+            </a>
+            <a class="related-card" href="subscriptions.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Subscriptions</span>
+            </a>
+            <a class="related-card" href="cloud-types.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Public vs Private vs Hybrid Cloud</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="management-groups.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Management Groups</span>
+          </a>
+          <a class="nav-card next" href="../../index.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Back to Azure Fundamentals</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

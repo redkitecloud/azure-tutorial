@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Portal Walkthrough | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="A complete walkthrough of the Azure Portal — navigation, key sections, how to create resources, and tips for the AZ-900 exam." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Portal Walkthrough</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Portal Walkthrough</h1>
+
+        <p class="page-intro">
+          The Azure Portal is your web-based control centre for everything in Azure. Every resource you create, every setting you change, every bill you check — it all happens through the portal. Whether you're a developer, an architect, or an administrator, the portal is the first tool you'll open every day. This page walks you through every section so you know exactly where everything is.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What the Azure Portal is · How to navigate the portal · The Home page, All Services, and search · Resource Groups, Subscriptions, and Management Groups in the portal · How to create your first resource · The Notifications panel · Azure Cloud Shell in the portal · Portal customisation tips
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-portal">What is the Azure Portal?</a></li>
+            <li><a href="#accessing">Accessing the Portal</a></li>
+            <li><a href="#layout">Portal Layout Overview</a></li>
+            <li><a href="#home">The Home Page</a></li>
+            <li><a href="#search">Global Search</a></li>
+            <li><a href="#all-services">All Services</a></li>
+            <li><a href="#resource-groups">Resource Groups in the Portal</a></li>
+            <li><a href="#creating">Creating Your First Resource</a></li>
+            <li><a href="#notifications">Notifications &amp; Activity Log</a></li>
+            <li><a href="#cloud-shell">Cloud Shell in the Portal</a></li>
+            <li><a href="#customising">Customising the Portal</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-portal">What is the Azure Portal?</h2>
+          <p>The Azure Portal is a web-based, unified management console for Microsoft Azure. It provides a graphical user interface (GUI) to manage all your Azure resources — virtual machines, databases, storage accounts, networks, security settings, billing, and everything else — without writing a single line of code.</p>
+          <p>Think of it as the dashboard for your entire cloud infrastructure. Everything Azure can do, you can do through the portal — albeit sometimes more efficiently via CLI or PowerShell for repetitive tasks.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Portal vs CLI vs PowerShell</strong>
+              The portal is best for learning, exploration, and one-off tasks. For automation, scripting, and repeatable deployments, Azure CLI and PowerShell are faster. All three tools can do the same things — just in different ways.
+            </div>
+          </div>
+
+          <h2 id="accessing">Accessing the Portal</h2>
+          <p>The Azure Portal is accessible from any modern web browser. No installation required.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">URL</span>
+              <span class="code-label">Azure Portal</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>https://portal.azure.com</code></pre>
+          </div>
+
+          <p>Sign in with your Microsoft account (personal) or your Azure Active Directory / Entra ID account (work/school). If you have a free account, sign in with the Microsoft account you used to create it.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Mobile Access</strong>
+              Azure also has a mobile app for iOS and Android — <strong>Microsoft Azure</strong>. It gives you a simplified portal experience on your phone, ideal for monitoring and alerts while you're away from your desk.
+            </div>
+          </div>
+
+          <h2 id="layout">Portal Layout Overview</h2>
+          <p>When you first log in, the portal has four main areas:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Area</th><th>Location</th><th>Purpose</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Top navigation bar</td><td>Top of page</td><td>Search, notifications, Cloud Shell, settings, account</td></tr>
+                <tr><td>Left sidebar (Favourites)</td><td>Left edge</td><td>Quick access to your pinned and favourite services</td></tr>
+                <tr><td>Main content area</td><td>Centre</td><td>Whatever page or resource you're currently viewing</td></tr>
+                <tr><td>Breadcrumb trail</td><td>Top of content area</td><td>Shows your navigation path so you can go back easily</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="home">The Home Page</h2>
+          <p>The Home page is what you see immediately after logging in. It contains several useful sections:</p>
+
+          <h3>Azure Services Row</h3>
+          <p>A quick-access row of the most commonly used Azure services — Virtual Machines, Storage Accounts, SQL Databases, App Services, and more. Click any icon to go directly to that service's blade.</p>
+
+          <h3>Recent Resources</h3>
+          <p>Shows the last resources you visited or created. Extremely useful for quickly jumping back to something you were working on. Azure remembers your last 20 visited resources.</p>
+
+          <h3>Navigate Section</h3>
+          <p>Quick links to key portal areas: Subscriptions, Resource Groups, All Resources, and Dashboard. These are the four most-visited locations in the portal for most users.</p>
+
+          <h3>Useful Links and Tools</h3>
+          <p>Links to Azure documentation, tutorials, and pricing calculator — useful when you're learning or planning costs.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Pro Tip</strong>
+              You can switch between Home view and Dashboard view using the toggle at the top left. Dashboards are customisable — you can pin any resource, metric, or chart to your dashboard for a personalised overview.
+            </div>
+          </div>
+
+          <h2 id="search">Global Search</h2>
+          <p>The search bar at the top of every portal page is one of the most powerful features. You can use it to:</p>
+          <ul>
+            <li>Find any Azure service by name (e.g., type "virtual machine" to go directly to VM creation)</li>
+            <li>Search for specific resources you've already created (e.g., find your VM named "myVM-prod")</li>
+            <li>Search documentation and marketplace items</li>
+            <li>Navigate to portal settings and features</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Keyboard Shortcut</strong>
+              Press <strong>G then /</strong> (or just click the search bar) to jump straight to global search from anywhere in the portal. This is the fastest way to navigate.
+            </div>
+          </div>
+
+          <h2 id="all-services">All Services</h2>
+          <p>Click <strong>All Services</strong> in the left sidebar to see every single Azure service organised by category. There are 200+ services — the categories make it manageable:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Category</th><th>Example Services</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Compute</td><td>Virtual Machines, App Service, Functions, AKS</td></tr>
+                <tr><td>Networking</td><td>Virtual Networks, Load Balancers, VPN Gateway</td></tr>
+                <tr><td>Storage</td><td>Storage Accounts, Blob Storage, File Shares</td></tr>
+                <tr><td>Databases</td><td>Azure SQL, Cosmos DB, MySQL, PostgreSQL</td></tr>
+                <tr><td>AI + Machine Learning</td><td>Azure OpenAI, Cognitive Services, Azure ML</td></tr>
+                <tr><td>Security</td><td>Microsoft Defender, Key Vault, Entra ID</td></tr>
+                <tr><td>Management + Governance</td><td>Cost Management, Azure Policy, Advisor</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>You can also mark any service as a Favourite (click the star) to pin it to your left sidebar for one-click access.</p>
+
+          <h2 id="resource-groups">Resource Groups in the Portal</h2>
+          <p>Resource Groups are one of the most important concepts in Azure — and the portal makes them easy to work with. A Resource Group is a logical container that holds related Azure resources. Think of it as a folder for your cloud resources.</p>
+
+          <h3>Why Resource Groups Matter</h3>
+          <ul>
+            <li>Every Azure resource must belong to exactly one Resource Group</li>
+            <li>You can delete a Resource Group to delete all resources inside it at once — very useful for cleaning up test environments</li>
+            <li>You can apply access control (RBAC) and tags at the Resource Group level</li>
+            <li>Resources in a group don't have to be in the same region</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Naming Convention</strong>
+              A good naming convention: <code>rg-[project]-[environment]-[region]</code><br/>
+              Example: <code>rg-webapp-prod-centralindia</code> or <code>rg-api-dev-eastus</code>
+            </div>
+          </div>
+
+          <h2 id="creating">Creating Your First Resource</h2>
+          <p>Creating any resource in the Azure Portal follows the same pattern — a multi-step wizard called a <strong>Create blade</strong>.</p>
+
+          <h3>Step-by-Step: Create a Resource Group</h3>
+          <p>Let's walk through creating a Resource Group — the simplest resource and the first thing you create before anything else.</p>
+
+          <ol>
+            <li>In the portal, click <strong>Resource groups</strong> in the left sidebar (or search for it)</li>
+            <li>Click <strong>+ Create</strong> at the top</li>
+            <li>Select your <strong>Subscription</strong></li>
+            <li>Enter a <strong>Resource group name</strong> (e.g., <code>rg-learning-centralindia</code>)</li>
+            <li>Select a <strong>Region</strong> — choose Central India for Indian workloads</li>
+            <li>Click <strong>Review + create</strong></li>
+            <li>Review the summary, then click <strong>Create</strong></li>
+          </ol>
+
+          <p>Your Resource Group is created in seconds and appears in the Resource groups list.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Review + Create Pattern</strong>
+              Almost every resource creation in Azure ends with a "Review + create" tab. This shows you a summary of everything you've configured and runs validation. Azure checks for errors before you deploy. If validation fails, it highlights exactly what needs to be fixed.
+            </div>
+          </div>
+
+          <h2 id="notifications">Notifications &amp; Activity Log</h2>
+          <p>The bell icon (🔔) in the top navigation bar shows all recent portal notifications — resource deployments, alerts, policy violations, and more. Click it to see the status of recent operations.</p>
+          <p>For a complete history of everything that happened in your subscription, go to <strong>Monitor → Activity Log</strong>. This shows every create, update, and delete operation across all resources — who did it, when, and the result.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Deployment Failures</strong>
+              If a resource deployment fails, click the notification to see the detailed error message. Azure gives very specific error reasons — missing quotas, naming conflicts, policy violations — so you know exactly what to fix.
+            </div>
+          </div>
+
+          <h2 id="cloud-shell">Cloud Shell in the Portal</h2>
+          <p>The terminal icon (<strong>&gt;_</strong>) in the top navigation bar opens <strong>Azure Cloud Shell</strong> — a fully functional terminal built directly into the browser. No installation, no configuration. Choose between Bash (Azure CLI) or PowerShell and start running commands immediately.</p>
+          <p>Cloud Shell comes with:</p>
+          <ul>
+            <li>Azure CLI pre-installed and authenticated</li>
+            <li>Azure PowerShell pre-installed</li>
+            <li>5 GB of persistent storage (for scripts and files)</li>
+            <li>Common tools: git, kubectl, terraform, python, and more</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>First Time Setup</strong>
+              The first time you open Cloud Shell, Azure will ask you to create a storage account to persist your files. Choose your subscription and a region close to you — Central India works well. This is a one-time setup.
+            </div>
+          </div>
+
+          <h2 id="customising">Customising the Portal</h2>
+          <p>The Azure Portal is highly customisable. Here are the most useful customisation options:</p>
+
+          <h3>Favourites</h3>
+          <p>In the left sidebar, right-click any item to pin/unpin it, or go to All Services and click the star next to any service. Your favourites appear at the top of the sidebar for one-click access.</p>
+
+          <h3>Dashboards</h3>
+          <p>Click <strong>Dashboard</strong> in the portal to create a personalised view. Pin any resource, chart, metric, or service tile to your dashboard. You can have multiple dashboards — one for production monitoring, one for cost tracking, one for a specific project.</p>
+
+          <h3>Portal Settings</h3>
+          <p>Click the gear icon (⚙️) in the top right to access portal settings:</p>
+          <ul>
+            <li><strong>Appearance</strong> — Light or dark mode</li>
+            <li><strong>Language &amp; Region</strong> — Change the portal language</li>
+            <li><strong>Timeout</strong> — Set an inactivity timeout for security</li>
+            <li><strong>Startup page</strong> — Choose between Home and Dashboard as your landing page</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              The exam may ask what the Azure Portal is, how resources are managed in it, and what tools it provides. Key facts: web-based GUI at portal.azure.com · no installation required · accessible from any browser · includes Cloud Shell · supports dashboards and customisation.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the Azure Portal?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal is a web-based GUI — not a command-line tool. Azure CLI and PowerShell are the command-line tools.')">
+                <span class="option-label">A</span> A command-line tool for managing Azure resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure Portal is a web-based graphical interface at portal.azure.com. It allows you to manage all Azure resources through a GUI without writing any code.')">
+                <span class="option-label">B</span> A web-based graphical interface for managing Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal is not a programming API — that\'s the Azure REST API or SDKs. The portal is a visual GUI.')">
+                <span class="option-label">C</span> A programming API for deploying Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal is not a mobile app — it\'s a web application. There is a separate Azure mobile app, but it\'s not the portal.')">
+                <span class="option-label">D</span> A mobile app for monitoring Azure resources
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the URL for the Azure Portal?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. azure.microsoft.com is Microsoft\'s Azure marketing website — not the portal.')">
+                <span class="option-label">A</span> azure.microsoft.com
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure Portal is accessed at portal.azure.com. Sign in with your Microsoft account or organisational account to manage your Azure resources.')">
+                <span class="option-label">B</span> portal.azure.com
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. manage.azure.com is not the correct URL for the Azure Portal.')">
+                <span class="option-label">C</span> manage.azure.com
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. console.azure.com is not the correct URL for the Azure Portal.')">
+                <span class="option-label">D</span> console.azure.com
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is a Resource Group in Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Resource Group is not a billing unit — that\'s a Subscription. Resource Groups are logical containers for organising resources.')">
+                <span class="option-label">A</span> A billing unit that determines how Azure charges you
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Resource Group is not a physical location — that\'s a Region. Resources in a group can span multiple regions.')">
+                <span class="option-label">B</span> A physical data centre location for your resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Resource Group is a logical container that holds related Azure resources. Every resource must belong to exactly one Resource Group. Deleting a Resource Group deletes all resources inside it.')">
+                <span class="option-label">C</span> A logical container that holds related Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Resource Group is not a security boundary — that\'s managed through RBAC policies and subscriptions. Resource Groups are for organisation.')">
+                <span class="option-label">D</span> A security boundary that isolates resources from each other
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is Azure Cloud Shell?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell is built into the browser — it is not a separate desktop application you install.')">
+                <span class="option-label">A</span> A desktop application you install on your computer
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell is a command-line terminal, not a GUI dashboard for monitoring.')">
+                <span class="option-label">B</span> A visual dashboard for monitoring Azure resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cloud Shell is a browser-based terminal built into the Azure Portal. It provides Bash (Azure CLI) or PowerShell environments, pre-authenticated and pre-configured, with no installation required.')">
+                <span class="option-label">C</span> A browser-based terminal built into the portal with CLI and PowerShell pre-installed
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell is not limited to storage management — it can run any Azure CLI or PowerShell command across all Azure services.')">
+                <span class="option-label">D</span> A tool specifically for managing Azure Storage accounts
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What happens when you delete a Resource Group in Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting a Resource Group does not just remove the grouping — it permanently deletes all resources inside it.')">
+                <span class="option-label">A</span> Only the Resource Group container is deleted; the resources inside remain
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting a Resource Group immediately triggers deletion of all resources inside — they are not moved anywhere.')">
+                <span class="option-label">B</span> Resources are moved to a default Resource Group automatically
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deleting a Resource Group permanently deletes the Resource Group AND all resources inside it. This is why it\'s a powerful way to clean up test environments — one delete removes everything.')">
+                <span class="option-label">C</span> The Resource Group and all resources inside it are permanently deleted
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resources are not archived — they are permanently deleted. There is no automatic archive or recovery unless you have explicit backups.')">
+                <span class="option-label">D</span> Resources are archived and can be restored within 30 days
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="region-pairs.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Region Pairs</span>
+            </a>
+            <a class="related-card" href="azure-cli.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure CLI — Complete Guide</span>
+            </a>
+            <a class="related-card" href="azure-powershell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure PowerShell</span>
+            </a>
+            <a class="related-card" href="cloud-shell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Cloud Shell</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="region-pairs.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Region Pairs</span>
+          </a>
+          <a class="nav-card next" href="azure-cli.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure CLI — Complete Guide</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

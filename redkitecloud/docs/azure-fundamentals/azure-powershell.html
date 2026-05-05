@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure PowerShell | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Learn Azure PowerShell — installation, authentication, core cmdlets, and real-world examples. Covers AZ-900 exam objectives." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure PowerShell</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure PowerShell</h1>
+
+        <p class="page-intro">
+          Azure PowerShell is Microsoft's scripting solution for managing Azure resources. If you come from a Windows administration background, you already know PowerShell — Azure PowerShell is simply a set of modules that adds Azure-specific commands (called cmdlets) to that familiar environment. Even if you're new to PowerShell, it's worth learning alongside the CLI, especially for enterprise Windows environments.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Azure PowerShell is · How it differs from Azure CLI · Installing on Windows, Mac, and Linux · Signing in and managing accounts · PowerShell cmdlet structure · Essential cmdlets for resources, VMs, and storage · Real-world scripting examples · CLI vs PowerShell — when to use which
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-ps">What is Azure PowerShell?</a></li>
+            <li><a href="#cli-vs-ps">Azure CLI vs Azure PowerShell</a></li>
+            <li><a href="#installing">Installing Azure PowerShell</a></li>
+            <li><a href="#signing-in">Signing In</a></li>
+            <li><a href="#cmdlet-structure">Cmdlet Structure Explained</a></li>
+            <li><a href="#core-cmdlets">Essential Cmdlets</a></li>
+            <li><a href="#scripting">Writing PowerShell Scripts</a></li>
+            <li><a href="#real-world">Real-World Examples</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-ps">What is Azure PowerShell?</h2>
+          <p>Azure PowerShell is a set of PowerShell modules (specifically the <strong>Az module</strong>) that provide cmdlets for managing Azure resources. You run it inside a PowerShell terminal — either Windows PowerShell (built into Windows) or the newer cross-platform <strong>PowerShell 7+</strong> (which runs on Windows, macOS, and Linux).</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Az Module vs AzureRM Module</strong>
+              The original Azure PowerShell module was called <strong>AzureRM</strong>. It was replaced by the <strong>Az module</strong> in 2019. If you see tutorials using <code>Get-AzureRmVM</code>, they are outdated. The modern equivalent is <code>Get-AzVM</code>. Always use the Az module.
+            </div>
+          </div>
+
+          <h2 id="cli-vs-ps">Azure CLI vs Azure PowerShell</h2>
+          <p>Both tools can do everything — the question is which fits your workflow better.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Factor</th><th>Azure CLI</th><th>Azure PowerShell</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Language</td><td>Bash-style commands</td><td>PowerShell cmdlets (Verb-Noun)</td></tr>
+                <tr><td>Best for</td><td>Linux/Mac admins, developers</td><td>Windows admins, enterprises</td></tr>
+                <tr><td>Syntax</td><td><code>az vm create ...</code></td><td><code>New-AzVM ...</code></td></tr>
+                <tr><td>Scripting</td><td>.sh bash scripts</td><td>.ps1 PowerShell scripts</td></tr>
+                <tr><td>Output</td><td>JSON by default</td><td>PowerShell objects (rich)</td></tr>
+                <tr><td>Platforms</td><td>Windows, Mac, Linux</td><td>Windows, Mac, Linux (PS7+)</td></tr>
+                <tr><td>In Cloud Shell</td><td>Yes (Bash mode)</td><td>Yes (PowerShell mode)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Which Should You Learn?</strong>
+              Learn both at a basic level. In practice, most cloud engineers prefer Azure CLI for day-to-day tasks. Windows administrators and enterprise teams often prefer PowerShell. Knowing both makes you versatile and more employable.
+            </div>
+          </div>
+
+          <h2 id="installing">Installing Azure PowerShell</h2>
+
+          <h3>Windows (PowerShell 5.1 or 7+)</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Install Az module on Windows</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Run as Administrator
+Install-Module -Name Az -Repository PSGallery -Force</code></pre>
+          </div>
+
+          <h3>macOS</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Install PowerShell 7 + Az module on macOS</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Install PowerShell 7 first
+brew install --cask powershell
+
+# Then open pwsh and install Az module
+pwsh
+Install-Module -Name Az -Repository PSGallery -Force</code></pre>
+          </div>
+
+          <h3>Linux (Ubuntu)</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Install PowerShell 7 + Az module on Ubuntu</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Install PowerShell 7
+sudo snap install powershell --classic
+
+# Launch PowerShell and install Az module
+pwsh
+Install-Module -Name Az -Repository PSGallery -Force</code></pre>
+          </div>
+
+          <h3>Verify Installation</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Check Az module version</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>Get-Module -Name Az -ListAvailable</code></pre>
+          </div>
+
+          <h2 id="signing-in">Signing In</h2>
+
+          <h3>Interactive Login</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Sign in to Azure</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>Connect-AzAccount</code></pre>
+          </div>
+          <p>This opens a browser for authentication. After signing in, PowerShell shows a list of your subscriptions.</p>
+
+          <h3>Check Current Account</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Get current context</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>Get-AzContext</code></pre>
+          </div>
+
+          <h3>List and Switch Subscriptions</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Manage subscriptions</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># List all subscriptions
+Get-AzSubscription
+
+# Switch to a specific subscription
+Set-AzContext -SubscriptionName "My Subscription"
+# OR by ID:
+Set-AzContext -SubscriptionId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"</code></pre>
+          </div>
+
+          <h2 id="cmdlet-structure">Cmdlet Structure Explained</h2>
+          <p>PowerShell commands are called <strong>cmdlets</strong> (pronounced "command-lets"). They always follow a <strong>Verb-Noun</strong> pattern, making them very readable and predictable.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Structure</span>
+              <span class="code-label">Azure PowerShell cmdlet pattern</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>[Verb]-Az[Noun] -Parameter Value
+
+# Examples:
+New-AzResourceGroup      # New (create) + Az + ResourceGroup
+Get-AzVM                 # Get (read) + Az + VM
+Remove-AzStorageAccount  # Remove (delete) + Az + StorageAccount
+Start-AzVM               # Start (action) + Az + VM</code></pre>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Verb</th><th>Action</th><th>Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>New-Az</code></td><td>Create a resource</td><td><code>New-AzResourceGroup</code></td></tr>
+                <tr><td><code>Get-Az</code></td><td>Read/list a resource</td><td><code>Get-AzVM</code></td></tr>
+                <tr><td><code>Set-Az</code></td><td>Update a resource</td><td><code>Set-AzVMSize</code></td></tr>
+                <tr><td><code>Remove-Az</code></td><td>Delete a resource</td><td><code>Remove-AzResourceGroup</code></td></tr>
+                <tr><td><code>Start-Az</code></td><td>Start a resource</td><td><code>Start-AzVM</code></td></tr>
+                <tr><td><code>Stop-Az</code></td><td>Stop a resource</td><td><code>Stop-AzVM</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="core-cmdlets">Essential Cmdlets</h2>
+
+          <h3>Resource Groups</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Resource Group cmdlets</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a resource group
+New-AzResourceGroup -Name "myResourceGroup" -Location "centralindia"
+
+# List all resource groups
+Get-AzResourceGroup | Format-Table
+
+# Delete a resource group (and all resources inside)
+Remove-AzResourceGroup -Name "myResourceGroup" -Force</code></pre>
+          </div>
+
+          <h3>Virtual Machines</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">VM cmdlets</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># List all VMs in a resource group
+Get-AzVM -ResourceGroupName "myResourceGroup"
+
+# Start a VM
+Start-AzVM -ResourceGroupName "myResourceGroup" -Name "myVM"
+
+# Stop and deallocate a VM (stops billing)
+Stop-AzVM -ResourceGroupName "myResourceGroup" -Name "myVM" -Force
+
+# Get VM status
+Get-AzVM -ResourceGroupName "myResourceGroup" -Name "myVM" -Status</code></pre>
+          </div>
+
+          <h3>Storage Accounts</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Storage cmdlets</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a storage account
+New-AzStorageAccount `
+  -ResourceGroupName "myResourceGroup" `
+  -Name "mystorageaccount" `
+  -Location "centralindia" `
+  -SkuName "Standard_LRS"
+
+# List storage accounts
+Get-AzStorageAccount | Format-Table
+
+# Delete a storage account
+Remove-AzStorageAccount `
+  -ResourceGroupName "myResourceGroup" `
+  -Name "mystorageaccount" -Force</code></pre>
+          </div>
+
+          <h2 id="scripting">Writing PowerShell Scripts</h2>
+          <p>One of PowerShell's biggest strengths is scripting. You can save commands in a <code>.ps1</code> file and run them repeatedly. Here's a well-structured script example:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">deploy-environment.ps1</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># deploy-environment.ps1
+# Creates a complete dev environment
+
+param(
+  [string]$Environment = "dev",
+  [string]$Location = "centralindia"
+)
+
+$rgName = "rg-webapp-$Environment"
+
+# Create Resource Group
+Write-Host "Creating Resource Group: $rgName"
+New-AzResourceGroup -Name $rgName -Location $Location -Force
+
+# Create Storage Account
+$storageName = "stwebapp$Environment"
+Write-Host "Creating Storage Account: $storageName"
+New-AzStorageAccount `
+  -ResourceGroupName $rgName `
+  -Name $storageName `
+  -Location $Location `
+  -SkuName "Standard_LRS"
+
+Write-Host "Deployment complete!"</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Run the script</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>.\deploy-environment.ps1 -Environment "staging" -Location "centralindia"</code></pre>
+          </div>
+
+          <h2 id="real-world">Real-World Examples</h2>
+
+          <h3>Stop All VMs in a Resource Group (Cost Saving)</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Stop all VMs in a resource group</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Stop and deallocate all VMs in a resource group
+# Run this every evening to save cost on dev/test VMs
+$vms = Get-AzVM -ResourceGroupName "rg-dev"
+foreach ($vm in $vms) {
+  Write-Host "Stopping VM: $($vm.Name)"
+  Stop-AzVM -ResourceGroupName "rg-dev" -Name $vm.Name -Force
+}
+Write-Host "All VMs stopped. Billing halted."</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Know what Azure PowerShell is (the Az module for managing Azure from PowerShell), that cmdlets use Verb-Noun syntax, that it works in Cloud Shell, and that it's best suited for Windows administrators. The exam won't ask you to memorise specific cmdlets.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the name of the PowerShell module used to manage Azure resources?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AzureRM was the original Azure PowerShell module but it was replaced by the Az module in 2019. AzureRM is now deprecated.')">
+                <span class="option-label">A</span> AzureRM
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Az module is the current, supported PowerShell module for managing Azure resources. It replaced the older AzureRM module in 2019.')">
+                <span class="option-label">B</span> Az
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AzureCLI is the name of a different tool — the Azure CLI. It is not a PowerShell module.')">
+                <span class="option-label">C</span> AzureCLI
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. MsAzure is not a valid Azure PowerShell module name.')">
+                <span class="option-label">D</span> MsAzure
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the Azure PowerShell command to sign in to Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az login</code> is the Azure CLI command for signing in — not Azure PowerShell.')">
+                <span class="option-label">A</span> az login
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>Login-AzAccount</code> is an older alias that still works but the recommended modern cmdlet is <code>Connect-AzAccount</code>.')">
+                <span class="option-label">B</span> Login-AzAccount
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! <code>Connect-AzAccount</code> is the correct and current cmdlet for signing in to Azure using PowerShell. It opens a browser for authentication.')">
+                <span class="option-label">C</span> Connect-AzAccount
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>Sign-AzAccount</code> is not a valid Azure PowerShell cmdlet.')">
+                <span class="option-label">D</span> Sign-AzAccount
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Which naming pattern do Azure PowerShell cmdlets follow?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az-[service]-[action] is the pattern for Azure CLI commands — not PowerShell cmdlets.')">
+                <span class="option-label">A</span> az-[service]-[action]
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure PowerShell cmdlets follow the Verb-AzNoun pattern — for example New-AzResourceGroup, Get-AzVM, Remove-AzStorageAccount. This makes cmdlets descriptive and predictable.')">
+                <span class="option-label">B</span> Verb-AzNoun (e.g. New-AzResourceGroup, Get-AzVM)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. [service].[action] is a method syntax used in SDKs and programming languages — not PowerShell cmdlets.')">
+                <span class="option-label">C</span> [service].[action] (e.g. vm.create)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure-[Noun]-[Verb] is not the correct PowerShell cmdlet pattern.')">
+                <span class="option-label">D</span> Azure-[Noun]-[Verb]
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A Windows system administrator wants to automate Azure deployments using their existing scripting skills. Which tool is most appropriate?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal is a GUI — it cannot be used for automation or scripting.')">
+                <span class="option-label">A</span> Azure Portal
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CLI uses Bash-style syntax — a Windows administrator with PowerShell skills would find Azure PowerShell more natural.')">
+                <span class="option-label">B</span> Azure CLI
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure PowerShell is ideal for Windows administrators who already know PowerShell. They can leverage existing scripting knowledge — variables, loops, error handling — with Azure-specific cmdlets.')">
+                <span class="option-label">C</span> Azure PowerShell
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Cloud Shell is a browser-based environment — it is not a standalone scripting tool for automation pipelines.')">
+                <span class="option-label">D</span> Azure Cloud Shell
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the correct Azure PowerShell cmdlet to create a new Resource Group?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>Create-AzResourceGroup</code> is not a valid cmdlet — PowerShell uses <code>New</code> as the verb for creation, not <code>Create</code>.')">
+                <span class="option-label">A</span> Create-AzResourceGroup
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az group create</code> is the Azure CLI command — not a PowerShell cmdlet.')">
+                <span class="option-label">B</span> az group create
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! <code>New-AzResourceGroup</code> is the correct PowerShell cmdlet for creating a Resource Group. It follows the Verb-AzNoun pattern: New (create) + Az + ResourceGroup.')">
+                <span class="option-label">C</span> New-AzResourceGroup
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>Add-AzResourceGroup</code> is not the correct cmdlet — use <code>New-AzResourceGroup</code> to create a Resource Group.')">
+                <span class="option-label">D</span> Add-AzResourceGroup
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="azure-cli.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure CLI — Complete Guide</span>
+            </a>
+            <a class="related-card" href="azure-portal.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Portal Walkthrough</span>
+            </a>
+            <a class="related-card" href="cloud-shell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Cloud Shell</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="azure-cli.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure CLI — Complete Guide</span>
+          </a>
+          <a class="nav-card next" href="cloud-shell.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Cloud Shell</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

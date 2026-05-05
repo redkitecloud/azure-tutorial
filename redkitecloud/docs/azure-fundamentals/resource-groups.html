@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Resource Groups | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Deep dive into Azure Resource Groups — what they are, how to organise them, apply tags, manage access, and follow best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Resource Groups</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Resource Groups</h1>
+
+        <p class="page-intro">
+          Every single resource you create in Azure — every VM, storage account, database, network — must live inside a Resource Group. Resource Groups are the fundamental unit of organisation in Azure. Get them right and your Azure environment is clean, manageable, and cost-transparent. Get them wrong and you'll be hunting for resources across a chaotic subscription. This page covers everything you need to know.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Resource Groups are · Key rules and constraints · How to organise resources into groups · Resource Group region vs resource region · Tags for cost tracking · Access control at the group level · Deleting resource groups · ARM templates and Resource Groups · Best practices
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-rgs">What Are Resource Groups?</a></li>
+            <li><a href="#key-rules">Key Rules &amp; Constraints</a></li>
+            <li><a href="#organising">How to Organise Resources</a></li>
+            <li><a href="#region">Resource Group Region vs Resource Region</a></li>
+            <li><a href="#tags">Tags — Metadata for Cost Tracking</a></li>
+            <li><a href="#access">Access Control on Resource Groups</a></li>
+            <li><a href="#lifecycle">Resource Group Lifecycle</a></li>
+            <li><a href="#creating">Creating Resource Groups</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-rgs">What Are Resource Groups?</h2>
+          <p>A Resource Group is a logical container that holds related Azure resources. Think of it as a folder — you put related files (resources) in the same folder (Resource Group) so you can manage them together.</p>
+          <p>Every Azure resource — without exception — must belong to exactly one Resource Group. You cannot create a VM, storage account, or any other resource without first assigning it to a group.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Why Resource Groups Exist</strong>
+              Before Resource Groups, managing Azure was chaotic — resources were scattered with no way to see what belonged together. Resource Groups were introduced so you could manage, monitor, tag, secure, and delete related resources as a single unit.
+            </div>
+          </div>
+
+          <h2 id="key-rules">Key Rules &amp; Constraints</h2>
+          <p>Understanding these rules is critical — they come up on the AZ-900 exam:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Rule</th><th>Detail</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>One group per resource</td><td>Every resource belongs to exactly one Resource Group</td></tr>
+                <tr><td>Can't be nested</td><td>Resource Groups cannot contain other Resource Groups</td></tr>
+                <tr><td>Resources can span regions</td><td>Resources in a group don't have to be in the same region</td></tr>
+                <tr><td>Resources can be moved</td><td>Most (not all) resources can be moved between Resource Groups</td></tr>
+                <tr><td>Deletion cascades</td><td>Deleting a Resource Group deletes all resources inside it</td></tr>
+                <tr><td>No cost for the group itself</td><td>Resource Groups are free — you only pay for the resources inside</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Deletion Is Irreversible</strong>
+              When you delete a Resource Group, all resources inside are permanently deleted with no confirmation second chance. Always double-check before deleting. Use Azure locks to protect critical resource groups from accidental deletion.
+            </div>
+          </div>
+
+          <h2 id="organising">How to Organise Resources</h2>
+          <p>There's no single right answer — the best organisation depends on your team and workloads. Here are the most common patterns:</p>
+
+          <h3>By Environment (Most Common)</h3>
+          <p>Separate Resource Groups for dev, test/staging, and production. This is the most popular pattern because it keeps environments clean and makes it easy to delete a whole dev environment at once.</p>
+          <ul>
+            <li><code>rg-webapp-dev</code></li>
+            <li><code>rg-webapp-staging</code></li>
+            <li><code>rg-webapp-prod</code></li>
+          </ul>
+
+          <h3>By Application</h3>
+          <p>All resources for a specific application in one group, regardless of environment. Works well for smaller teams with one or two apps.</p>
+          <ul>
+            <li><code>rg-webapp</code></li>
+            <li><code>rg-api-service</code></li>
+            <li><code>rg-data-pipeline</code></li>
+          </ul>
+
+          <h3>By Department / Team</h3>
+          <p>Organise by the team that owns the resources. Makes cost allocation and access management simple.</p>
+          <ul>
+            <li><code>rg-engineering</code></li>
+            <li><code>rg-marketing</code></li>
+            <li><code>rg-finance</code></li>
+          </ul>
+
+          <h3>By Region</h3>
+          <p>Separate groups for different deployment regions. Useful for geo-distributed applications.</p>
+          <ul>
+            <li><code>rg-webapp-centralindia</code></li>
+            <li><code>rg-webapp-southindia</code></li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Recommended Naming Convention</strong>
+              Use: <code>rg-[workload]-[environment]-[region]</code><br/>
+              Examples: <code>rg-ecommerce-prod-centralindia</code>, <code>rg-api-dev-eastus</code><br/>
+              Consistent naming makes filtering and searching much faster as your subscription grows.
+            </div>
+          </div>
+
+          <h2 id="region">Resource Group Region vs Resource Region</h2>
+          <p>When you create a Resource Group, you choose a region for it. This can be confusing — here's what it actually means:</p>
+          <p>The <strong>Resource Group's region</strong> is where the Resource Group's <em>metadata</em> is stored — not where the resources live. The actual resources inside can be in any region.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Example</strong>
+              You create a Resource Group in Central India. Inside it, you put a VM in East US, a storage account in West Europe, and a database in Central India. All three resources are in the same Resource Group, even though they span three different regions. Only the group's metadata is in Central India.
+            </div>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Why This Matters</strong>
+              If the Resource Group's metadata region is unavailable (rare but possible), you may temporarily lose the ability to manage those resources — even if the resources themselves are healthy in another region. For critical workloads, choose a stable, well-supported region for your Resource Group.
+            </div>
+          </div>
+
+          <h2 id="tags">Tags — Metadata for Cost Tracking</h2>
+          <p>Tags are name-value pairs you attach to Resource Groups (and individual resources) to add metadata. Tags don't affect functionality — they help you organise, filter, and track costs.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tag Name</th><th>Tag Value</th><th>Purpose</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Environment</td><td>Production</td><td>Filter prod vs dev resources</td></tr>
+                <tr><td>Department</td><td>Engineering</td><td>Cost allocation by team</td></tr>
+                <tr><td>Project</td><td>RedKiteCloud</td><td>Track spending per project</td></tr>
+                <tr><td>Owner</td><td>john@company.com</td><td>Know who to contact</td></tr>
+                <tr><td>CostCenter</td><td>CC-1042</td><td>Map to finance cost centre</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Resource Group with tags</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az group create \
+  --name rg-webapp-prod \
+  --location centralindia \
+  --tags Environment=Production Department=Engineering Project=WebApp</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Tags + Cost Management</strong>
+              In Azure Cost Management, you can filter your cost breakdown by tag. This means you can see exactly how much the "Engineering" department spent, or how much the "Production" environment costs — without needing separate subscriptions.
+            </div>
+          </div>
+
+          <h2 id="access">Access Control on Resource Groups</h2>
+          <p>Azure uses Role-Based Access Control (RBAC) to manage who can do what. You can assign roles at the Resource Group level — and those permissions automatically apply to all resources inside the group.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Role</th><th>Can Do</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Owner</td><td>Full access — can manage resources and assign roles to others</td></tr>
+                <tr><td>Contributor</td><td>Can create and manage resources — cannot assign roles</td></tr>
+                <tr><td>Reader</td><td>Can view resources — cannot make any changes</td></tr>
+                <tr><td>User Access Administrator</td><td>Can manage user access — cannot manage resources</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Practical Example</strong>
+              Give your dev team <strong>Contributor</strong> access on <code>rg-webapp-dev</code> so they can create and manage dev resources freely. Give them <strong>Reader</strong> access on <code>rg-webapp-prod</code> so they can view production but never accidentally change it.
+            </div>
+          </div>
+
+          <h2 id="lifecycle">Resource Group Lifecycle</h2>
+          <p>One of the most powerful features of Resource Groups is lifecycle management. When you're done with a project, environment, or experiment — delete the Resource Group and everything inside is cleaned up in one action.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Delete a resource group and all its resources</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Delete entire resource group (and everything inside)
+az group delete --name rg-webapp-dev --yes --no-wait</code></pre>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Azure Resource Locks</strong>
+              To protect critical resources from accidental deletion, apply a lock to the Resource Group. A <strong>CanNotDelete</strong> lock prevents deletion. A <strong>ReadOnly</strong> lock prevents any changes. Locks can be set in the portal under Resource Group → Locks.
+            </div>
+          </div>
+
+          <h2 id="creating">Creating Resource Groups</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a resource group</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az group create \
+  --name rg-myproject-prod \
+  --location centralindia</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Create a resource group</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>New-AzResourceGroup -Name "rg-myproject-prod" -Location "centralindia"</code></pre>
+          </div>
+
+          <h2 id="best-practices">Best Practices</h2>
+          <ul>
+            <li><strong>One environment per group</strong> — Never mix dev and prod resources in the same group</li>
+            <li><strong>Consistent naming</strong> — Use <code>rg-[workload]-[env]-[region]</code> across your organisation</li>
+            <li><strong>Always use tags</strong> — At minimum: Environment, Owner, and Project</li>
+            <li><strong>Apply locks to production groups</strong> — CanNotDelete lock on all prod resource groups</li>
+            <li><strong>Group by lifecycle</strong> — Resources deleted together should live together</li>
+            <li><strong>Keep shared services separate</strong> — Networking, DNS, and shared VMs often go in a dedicated <code>rg-shared-infra</code> group</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Key facts: every resource belongs to exactly one RG · RGs cannot be nested · deleting an RG deletes all resources inside · resources in a group can span regions · you can apply RBAC and tags at the RG level.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is an Azure Resource Group?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Resource Group is not a billing unit — that is an Azure Subscription. Resource Groups are for logical organisation.')">
+                <span class="option-label">A</span> A billing unit that determines how Azure charges you
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Resource Group is not a physical location — that is an Azure Region. Resources in a group can be in different regions.')">
+                <span class="option-label">B</span> A physical data centre location for your resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Resource Group is a logical container that holds related Azure resources. Every resource must belong to exactly one Resource Group.')">
+                <span class="option-label">C</span> A logical container for grouping related Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Resource Group cannot contain other Resource Groups — they cannot be nested.')">
+                <span class="option-label">D</span> A container that can hold other Resource Groups
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What happens when you delete a Resource Group in Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting a Resource Group permanently deletes ALL resources inside it — they are not kept or moved elsewhere.')">
+                <span class="option-label">A</span> Only the container is deleted; resources inside are moved to a default group
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deleting a Resource Group permanently deletes the group AND all resources inside it. This is why it is such a powerful cleanup tool — and why you should use locks on production groups.')">
+                <span class="option-label">B</span> The Resource Group and all resources inside it are permanently deleted
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleted resources go to permanent deletion, not a recycle bin. Some individual resources have soft-delete features, but the RG deletion itself is permanent.')">
+                <span class="option-label">C</span> Resources are moved to an Azure recycle bin for 30 days
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting a Resource Group does not archive resources — it permanently removes them.')">
+                <span class="option-label">D</span> Resources are archived automatically before deletion
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Can resources in the same Resource Group be in different Azure regions?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Resources in a Resource Group can be in any Azure region — they do not need to be in the same region as each other or as the Resource Group itself. The RG is just a logical container.')">
+                <span class="option-label">A</span> Yes — resources in the same group can be in different regions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resources in a Resource Group can span multiple regions. The Resource Group region only determines where the group\'s metadata is stored.')">
+                <span class="option-label">B</span> No — all resources must be in the same region as the Resource Group
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no such restriction — resources can be in any region regardless of the Resource Group region.')">
+                <span class="option-label">C</span> No — resources must be in the same country as the Resource Group
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resources can span regions, but they are still managed under one Resource Group — there is no restriction on the number of regions.')">
+                <span class="option-label">D</span> Only if they are in fewer than 3 different regions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What are Azure tags used for on Resource Groups?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Tags do not affect performance or routing — they are metadata labels for organisation and cost tracking purposes only.')">
+                <span class="option-label">A</span> To improve the performance of resources in the group
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Tags do not control access — that is the role of Azure RBAC (Role-Based Access Control).')">
+                <span class="option-label">B</span> To control who has access to the resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Tags are name-value metadata pairs used to organise resources, track costs by department or project, and filter resources in Azure Cost Management. They have no effect on resource functionality.')">
+                <span class="option-label">C</span> To add metadata for organisation, cost tracking, and filtering
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Tags do not affect the physical location of resources — that is determined by the region chosen when creating the resource.')">
+                <span class="option-label">D</span> To specify which Azure region resources should run in
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A company wants to give its development team the ability to create and manage resources in the dev environment, but only view production resources. How should they configure this?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Giving Owner access to both groups would allow the dev team to modify and delete production resources — a serious risk.')">
+                <span class="option-label">A</span> Assign the dev team Owner role on both dev and prod resource groups
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Assigning Contributor on the dev Resource Group allows the team to create and manage dev resources. Assigning Reader on the prod Resource Group lets them view production without being able to change anything.')">
+                <span class="option-label">B</span> Assign Contributor on the dev Resource Group and Reader on the prod Resource Group
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reader access on both groups would prevent the dev team from creating or managing any resources — including in dev.')">
+                <span class="option-label">C</span> Assign Reader role on both dev and prod resource groups
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single role cannot provide different levels of access to different resource groups — you need to assign roles at each group separately.')">
+                <span class="option-label">D</span> Assign a single custom role that covers both groups simultaneously
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="subscriptions.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Subscriptions</span>
+            </a>
+            <a class="related-card" href="management-groups.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Management Groups</span>
+            </a>
+            <a class="related-card" href="pricing.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Pricing &amp; Free Tier</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="pricing.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Pricing &amp; Free Tier</span>
+          </a>
+          <a class="nav-card next" href="subscriptions.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Subscriptions</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
