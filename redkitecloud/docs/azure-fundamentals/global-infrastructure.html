@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Global Infrastructure | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Understand Azure's global infrastructure — regions, availability zones, region pairs, and geographies. Critical for AZ-900 and real-world architecture." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Global Infrastructure</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Global Infrastructure</h1>
+
+        <p class="page-intro">
+          One of Azure's biggest strengths is its global infrastructure. When you deploy on Azure, you're not just putting code on a single server. You're backed by a worldwide network of data centres, interconnected by Microsoft's private fibre backbone, organised into regions, availability zones, and geographies. Understanding this infrastructure directly impacts how you design for performance, reliability, and compliance.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Azure data centres · Regions and how to choose one · Availability Zones · Region Pairs for disaster recovery · Azure Geographies · Sovereign regions · Azure in India — a deep dive
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#datacentres">Azure Data Centres</a></li>
+            <li><a href="#regions">Azure Regions</a></li>
+            <li><a href="#choosing-region">How to Choose a Region</a></li>
+            <li><a href="#availability-zones">Availability Zones</a></li>
+            <li><a href="#region-pairs">Region Pairs</a></li>
+            <li><a href="#geographies">Azure Geographies</a></li>
+            <li><a href="#sovereign">Sovereign Regions</a></li>
+            <li><a href="#india">Azure in India</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="datacentres">Azure Data Centres</h2>
+          <p>At the foundation of Azure are physical data centres — massive buildings filled with tens of thousands of servers, storage systems, and networking equipment. Every Azure service you use ultimately runs on hardware inside these buildings.</p>
+          <p>Each data centre is built with multiple layers of resilience:</p>
+          <ul>
+            <li><strong>Redundant power</strong> — Multiple independent power feeds, UPS systems, and diesel generators</li>
+            <li><strong>Redundant cooling</strong> — Precision cooling with N+1 redundancy</li>
+            <li><strong>Physical security</strong> — Biometric access, 24/7 guards, CCTV, motion sensors</li>
+            <li><strong>Network redundancy</strong> — Multiple independent fibre connections</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>You Can't Visit Azure Data Centres</strong>
+              Microsoft does not publish the exact locations of individual data centres for security reasons. You interact with Azure through Regions — not individual data centres. Microsoft publishes which city each region is in, but not precise data centre addresses.
+            </div>
+          </div>
+
+          <h2 id="regions">Azure Regions</h2>
+          <p>A <strong>Region</strong> is a geographical area containing one or more data centres that are nearby and connected via a low-latency network. When you deploy any resource in Azure, you always choose a region — this determines where your data physically lives.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Simple Definition</strong>
+              An Azure Region = a named location (like "Central India" or "East US") containing one or more connected data centres. You deploy your VM to a region; Azure decides which exact data centre(s) within that region your VM runs on.
+            </div>
+          </div>
+
+          <p>As of 2026, Azure has <strong>60+ regions</strong> — more than any other cloud provider. New regions are regularly added.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Region Name</th><th>Location</th><th>Geography</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Central India</td><td>Pune, Maharashtra</td><td>India</td></tr>
+                <tr><td>South India</td><td>Chennai, Tamil Nadu</td><td>India</td></tr>
+                <tr><td>West India</td><td>Mumbai, Maharashtra</td><td>India</td></tr>
+                <tr><td>East US</td><td>Virginia, USA</td><td>United States</td></tr>
+                <tr><td>West Europe</td><td>Amsterdam, Netherlands</td><td>Europe</td></tr>
+                <tr><td>Southeast Asia</td><td>Singapore</td><td>Asia Pacific</td></tr>
+                <tr><td>UK South</td><td>London, UK</td><td>United Kingdom</td></tr>
+                <tr><td>Australia East</td><td>New South Wales, Australia</td><td>Australia</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="choosing-region">How to Choose a Region</h2>
+          <p>Choosing the right region is one of the most important decisions when deploying on Azure. Four factors guide this choice:</p>
+
+          <h3>1. Proximity to Users</h3>
+          <p>Deploy close to your users to minimise latency. Users in Mumbai accessing a VM in East US will experience ~180ms round-trip latency. Users in Mumbai accessing a VM in Central India will experience ~10ms. That's an 18x difference — and users notice it.</p>
+
+          <h3>2. Data Residency and Compliance</h3>
+          <p>Some industries and governments require data to stay within national borders. If you're building for Indian banking customers, regulations may require data to remain in India. Azure's three Indian regions make this possible.</p>
+
+          <h3>3. Service Availability</h3>
+          <p>Not every Azure service is available in every region. Newer services often launch in a few regions first, then expand. Always verify your needed service is available in your chosen region before designing your architecture.</p>
+
+          <h3>4. Pricing</h3>
+          <p>Azure pricing varies by region — sometimes by 10–20% for the same service. Always check pricing for your specific region. Don't assume costs are uniform across all locations.</p>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Choose Carefully</strong>
+              Once a resource is deployed to a region, moving it to another region is difficult or impossible for many resource types. Choose your region before deploying, not after.
+            </div>
+          </div>
+
+          <h2 id="availability-zones">Availability Zones</h2>
+          <p>An <strong>Availability Zone (AZ)</strong> is a physically separate data centre within an Azure region. Each zone has its own independent power supply, cooling, and network infrastructure — completely isolated from the other zones in the same region.</p>
+          <p>Regions that support AZs have <strong>at least 3 zones</strong>, connected by a high-speed private fibre network with under 2ms latency between zones.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Why Zones Matter</strong>
+              If all your VMs are in Zone 1 and Zone 1 suffers a power failure, your app goes down. If you spread VMs across all 3 zones and Zone 1 fails, your app keeps running on Zones 2 and 3. Availability Zones protect you against data centre-level failures.
+            </div>
+          </div>
+
+          <h3>Zone-Redundant Architecture Example</h3>
+          <p>An e-commerce app in Central India, deployed zone-redundant:</p>
+          <ul>
+            <li>2 web server VMs in Zone 1</li>
+            <li>2 web server VMs in Zone 2</li>
+            <li>2 web server VMs in Zone 3</li>
+          </ul>
+          <p>An Azure Load Balancer distributes traffic across all 6 VMs. If Zone 2 has a complete outage, traffic automatically routes to Zones 1 and 3. Zero downtime for users.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Protects Against</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Single VM, single zone</td><td>Nothing — single point of failure</td></tr>
+                <tr><td>VMs across multiple zones (same region)</td><td>Data centre-level failure (power, cooling, fire)</td></tr>
+                <tr><td>VMs across multiple regions</td><td>Regional disasters (flooding, earthquakes, network outage)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Not All Regions Support AZs</strong>
+              Only specific regions have Availability Zones. Central India and South India support AZs. West India currently does not. Always verify before designing a zone-redundant architecture.
+            </div>
+          </div>
+
+          <h2 id="region-pairs">Region Pairs</h2>
+          <p>Every Azure region is paired with another region within the same geography — called a <strong>Region Pair</strong>. Pairs are at least 300 miles (480 km) apart to protect against large-scale regional disasters.</p>
+
+          <h3>Why Region Pairs Matter</h3>
+          <ul>
+            <li><strong>Planned maintenance</strong> — Azure never updates both regions in a pair simultaneously. One region is always available.</li>
+            <li><strong>Disaster recovery</strong> — If one region fails completely, the paired region serves as the DR target.</li>
+            <li><strong>Data residency</strong> — Region pairs stay within the same geography. Data never crosses country borders when failing over within a pair.</li>
+            <li><strong>Recovery priority</strong> — In a catastrophic event, one region in each pair is always prioritised for recovery first.</li>
+          </ul>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Primary Region</th><th>Paired Region</th><th>Geography</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Central India (Pune)</td><td>South India (Chennai)</td><td>India</td></tr>
+                <tr><td>South India (Chennai)</td><td>Central India (Pune)</td><td>India</td></tr>
+                <tr><td>West India (Mumbai)</td><td>South India (Chennai)</td><td>India</td></tr>
+                <tr><td>East US (Virginia)</td><td>West US (California)</td><td>United States</td></tr>
+                <tr><td>West Europe (Amsterdam)</td><td>North Europe (Dublin)</td><td>Europe</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Region pairs are heavily tested. Key facts: pairs are always within the same geography · at least 300 miles apart · Azure never updates both simultaneously · data replication stays within the same country.
+            </div>
+          </div>
+
+          <h2 id="geographies">Azure Geographies</h2>
+          <p>An <strong>Azure Geography</strong> is a discrete market — typically a country or group of countries — that contains at least one Azure Region. Geographies define data residency and compliance boundaries, ensuring data stays within the legal jurisdiction required.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Geography</th><th>Regions</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>India</td><td>Central India, South India, West India</td></tr>
+                <tr><td>United States</td><td>East US, West US, Central US, North Central US, and more</td></tr>
+                <tr><td>Europe</td><td>West Europe, North Europe, UK South, UK West, France Central, and more</td></tr>
+                <tr><td>Asia Pacific</td><td>Southeast Asia, East Asia, Australia East, Japan East, and more</td></tr>
+                <tr><td>Middle East</td><td>UAE North, UAE Central</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="sovereign">Sovereign Regions</h2>
+          <p>Some Azure regions are completely isolated from the standard Azure infrastructure for specific government or regulatory requirements. These are <strong>Sovereign Regions</strong> — physically and logically separate, with their own portals and compliance certifications.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Sovereign Region</th><th>For</th><th>Who Can Access</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Azure Government</td><td>US Federal, State, and Local Government</td><td>Screened US government personnel only</td></tr>
+                <tr><td>Azure China</td><td>Customers in China (operated by 21Vianet)</td><td>China-based customers only</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="india">Azure in India — A Closer Look</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Region</th><th>City</th><th>Availability Zones</th><th>Paired With</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Central India</td><td>Pune, Maharashtra</td><td>✅ Yes (3 zones)</td><td>South India</td></tr>
+                <tr><td>South India</td><td>Chennai, Tamil Nadu</td><td>✅ Yes (3 zones)</td><td>Central India</td></tr>
+                <tr><td>West India</td><td>Mumbai, Maharashtra</td><td>❌ No</td><td>South India</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Recommended Architecture for Indian Workloads</h3>
+          <ul>
+            <li><strong>Primary region:</strong> Central India (Pune) — has 3 AZs for high availability</li>
+            <li><strong>DR region:</strong> South India (Chennai) — the paired region</li>
+            <li>Deploy zone-redundant across all 3 AZs in Central India for maximum resilience</li>
+            <li>Replicate data to South India for disaster recovery</li>
+            <li>Use Azure Traffic Manager to route users to the fastest available region</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Data Residency for India</strong>
+              Deploying exclusively to Indian regions keeps data within India's borders — critical for applications handling Aadhaar data, RBI-regulated financial data, or DISHA-regulated healthcare data. Azure's Indian regions are certified for these compliance requirements.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is an Azure Region?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A region is not a single server — it is a geographical area containing one or more connected data centres.')">
+                <span class="option-label">A</span> A single physical server in Microsoft's network
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! An Azure Region is a geographical area (like Central India or East US) containing one or more nearby, interconnected data centres. You always choose a region when deploying Azure resources.')">
+                <span class="option-label">B</span> A geographical area containing one or more connected data centres
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multiple regions can exist within one country — the US alone has many Azure regions. A region is not defined by country borders.')">
+                <span class="option-label">C</span> The national border of a country where Azure operates
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. An Availability Zone is a physically separate data centre within a region — not the region itself.')">
+                <span class="option-label">D</span> A single isolated data centre
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the minimum number of Availability Zones in an Azure region that supports them?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. One zone provides no redundancy benefit.')">
+                <span class="option-label">A</span> 1
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure requires at least 3 zones to provide meaningful redundancy.')">
+                <span class="option-label">B</span> 2
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure regions that support Availability Zones always have at least 3 zones. Each zone is a physically separate data centre with independent power, cooling, and networking.')">
+                <span class="option-label">C</span> 3
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The minimum is 3 — not 5.')">
+                <span class="option-label">D</span> 5
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the primary purpose of Azure Region Pairs?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Region pairs are not for daily traffic load balancing — they are for disaster recovery and maintenance continuity.')">
+                <span class="option-label">A</span> To distribute daily user traffic evenly between two locations
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Region pairs ensure data stays within the same geography — but the primary purpose is disaster recovery, not just data residency.')">
+                <span class="option-label">B</span> To ensure data never leaves a single data centre
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Region pairs provide disaster recovery and maintenance continuity — Azure never updates both paired regions simultaneously, and if one fails, the paired region serves as the DR target while data stays within the same geography.')">
+                <span class="option-label">C</span> To provide disaster recovery and ensure at least one region is always available during maintenance
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using two paired regions for DR increases cost — region pairs are not a cost-reduction mechanism.')">
+                <span class="option-label">D</span> To reduce costs by sharing hardware between regions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A company must keep all its data within India for regulatory compliance. Which approach should they take on Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. East US is in the United States — deploying there would move data outside India entirely.')">
+                <span class="option-label">A</span> Deploy all resources to East US
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Southeast Asia is in Singapore — data would leave India.')">
+                <span class="option-label">B</span> Deploy to Southeast Asia for better performance
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! By deploying exclusively to Azure Indian regions (Central India, South India, West India), all data stays within India. Central India and South India are region pairs, making them ideal for a primary + DR architecture within India.')">
+                <span class="option-label">C</span> Deploy to Central India as primary and South India as disaster recovery
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using multiple geographies would move data outside India, violating the compliance requirement.')">
+                <span class="option-label">D</span> Spread across multiple geographies for maximum redundancy
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which of the following best describes an Azure Availability Zone?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. An Availability Zone is not a separate region — it is a physically separate data centre WITHIN a single region.')">
+                <span class="option-label">A</span> A separate Azure region used only for disaster recovery
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. An AZ is a physically separate building — a virtual partition cannot protect against physical data centre failures like power cuts or fires.')">
+                <span class="option-label">B</span> A virtual partition within a single data centre
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! An Availability Zone is a physically separate data centre within a region, with its own independent power supply, cooling, and networking. Deploying across zones protects against data centre-level failures.')">
+                <span class="option-label">C</span> A physically separate data centre within a region, with independent power and networking
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones are within a single region — not in different countries.')">
+                <span class="option-label">D</span> A data centre in a different country from the main region
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <!-- Related -->
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="what-is-azure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Microsoft Azure?</span>
+            </a>
+            <a class="related-card" href="regions-availability-zones.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Regions &amp; Availability Zones</span>
+            </a>
+            <a class="related-card" href="region-pairs.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Region Pairs</span>
+            </a>
+            <a class="related-card" href="what-is-cloud-computing.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Cloud Computing?</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Prev / Next -->
+        <div class="page-nav">
+          <a class="nav-card" href="what-is-azure.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">What is Microsoft Azure?</span>
+          </a>
+          <a class="nav-card next" href="regions-availability-zones.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Regions &amp; Availability Zones</span>
+          </a>
+        </div>
+
+        <!-- Disqus -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <div id="disqus_thread"></div>
+          <script>
+            var disqus_config = function () {
+              this.page.url = 'https://www.redkitecloud.com/docs/azure-fundamentals/global-infrastructure.html';
+              this.page.identifier = 'azure-fundamentals-global-infrastructure';
+            };
+            (function() {
+              var d = document, s = d.createElement('script');
+              s.src = 'https://redkitecloud.disqus.com/embed.js';
+              s.setAttribute('data-timestamp', +new Date());
+              (d.head || d.body).appendChild(s);
+            })();
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
