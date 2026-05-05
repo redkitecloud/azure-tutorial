@@ -288,14 +288,20 @@ const RKC_MODULES = [
 function getRootPath() {
   const path = window.location.pathname;
   if (path.endsWith('index.html') || path === '/' || path.endsWith('/redkitecloud/')) return '';
+  if (path.endsWith('certifications.html') || path.endsWith('practice.html')) return '';
   return '../../';
 }
 
 function getCurrentPage() {
   const parts = window.location.pathname.split('/').filter(Boolean);
+  const file  = parts[parts.length - 1] || '';
+  const rootPages = ['certifications.html', 'practice.html', 'index.html'];
+  if (rootPages.includes(file)) {
+    return { module: '', file };
+  }
   return {
     module: parts[parts.length - 2] || '',
-    file:   parts[parts.length - 1] || ''
+    file
   };
 }
 
