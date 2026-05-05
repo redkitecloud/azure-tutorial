@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IaaS vs PaaS vs SaaS | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Understand the three cloud service models — IaaS, PaaS, and SaaS — with real-world examples, comparison tables, and AZ-900 exam tips." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">IaaS vs PaaS vs SaaS</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">IaaS vs PaaS vs SaaS</h1>
+
+        <p class="page-intro">
+          When you use the cloud, you're not always using it the same way. Sometimes you rent raw servers. Sometimes you deploy apps without managing any servers at all. Sometimes you just use software over the internet. These three patterns have names: IaaS, PaaS, and SaaS — and understanding the difference is fundamental to both cloud architecture and the AZ-900 exam.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What IaaS, PaaS, and SaaS mean · Real-world examples of each · The pizza analogy that makes it click · Shared responsibility in each model · When to use which · Azure examples of each service model
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#overview">The Three Service Models — Overview</a></li>
+            <li><a href="#pizza-analogy">The Pizza Analogy</a></li>
+            <li><a href="#iaas">Infrastructure as a Service (IaaS)</a></li>
+            <li><a href="#paas">Platform as a Service (PaaS)</a></li>
+            <li><a href="#saas">Software as a Service (SaaS)</a></li>
+            <li><a href="#comparison">Side-by-Side Comparison</a></li>
+            <li><a href="#when-to-use">When to Use Which?</a></li>
+            <li><a href="#azure-examples">Azure Examples of Each Model</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="overview">The Three Service Models — Overview</h2>
+          <p>Cloud computing is delivered in three fundamental service models. The key difference between them is <strong>how much of the stack you manage vs how much the cloud provider manages.</strong></p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Model</th><th>You Manage</th><th>Provider Manages</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>IaaS</td><td>OS, middleware, apps, data</td><td>Servers, storage, networking</td><td>Max control</td></tr>
+                <tr><td>PaaS</td><td>Apps and data only</td><td>Everything else</td><td>Developers</td></tr>
+                <tr><td>SaaS</td><td>Just your data and who uses it</td><td>Everything</td><td>End users</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pizza -->
+          <h2 id="pizza-analogy">The Pizza Analogy</h2>
+          <p>This is the most famous analogy in cloud computing — and it makes the three models instantly clear.</p>
+          <p>Imagine you want pizza. You have four options:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Option</th><th>What You Do</th><th>Cloud Equivalent</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>🏠 Make at Home</td><td>Buy ingredients, make dough, bake, serve</td><td>On-Premises — you manage everything</td></tr>
+                <tr><td>🛒 Buy &amp; Bake</td><td>Buy a ready-made pizza, put it in your oven</td><td>IaaS — provider gives you the oven (infrastructure); you do the rest</td></tr>
+                <tr><td>🍕 Dine In</td><td>Sit at a restaurant, order, eat</td><td>PaaS — provider manages the kitchen; you just bring your recipe (code)</td></tr>
+                <tr><td>🛵 Home Delivery</td><td>Open the door, eat</td><td>SaaS — everything is done for you; just consume</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- IaaS -->
+          <h2 id="iaas">Infrastructure as a Service (IaaS)</h2>
+          <p>IaaS gives you the raw building blocks of cloud computing. The provider gives you virtual machines, storage, and networking — and you manage everything on top of that.</p>
+          <p>Think of it as renting land and an empty building. You're responsible for fitting it out, decorating it, and maintaining the interior. The landlord (cloud provider) maintains the building structure and grounds.</p>
+
+          <h3>What the Provider Manages (Microsoft)</h3>
+          <ul>
+            <li>Physical servers and hardware</li>
+            <li>Physical networking and switches</li>
+            <li>Physical storage</li>
+            <li>The data centre (power, cooling, security)</li>
+            <li>Virtualisation layer (Hypervisor)</li>
+          </ul>
+
+          <h3>What You Manage</h3>
+          <ul>
+            <li>Operating system (installation, patching, updates)</li>
+            <li>Middleware and runtime environments</li>
+            <li>Applications</li>
+            <li>Data</li>
+            <li>Security configuration</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real Azure IaaS Example</strong>
+              Azure Virtual Machines is the classic IaaS service. You choose the VM size, install Windows or Linux, install your software, configure firewalls, and manage OS patches yourself. Azure provides the underlying hardware and keeps it running.
+            </div>
+          </div>
+
+          <h3>When to Use IaaS</h3>
+          <ul>
+            <li>Migrating existing on-prem workloads to cloud (lift and shift)</li>
+            <li>You need full control over the OS and environment</li>
+            <li>Running legacy applications that need a specific OS version</li>
+            <li>Custom networking configurations that PaaS won't support</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>The Downside of IaaS</strong>
+              With great power comes great responsibility. You must patch the OS, handle security hardening, manage backups, and monitor the VM yourself. If you forget to apply a security patch, your VM is vulnerable — Azure won't do it for you.
+            </div>
+          </div>
+
+          <!-- PaaS -->
+          <h2 id="paas">Platform as a Service (PaaS)</h2>
+          <p>PaaS removes the burden of managing infrastructure and operating systems. The cloud provider manages everything up to and including the runtime environment. You just bring your code and data.</p>
+          <p>Think of it as renting a fully equipped kitchen in a restaurant. The restaurant provides the stoves, ovens, utensils, and staff to clean up. You just bring your recipes and cook.</p>
+
+          <h3>What the Provider Manages (Microsoft)</h3>
+          <ul>
+            <li>Everything in IaaS (hardware, networking, storage)</li>
+            <li>Operating system (installation and patching)</li>
+            <li>Middleware and runtime</li>
+            <li>Scaling infrastructure</li>
+          </ul>
+
+          <h3>What You Manage</h3>
+          <ul>
+            <li>Your application code</li>
+            <li>Your data</li>
+            <li>Application configuration</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real Azure PaaS Example</strong>
+              Azure App Service lets you deploy a web application by just pushing your code. Azure handles OS updates, patching, load balancing, auto-scaling, and server management. You never SSH into a server. You just deploy code and it runs.
+            </div>
+          </div>
+
+          <h3>When to Use PaaS</h3>
+          <ul>
+            <li>You want to focus on writing code, not managing infrastructure</li>
+            <li>Building web applications, APIs, or mobile backends</li>
+            <li>Your team is small and can't afford a dedicated infrastructure team</li>
+            <li>You want automatic scaling and patching without manual effort</li>
+          </ul>
+
+          <!-- SaaS -->
+          <h2 id="saas">Software as a Service (SaaS)</h2>
+          <p>SaaS is complete software delivered over the internet. You don't manage any infrastructure, no OS, no platform, no application code. You just use the software through a browser or app.</p>
+          <p>Think of it as ordering food delivery. You don't cook, don't clean, don't even leave your house. Someone else handles absolutely everything — you just eat.</p>
+
+          <h3>What the Provider Manages (Microsoft)</h3>
+          <ul>
+            <li>Everything — hardware, OS, platform, application, updates, security, scaling</li>
+          </ul>
+
+          <h3>What You Manage</h3>
+          <ul>
+            <li>Your data inside the application</li>
+            <li>Who has access (user management)</li>
+            <li>Application configuration settings</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real Azure SaaS Example</strong>
+              Microsoft 365 (formerly Office 365) is SaaS. You open Word, Excel, or Outlook in a browser. Microsoft handles all the servers, updates, security patches, and infrastructure. You just use the software and manage your documents.
+            </div>
+          </div>
+
+          <h3>Common SaaS Examples</h3>
+          <ul>
+            <li>Microsoft 365 — Word, Excel, Teams, Outlook</li>
+            <li>Gmail — Email service</li>
+            <li>Salesforce — CRM platform</li>
+            <li>Zoom — Video conferencing</li>
+            <li>Dropbox — File storage and sharing</li>
+          </ul>
+
+          <!-- Comparison -->
+          <h2 id="comparison">Side-by-Side Comparison</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Component</th><th>On-Premises</th><th>IaaS</th><th>PaaS</th><th>SaaS</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Physical hardware</td><td>You</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Networking</td><td>You</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Virtualisation</td><td>You</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Operating system</td><td>You</td><td>You</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Middleware / Runtime</td><td>You</td><td>You</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Application</td><td>You</td><td>You</td><td>You</td><td>Microsoft</td></tr>
+                <tr><td>Data</td><td>You</td><td>You</td><td>You</td><td>You</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Pattern to Remember</strong>
+              As you move from IaaS → PaaS → SaaS, you manage less and less. The provider takes on more responsibility. But you also have less control and flexibility. Choose based on how much control you need vs how much you want to manage.
+            </div>
+          </div>
+
+          <!-- When to use -->
+          <h2 id="when-to-use">When to Use Which?</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Best Model</th><th>Why</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Migrate existing app with no code changes</td><td>IaaS</td><td>Lift-and-shift — you need full OS control</td></tr>
+                <tr><td>Deploy a new web app quickly</td><td>PaaS</td><td>Focus on code, not infrastructure</td></tr>
+                <tr><td>Give employees email and Office tools</td><td>SaaS</td><td>No management needed — just use it</td></tr>
+                <tr><td>Run a custom database with specific config</td><td>IaaS</td><td>Need full control over DB engine and OS</td></tr>
+                <tr><td>Build and deploy a REST API</td><td>PaaS</td><td>Azure App Service handles everything except your code</td></tr>
+                <tr><td>Video meetings for your team</td><td>SaaS</td><td>Just use Teams or Zoom — no setup needed</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Azure Examples -->
+          <h2 id="azure-examples">Azure Examples of Each Model</h2>
+
+          <h3>Azure IaaS Services</h3>
+          <ul>
+            <li><strong>Azure Virtual Machines</strong> — Windows or Linux VMs, full OS control</li>
+            <li><strong>Azure Virtual Network</strong> — Custom network configuration</li>
+            <li><strong>Azure Managed Disks</strong> — Block storage for VMs</li>
+            <li><strong>Azure Blob Storage</strong> — Raw object storage</li>
+          </ul>
+
+          <h3>Azure PaaS Services</h3>
+          <ul>
+            <li><strong>Azure App Service</strong> — Host web apps and APIs without managing servers</li>
+            <li><strong>Azure SQL Database</strong> — Fully managed relational database</li>
+            <li><strong>Azure Functions</strong> — Serverless compute — just write functions</li>
+            <li><strong>Azure Kubernetes Service (AKS)</strong> — Managed Kubernetes cluster</li>
+            <li><strong>Azure Cosmos DB</strong> — Fully managed NoSQL database</li>
+          </ul>
+
+          <h3>Azure SaaS Services</h3>
+          <ul>
+            <li><strong>Microsoft 365</strong> — Word, Excel, Teams, Outlook, SharePoint</li>
+            <li><strong>Microsoft Dynamics 365</strong> — CRM and ERP platform</li>
+            <li><strong>Microsoft Intune</strong> — Device management</li>
+            <li><strong>Microsoft Defender</strong> — Security as a service</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              The exam often gives you a scenario and asks which service model applies. The key question to ask is: <em>"Who manages the operating system?"</em> If the customer manages the OS → IaaS. If Microsoft manages the OS → PaaS or SaaS. If it's complete software you just use → SaaS.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company is using Microsoft 365 for email and productivity tools. Which cloud service model does this represent?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IaaS provides raw infrastructure like virtual machines. Microsoft 365 is complete software delivered over the internet.')">
+                <span class="option-label">A</span> IaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PaaS provides a platform for developers to build applications. Microsoft 365 is ready-to-use software, not a development platform.')">
+                <span class="option-label">B</span> PaaS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft 365 is SaaS — complete software delivered over the internet. You just use it. Microsoft manages everything including the application, OS, and infrastructure.')">
+                <span class="option-label">C</span> SaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. On-premises means the software runs on your own hardware in your own data centre — not delivered over the internet.')">
+                <span class="option-label">D</span> On-premises
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A developer wants to deploy a web application without worrying about OS patching, server maintenance, or scaling infrastructure. Which service model should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. With IaaS, the developer would still need to manage the OS, patches, and scaling configuration — that\'s more work, not less.')">
+                <span class="option-label">A</span> IaaS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! PaaS (like Azure App Service) lets developers focus purely on their application code. The platform handles OS patching, scaling, load balancing, and server management automatically.')">
+                <span class="option-label">B</span> PaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SaaS is ready-made software for end users — not a platform for deploying custom applications.')">
+                <span class="option-label">C</span> SaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. On-premises would require the developer to manage everything — hardware, OS, scaling — which is exactly what they want to avoid.')">
+                <span class="option-label">D</span> On-premises
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A company wants to migrate their existing on-premises application to Azure with minimal code changes and needs full control over the operating system. Which service model is most appropriate?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! IaaS (specifically Azure Virtual Machines) is ideal for lift-and-shift migrations where you need full OS control and want to make minimal changes to the application.')">
+                <span class="option-label">A</span> IaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PaaS abstracts the OS — you cannot control the OS in a PaaS environment, which contradicts the requirement.')">
+                <span class="option-label">B</span> PaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SaaS is pre-built software — you cannot deploy your own custom application as SaaS.')">
+                <span class="option-label">C</span> SaaS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The question is about moving TO Azure — staying on-premises defeats the purpose.')">
+                <span class="option-label">D</span> On-premises
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> In which cloud service model is the customer responsible for managing the operating system?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! In IaaS, the customer is responsible for the OS — including installation, configuration, patching, and updates. The provider only manages the physical infrastructure and virtualisation layer.')">
+                <span class="option-label">A</span> IaaS only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. In PaaS, the provider manages the OS. The customer only manages the application and data.')">
+                <span class="option-label">B</span> PaaS only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. In SaaS, the provider manages everything including the OS, application, and infrastructure.')">
+                <span class="option-label">C</span> SaaS only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Only in IaaS does the customer manage the OS. In PaaS and SaaS, the provider handles OS management.')">
+                <span class="option-label">D</span> Both IaaS and PaaS
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which of the following Azure services is an example of PaaS?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Virtual Machines is IaaS — you manage the OS, patches, and configuration yourself.')">
+                <span class="option-label">A</span> Azure Virtual Machines
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft 365 is SaaS — complete software delivered over the internet that you simply use.')">
+                <span class="option-label">B</span> Microsoft 365
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure App Service is PaaS. You deploy your web application code and Azure handles the OS, runtime, patching, scaling, and load balancing. You manage only your app and data.')">
+                <span class="option-label">C</span> Azure App Service
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Blob Storage is IaaS — it provides raw object storage that you configure and manage.')">
+                <span class="option-label">D</span> Azure Blob Storage
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <!-- Related Topics -->
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="what-is-cloud-computing.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Cloud Computing?</span>
+            </a>
+            <a class="related-card" href="cloud-types.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Public vs Private vs Hybrid Cloud</span>
+            </a>
+            <a class="related-card" href="what-is-azure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Microsoft Azure?</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Prev / Next -->
+        <div class="page-nav">
+          <a class="nav-card" href="what-is-cloud-computing.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">What is Cloud Computing?</span>
+          </a>
+          <a class="nav-card next" href="cloud-types.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Public vs Private vs Hybrid Cloud</span>
+          </a>
+        </div>
+
+        <!-- Disqus -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <div id="disqus_thread"></div>
+          <script>
+            var disqus_config = function () {
+              this.page.url = 'https://www.redkitecloud.com/docs/azure-fundamentals/iaas-paas-saas.html';
+              this.page.identifier = 'azure-fundamentals-iaas-paas-saas';
+            };
+            (function() {
+              var d = document, s = d.createElement('script');
+              s.src = 'https://redkitecloud.disqus.com/embed.js';
+              s.setAttribute('data-timestamp', +new Date());
+              (d.head || d.body).appendChild(s);
+            })();
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

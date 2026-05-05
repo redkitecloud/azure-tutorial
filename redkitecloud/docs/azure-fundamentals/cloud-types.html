@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Public vs Private vs Hybrid Cloud | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Understand the three cloud deployment models — Public, Private, and Hybrid Cloud — with real-world examples and AZ-900 exam tips." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Public vs Private vs Hybrid Cloud</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 10 min read</span>
+        </div>
+
+        <h1 class="page-title">Public vs Private vs Hybrid Cloud</h1>
+
+        <p class="page-intro">
+          Not all cloud deployments are the same. A startup and a bank have very different requirements. A startup wants speed and low cost. A bank needs strict data sovereignty and regulatory compliance. These different needs led to three distinct cloud deployment models — Public, Private, and Hybrid. Understanding which to use and why is essential for both real-world architecture and the AZ-900 exam.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Public, Private, and Hybrid cloud models are · Real-world examples of each · Advantages and disadvantages · When to choose which model · Multi-cloud explained · How this maps to the AZ-900 exam
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#public">Public Cloud</a></li>
+            <li><a href="#private">Private Cloud</a></li>
+            <li><a href="#hybrid">Hybrid Cloud</a></li>
+            <li><a href="#multi-cloud">Multi-Cloud</a></li>
+            <li><a href="#comparison">Side-by-Side Comparison</a></li>
+            <li><a href="#when-to-use">When to Use Which?</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <!-- Public -->
+          <h2 id="public">Public Cloud</h2>
+          <p>A public cloud is owned and operated by a third-party cloud provider — like Microsoft Azure, Amazon Web Services, or Google Cloud. The infrastructure is shared among multiple customers (tenants) over the public internet.</p>
+          <p>When most people say "the cloud," they mean the public cloud. You sign up, provide a credit card, and start using resources in minutes. Everything is managed by the provider — you just consume it.</p>
+
+          <h3>Key Characteristics</h3>
+          <ul>
+            <li>Owned and operated by the cloud provider (Microsoft, Amazon, Google)</li>
+            <li>Shared infrastructure — multiple organisations on the same hardware</li>
+            <li>Accessible over the public internet</li>
+            <li>Pay-as-you-go pricing — no upfront capital investment</li>
+            <li>Massive scale — resources available on demand, globally</li>
+          </ul>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li><strong>No upfront cost</strong> — No hardware to buy, no data centre to build</li>
+            <li><strong>Infinite scale</strong> — Need 10,000 servers? Azure has them ready</li>
+            <li><strong>No maintenance</strong> — The provider handles hardware failures, updates, security</li>
+            <li><strong>Global reach</strong> — Deploy in 60+ regions worldwide with a few clicks</li>
+            <li><strong>High reliability</strong> — Built-in redundancy and SLA-backed uptime</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li><strong>Less control</strong> — You can't physically access the hardware</li>
+            <li><strong>Data sovereignty concerns</strong> — Your data lives in the provider's data centres</li>
+            <li><strong>Compliance challenges</strong> — Some industries (banking, defence) have strict data residency laws</li>
+            <li><strong>Internet dependency</strong> — Requires reliable internet connectivity</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Examples</strong>
+              Startups, e-commerce platforms, SaaS companies, and most modern businesses use public cloud. When a food delivery app deploys on Azure, they're using public cloud.
+            </div>
+          </div>
+
+          <!-- Private -->
+          <h2 id="private">Private Cloud</h2>
+          <p>A private cloud is cloud infrastructure that is dedicated exclusively to a single organisation. It's not shared with anyone else. The organisation either owns it and runs it in their own data centre, or pays a provider to host a dedicated environment just for them.</p>
+          <p>Think of it as owning your own building vs renting space in a shared office tower. More expensive, more control, more security.</p>
+
+          <h3>Key Characteristics</h3>
+          <ul>
+            <li>Dedicated to a single organisation — no shared tenancy</li>
+            <li>Can be hosted on-premises (in your own data centre) or hosted by a provider</li>
+            <li>Organisation has full control over hardware, security, and configuration</li>
+            <li>Higher cost — you pay for dedicated resources whether or not you use them</li>
+          </ul>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li><strong>Full control</strong> — You control every layer of the stack</li>
+            <li><strong>Data sovereignty</strong> — Your data never leaves your own infrastructure</li>
+            <li><strong>Regulatory compliance</strong> — Meets strict government and financial regulations</li>
+            <li><strong>Custom security policies</strong> — Implement any security controls you need</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li><strong>High upfront cost</strong> — You're buying hardware and building infrastructure</li>
+            <li><strong>Limited scale</strong> — You can only scale as far as your hardware allows</li>
+            <li><strong>Maintenance burden</strong> — Your team is responsible for everything</li>
+            <li><strong>Slower to deploy</strong> — Procurement and setup take weeks or months</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Examples</strong>
+              Banks, government agencies, defence organisations, and healthcare providers with strict data compliance requirements often use private cloud. The Reserve Bank of India, for example, cannot store customer financial data on shared public infrastructure.
+            </div>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Azure Stack Hub</strong>
+              Microsoft offers Azure Stack Hub — a product that brings Azure services to your own on-premises data centre. You get Azure APIs, tools, and services, but running on hardware you own. This is Microsoft's private cloud offering.
+            </div>
+          </div>
+
+          <!-- Hybrid -->
+          <h2 id="hybrid">Hybrid Cloud</h2>
+          <p>Hybrid cloud combines public cloud and private cloud (or on-premises infrastructure), connected together so that data and applications can flow between them. It's the best of both worlds — keep sensitive workloads on-premises or in a private cloud, and burst to the public cloud when you need extra capacity or want to run less sensitive workloads.</p>
+
+          <h3>Key Characteristics</h3>
+          <ul>
+            <li>Combination of public cloud and private cloud / on-premises</li>
+            <li>Workloads can move between environments based on need</li>
+            <li>Connected via secure network links (VPN or ExpressRoute)</li>
+            <li>Organisations can choose where each workload runs</li>
+          </ul>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li><strong>Flexibility</strong> — Run sensitive data on-prem, burst to cloud for extra capacity</li>
+            <li><strong>Compliance</strong> — Keep regulated data on private infrastructure</li>
+            <li><strong>Cost optimisation</strong> — Use cloud only when needed; avoid over-provisioning on-prem</li>
+            <li><strong>Gradual migration</strong> — Move workloads to cloud at your own pace</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li><strong>Complexity</strong> — Managing two environments is significantly harder</li>
+            <li><strong>Higher cost</strong> — You still pay for on-premises infrastructure plus cloud usage</li>
+            <li><strong>Security complexity</strong> — Data moving between environments must be secured</li>
+            <li><strong>Network dependency</strong> — Reliable connectivity between environments is critical</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real Example</strong>
+              A hospital keeps patient records on their private on-premises servers (for compliance), but uses Azure public cloud for their patient-facing appointment booking website. The two environments connect via Azure ExpressRoute. That's hybrid cloud.
+            </div>
+          </div>
+
+          <!-- Multi-cloud -->
+          <h2 id="multi-cloud">Multi-Cloud</h2>
+          <p>Multi-cloud is a strategy where an organisation uses cloud services from more than one public cloud provider — for example, using both Azure and AWS simultaneously.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Why Multi-Cloud?</strong>
+              Avoid vendor lock-in · Use best-in-class services from each provider · Improve resilience by not depending on a single provider · Meet regional requirements where only certain providers operate
+            </div>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Note for AZ-900</strong>
+              Multi-cloud is not a separate deployment model in the NIST definition. The exam may mention it, but the three core models to know are Public, Private, and Hybrid.
+            </div>
+          </div>
+
+          <!-- Comparison -->
+          <h2 id="comparison">Side-by-Side Comparison</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Factor</th><th>Public Cloud</th><th>Private Cloud</th><th>Hybrid Cloud</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Ownership</td><td>Cloud provider</td><td>Organisation</td><td>Both</td></tr>
+                <tr><td>Tenancy</td><td>Multi-tenant (shared)</td><td>Single-tenant (dedicated)</td><td>Both</td></tr>
+                <tr><td>Cost model</td><td>Pay-as-you-go (OpEx)</td><td>Upfront investment (CapEx)</td><td>Mixed</td></tr>
+                <tr><td>Scalability</td><td>Virtually unlimited</td><td>Limited by hardware</td><td>Flexible</td></tr>
+                <tr><td>Control</td><td>Low</td><td>Full</td><td>Mixed</td></tr>
+                <tr><td>Security control</td><td>Shared with provider</td><td>Full control</td><td>Mixed</td></tr>
+                <tr><td>Setup time</td><td>Minutes</td><td>Weeks to months</td><td>Varies</td></tr>
+                <tr><td>Best for</td><td>Startups, agile teams</td><td>Banks, govt, defence</td><td>Enterprise migration</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- When to use -->
+          <h2 id="when-to-use">When to Use Which?</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Best Model</th><th>Why</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Startup launching a new product</td><td>Public</td><td>Zero upfront cost, fast deployment, easy scaling</td></tr>
+                <tr><td>Bank storing customer financial data</td><td>Private</td><td>Data sovereignty, regulatory compliance</td></tr>
+                <tr><td>Enterprise migrating to cloud gradually</td><td>Hybrid</td><td>Move workloads at own pace, keep sensitive data on-prem</td></tr>
+                <tr><td>Government defence application</td><td>Private</td><td>Classified data cannot go to shared infrastructure</td></tr>
+                <tr><td>E-commerce site with seasonal peaks</td><td>Public or Hybrid</td><td>Scale out during sales events, scale back after</td></tr>
+                <tr><td>Hospital — patient portal + patient records</td><td>Hybrid</td><td>Portal on public cloud, records on private for compliance</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A startup wants to launch a new app quickly with no upfront infrastructure costs. Which cloud deployment model should they choose?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private cloud requires significant upfront investment in dedicated hardware — the opposite of what the startup needs.')">
+                <span class="option-label">A</span> Private cloud
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Public cloud (like Azure) has no upfront costs — pay only for what you use. A startup can deploy globally in minutes with zero capital investment.')">
+                <span class="option-label">B</span> Public cloud
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hybrid cloud still requires on-premises or private cloud infrastructure, which involves upfront costs.')">
+                <span class="option-label">C</span> Hybrid cloud
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. On-premises means building and owning your own infrastructure — the highest upfront cost of all.')">
+                <span class="option-label">D</span> On-premises
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A bank must keep customer financial data on infrastructure it owns and controls for regulatory compliance. Which deployment model is most appropriate?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public cloud is shared infrastructure — the bank cannot guarantee exclusive control over the underlying hardware.')">
+                <span class="option-label">A</span> Public cloud
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Private cloud provides dedicated infrastructure owned and controlled by the bank. Sensitive financial data stays on hardware the bank controls, meeting regulatory requirements.')">
+                <span class="option-label">B</span> Private cloud
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hybrid cloud includes public cloud components — the bank cannot guarantee that sensitive data stays exclusively on their own infrastructure.')">
+                <span class="option-label">C</span> Hybrid cloud
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-cloud uses multiple public cloud providers — the data would still be on shared third-party infrastructure.')">
+                <span class="option-label">D</span> Multi-cloud
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A large enterprise wants to keep its HR and payroll data on its own servers, but use Azure for its customer-facing website and during peak traffic periods. Which model does this describe?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public cloud alone would mean all workloads are on Azure — including the HR data the enterprise wants to keep on-premises.')">
+                <span class="option-label">A</span> Public cloud
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private cloud alone would mean everything is on their own infrastructure — they couldn\'t use Azure for the customer website.')">
+                <span class="option-label">B</span> Private cloud
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Hybrid cloud combines private/on-premises infrastructure (for sensitive HR and payroll data) with public cloud (Azure for the customer website and burst capacity). This is the classic hybrid use case.')">
+                <span class="option-label">C</span> Hybrid cloud
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-cloud uses multiple public cloud providers — it doesn\'t address the requirement to keep data on the company\'s own servers.')">
+                <span class="option-label">D</span> Multi-cloud
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which of the following is a characteristic of public cloud?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public cloud is shared infrastructure — dedicated hardware for one organisation describes private cloud.')">
+                <span class="option-label">A</span> Hardware is dedicated to a single organisation
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. In public cloud, the hardware is owned by the cloud provider, not the customer.')">
+                <span class="option-label">B</span> The customer owns the physical hardware
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Public cloud resources are shared across multiple organisations (multi-tenant) and accessible over the public internet. This shared model allows the provider to offer massive scale at low cost.')">
+                <span class="option-label">C</span> Resources are shared among multiple organisations over the internet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public cloud requires reliable internet connectivity — it is not accessible only via private network connections.')">
+                <span class="option-label">D</span> Accessible only via private network connections
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is a key advantage of hybrid cloud over public cloud only?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hybrid cloud is generally more complex and expensive than public cloud alone — not simpler or cheaper.')">
+                <span class="option-label">A</span> Lower cost and simpler management
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hybrid cloud includes on-premises or private cloud components — it is not entirely managed by the cloud provider.')">
+                <span class="option-label">B</span> All infrastructure is managed by the cloud provider
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Hybrid cloud lets organisations keep sensitive or regulated data on private infrastructure while still leveraging public cloud for scalability, speed, and less sensitive workloads. This flexibility is hybrid cloud\'s primary advantage.')">
+                <span class="option-label">C</span> Flexibility to keep sensitive data on-premises while using public cloud for scalable workloads
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-tenancy (shared infrastructure) is a characteristic of public cloud — not hybrid cloud.')">
+                <span class="option-label">D</span> Infrastructure is shared with multiple organisations for lower cost
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <!-- Related -->
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="what-is-cloud-computing.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Cloud Computing?</span>
+            </a>
+            <a class="related-card" href="iaas-paas-saas.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">IaaS vs PaaS vs SaaS</span>
+            </a>
+            <a class="related-card" href="what-is-azure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Microsoft Azure?</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Prev / Next -->
+        <div class="page-nav">
+          <a class="nav-card" href="iaas-paas-saas.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">IaaS vs PaaS vs SaaS</span>
+          </a>
+          <a class="nav-card next" href="what-is-azure.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">What is Microsoft Azure?</span>
+          </a>
+        </div>
+
+        <!-- Disqus -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <div id="disqus_thread"></div>
+          <script>
+            var disqus_config = function () {
+              this.page.url = 'https://www.redkitecloud.com/docs/azure-fundamentals/cloud-types.html';
+              this.page.identifier = 'azure-fundamentals-cloud-types';
+            };
+            (function() {
+              var d = document, s = d.createElement('script');
+              s.src = 'https://redkitecloud.disqus.com/embed.js';
+              s.setAttribute('data-timestamp', +new Date());
+              (d.head || d.body).appendChild(s);
+            })();
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

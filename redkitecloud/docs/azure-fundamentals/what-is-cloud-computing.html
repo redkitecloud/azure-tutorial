@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What is Cloud Computing? | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Learn what cloud computing is, its 5 essential characteristics, CapEx vs OpEx, and the shared responsibility model. Covers AZ-900 exam objectives." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">What is Cloud Computing?</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 10 min read</span>
+        </div>
+
+        <h1 class="page-title">What is Cloud Computing?</h1>
+
+        <p class="page-intro">
+          Cloud computing is the foundation of everything you'll learn on this site. Before you touch Azure, AWS, or Google Cloud — you need to understand what the cloud actually is, why it exists, and what problems it solves. This page gives you a rock-solid foundation.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          The NIST definition of cloud computing · The 5 essential characteristics · Why businesses moved to the cloud · CapEx vs OpEx · The Shared Responsibility Model · How this maps to the AZ-900 exam
+        </div>
+
+        <!-- TOC -->
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#definition">The Definition of Cloud Computing</a></li>
+            <li><a href="#analogy">A Real-World Analogy</a></li>
+            <li><a href="#characteristics">The 5 Essential Characteristics</a></li>
+            <li><a href="#before-cloud">What Did We Do Before the Cloud?</a></li>
+            <li><a href="#capex-opex">CapEx vs OpEx</a></li>
+            <li><a href="#benefits">Key Benefits of Cloud Computing</a></li>
+            <li><a href="#shared-responsibility">The Shared Responsibility Model</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <!-- 1 -->
+          <h2 id="definition">The Definition of Cloud Computing</h2>
+          <p>The most widely accepted definition comes from NIST (National Institute of Standards and Technology):</p>
+          <div class="box info">
+            <span class="box-icon">📖</span>
+            <div class="box-body">
+              <strong>NIST Definition</strong>
+              Cloud computing is a model for enabling ubiquitous, convenient, on-demand network access to a shared pool of configurable computing resources — networks, servers, storage, applications, and services — that can be rapidly provisioned and released with minimal management effort or service provider interaction.
+            </div>
+          </div>
+          <p>That's a mouthful. In plain English: <strong>Cloud computing means renting computers, storage, and software over the internet — and paying only for what you use.</strong></p>
+          <p>Instead of buying your own servers, building a data centre, and hiring staff to maintain it — you log into Azure, click a few buttons, and your infrastructure is ready in minutes. Scale it up when you need more. Scale it down when you don't. Pay only for what you consumed.</p>
+
+          <!-- 2 -->
+          <h2 id="analogy">A Real-World Analogy</h2>
+          <p>Think about electricity. You don't build your own power plant to get electricity at home. You connect to the grid, use as much as you need, and pay for what you consumed at the end of the month.</p>
+          <p>Cloud computing works exactly the same way — but for computing power, storage, and software.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Electricity (Power Grid)</th><th>Cloud Computing</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Power plant generates electricity</td><td>Data centre hosts servers</td></tr>
+                <tr><td>You connect via power lines</td><td>You connect via the internet</td></tr>
+                <tr><td>Use as much power as you need</td><td>Use as much compute as you need</td></tr>
+                <tr><td>Pay a monthly electricity bill</td><td>Pay a monthly cloud bill</td></tr>
+                <tr><td>No need to own a generator</td><td>No need to own physical servers</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real Examples You Already Use</strong>
+              Gmail stores your emails on Google's cloud servers — not on your laptop. Netflix streams video from cloud servers. Swiggy, Zomato, and every major app you use runs on cloud infrastructure. You've been using the cloud for years without realising it.
+            </div>
+          </div>
+
+          <!-- 3 -->
+          <h2 id="characteristics">The 5 Essential Characteristics</h2>
+          <p>NIST defines 5 essential characteristics that every cloud service must have. These are heavily tested on the AZ-900 exam — memorise them.</p>
+
+          <h3>1. On-Demand Self-Service</h3>
+          <p>You can provision resources yourself — without calling anyone, raising a ticket, or waiting for approval. Go to the Azure Portal, click a few buttons, and your virtual machine is running in under 2 minutes.</p>
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Example</strong>
+              A developer needs a test server at 10 PM on Friday. With cloud, they spin up a VM themselves in 2 minutes. Without cloud, they'd raise a ticket and wait until Monday.
+            </div>
+          </div>
+
+          <h3>2. Broad Network Access</h3>
+          <p>Cloud resources are accessible over the network from any device — laptop, mobile, tablet — from anywhere in the world. You don't need to be in a specific office or connected to a specific network.</p>
+
+          <h3>3. Resource Pooling</h3>
+          <p>The cloud provider pools computing resources and serves multiple customers from the same physical infrastructure. You share the underlying hardware with thousands of other customers — but each customer's data and workloads are completely isolated from one another.</p>
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Multi-tenancy</strong>
+              This is called multi-tenancy. Think of it like an apartment building — many families share the same building, but each flat is private and secure. Azure's hypervisor technology ensures complete isolation between tenants on shared hardware.
+            </div>
+          </div>
+
+          <h3>4. Rapid Elasticity</h3>
+          <p>Resources can be scaled up or down rapidly — sometimes automatically — to match demand. If your app suddenly gets 10x the normal traffic, Azure can add more servers within seconds. When traffic drops, it scales back down and you stop paying for the extra capacity.</p>
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Example</strong>
+              During a major online sale, an e-commerce platform can go from 10 servers to 200 servers automatically in minutes — then scale back down when the sale ends. Without cloud, they'd have to buy 200 servers and leave most of them idle for the rest of the year.
+            </div>
+          </div>
+
+          <h3>5. Measured Service</h3>
+          <p>Cloud systems automatically monitor, measure, and report resource usage. You get full transparency into what you've used — and you pay only for that. Like a utility meter on your electricity or water — measured to the second.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Characteristic</th><th>What it Means</th><th>Azure Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>On-Demand Self-Service</td><td>Provision resources without human help</td><td>Create a VM in 2 minutes via portal</td></tr>
+                <tr><td>Broad Network Access</td><td>Access from anywhere, any device</td><td>Manage Azure from your phone</td></tr>
+                <tr><td>Resource Pooling</td><td>Shared infrastructure, isolated tenants</td><td>Multiple companies share same data centre</td></tr>
+                <tr><td>Rapid Elasticity</td><td>Scale up/down on demand</td><td>Auto-scale during traffic spikes</td></tr>
+                <tr><td>Measured Service</td><td>Pay only for what you use</td><td>Billed per second of VM runtime</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 4 -->
+          <h2 id="before-cloud">What Did We Do Before the Cloud?</h2>
+          <p>To understand why cloud is such a big deal, you need to understand what life was like before it. Every company had to build and manage their own IT infrastructure — called <strong>on-premises</strong> (on-prem).</p>
+          <ul>
+            <li>Purchase physical servers weeks or months in advance</li>
+            <li>Build or rent a data centre with power, cooling, and physical security</li>
+            <li>Install and configure operating systems and software</li>
+            <li>Hire a team to monitor and maintain the hardware 24/7/365</li>
+            <li>Provision for peak demand — even if you only hit that peak once a year</li>
+            <li>Replace ageing hardware every 3–5 years</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>The Core Problem</strong>
+              If you under-provisioned, your website crashed under load. If you over-provisioned, you wasted millions on idle hardware. Estimating correctly was nearly impossible. Cloud computing eliminated this problem entirely.
+            </div>
+          </div>
+
+          <!-- 5 -->
+          <h2 id="capex-opex">CapEx vs OpEx</h2>
+          <p>This is one of the most important concepts for the AZ-900 exam. Understand it deeply.</p>
+
+          <h3>Capital Expenditure (CapEx)</h3>
+          <p>CapEx is a large upfront investment in physical infrastructure. Buying servers, building a data centre, purchasing networking equipment — all CapEx. The value depreciates over time. You own the asset.</p>
+
+          <h3>Operational Expenditure (OpEx)</h3>
+          <p>OpEx is ongoing spending on services billed as you go. Cloud computing is OpEx. You pay a monthly bill for what you consumed — like your phone bill. No upfront investment, no owned assets, full flexibility to stop anytime.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>CapEx (On-Premises)</th><th>OpEx (Cloud)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Payment model</td><td>Large upfront investment</td><td>Pay-as-you-go monthly billing</td></tr>
+                <tr><td>Ownership</td><td>You own the hardware</td><td>Provider owns the hardware</td></tr>
+                <tr><td>Flexibility</td><td>Fixed capacity — hard to change</td><td>Scale instantly, up or down</td></tr>
+                <tr><td>Maintenance</td><td>Your team's responsibility</td><td>Provider handles it</td></tr>
+                <tr><td>Time to deploy</td><td>Weeks to months</td><td>Minutes</td></tr>
+                <tr><td>Risk</td><td>High — easy to over/under provision</td><td>Low — pay for actual usage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              The exam loves CapEx vs OpEx. Key phrase to remember: <em>"The ability to trade upfront capital expense for variable operational expense"</em> is one of the defining benefits of cloud computing. Cloud = OpEx.
+            </div>
+          </div>
+
+          <!-- 6 -->
+          <h2 id="benefits">Key Benefits of Cloud Computing</h2>
+
+          <h3>High Availability</h3>
+          <p>Azure operates globally distributed data centres with redundant power, networking, and hardware. Most services come with SLAs of 99.9% to 99.99% uptime — meaning your application stays online even when hardware fails underneath it.</p>
+
+          <h3>Scalability</h3>
+          <p>Two types of scaling:</p>
+          <ul>
+            <li><strong>Vertical scaling (Scale Up/Down)</strong> — Add more CPU or RAM to an existing server. Like upgrading your laptop from 8GB to 32GB RAM.</li>
+            <li><strong>Horizontal scaling (Scale Out/In)</strong> — Add more servers to share the load. Like opening more checkout lanes at a supermarket when the queues get long.</li>
+          </ul>
+
+          <h3>Elasticity</h3>
+          <p>Configure rules to automatically add or remove resources based on real-time demand — without any manual action. "Add a VM when CPU exceeds 80%. Remove it when CPU drops below 20%."</p>
+
+          <h3>Agility</h3>
+          <p>Deploy new infrastructure in minutes. A startup can go from idea to production environment in an afternoon — no procurement, no capital approval, no data centre setup required.</p>
+
+          <h3>Geo-Distribution</h3>
+          <p>Deploy your application to data centres across the globe with a few clicks. Azure has data centres in Central India, South India, and West India — plus 60+ regions worldwide. Users are served from the nearest location, dramatically reducing latency.</p>
+
+          <h3>Disaster Recovery</h3>
+          <p>Replicate your data and applications to a secondary region automatically. If one region fails, traffic fails over to another region — often without any downtime. Building this on-premises used to cost millions and take months. In Azure, it's a configuration option.</p>
+
+          <!-- 7 -->
+          <h2 id="shared-responsibility">The Shared Responsibility Model</h2>
+          <p>When you move to the cloud, security and management responsibilities are split between you and the cloud provider. This split depends on which type of cloud service you're using.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Responsibility</th><th>On-Premises</th><th>IaaS</th><th>PaaS</th><th>SaaS</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Physical datacentre</td><td>Customer</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Physical network</td><td>Customer</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Physical hosts</td><td>Customer</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Operating system</td><td>Customer</td><td>Customer</td><td>Microsoft</td><td>Microsoft</td></tr>
+                <tr><td>Network controls</td><td>Customer</td><td>Customer</td><td>Shared</td><td>Microsoft</td></tr>
+                <tr><td>Applications</td><td>Customer</td><td>Customer</td><td>Customer</td><td>Microsoft</td></tr>
+                <tr><td>Identity &amp; access</td><td>Customer</td><td>Customer</td><td>Customer</td><td>Shared</td></tr>
+                <tr><td>Data &amp; information</td><td>Customer</td><td>Customer</td><td>Customer</td><td>Customer</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Key Takeaway</strong>
+              Regardless of the cloud model — IaaS, PaaS, or SaaS — <strong>you always retain responsibility for your data and who has access to it</strong>. Microsoft secures the platform; you secure what you put on it and who you let in.
+            </div>
+          </div>
+
+        </div><!-- end .content -->
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which of the following BEST describes cloud computing?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Owning and managing physical servers in your own data centre is on-premises computing — the opposite of cloud.')">
+                <span class="option-label">A</span> Owning and managing physical servers in your own data centre
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Cloud computing delivers computing services over the internet on a pay-as-you-go basis — no physical infrastructure ownership required.')">
+                <span class="option-label">B</span> Delivering computing services over the internet with pay-as-you-go pricing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storing files on a USB drive is local storage — completely unrelated to cloud computing.')">
+                <span class="option-label">C</span> Storing files on a personal USB drive
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A private office network is a LAN (Local Area Network) — not cloud computing.')">
+                <span class="option-label">D</span> Using a private network within a single office building
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company wants to automatically increase server capacity during a sale event and reduce it afterwards. Which cloud characteristic enables this?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Broad network access means accessing resources from any device — not automatic scaling.')">
+                <span class="option-label">A</span> Broad network access
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resource pooling is about sharing infrastructure between multiple tenants — not scaling.')">
+                <span class="option-label">B</span> Resource pooling
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Rapid elasticity allows resources to scale up or down automatically to match demand — perfect for handling traffic spikes.')">
+                <span class="option-label">C</span> Rapid elasticity
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Measured service is about metered billing for usage — not the ability to automatically scale.')">
+                <span class="option-label">D</span> Measured service
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What does moving from on-premises to cloud represent in financial terms?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This is backwards — moving to cloud shifts FROM CapEx TO OpEx, not the other way.')">
+                <span class="option-label">A</span> Shifting from OpEx to CapEx
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Moving to cloud shifts spending from CapEx (large upfront infrastructure purchases) to OpEx (ongoing pay-as-you-go billing). This is one of the key financial benefits of cloud computing.')">
+                <span class="option-label">B</span> Shifting from CapEx to OpEx
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Moving to cloud does not eliminate all IT costs — you still pay for cloud services as OpEx.')">
+                <span class="option-label">C</span> Eliminating all IT expenditure
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CapEx and OpEx are not the same thing — they represent fundamentally different financial models.')">
+                <span class="option-label">D</span> Combining CapEx and OpEx into a single cost
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> In the Shared Responsibility Model, which of the following is ALWAYS the customer's responsibility regardless of cloud model?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Physical data centre security is always Microsoft\'s responsibility in Azure — never the customer\'s.')">
+                <span class="option-label">A</span> Physical data centre security
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. OS patching is the customer\'s responsibility in IaaS, but Microsoft\'s in PaaS and SaaS.')">
+                <span class="option-label">B</span> Operating system patching
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Network infrastructure is managed by Microsoft in PaaS and SaaS models.')">
+                <span class="option-label">C</span> Physical network infrastructure
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Your data and who has access to it is ALWAYS your responsibility — regardless of whether you use IaaS, PaaS, or SaaS. Microsoft secures the platform; you are responsible for what you put on it.')">
+                <span class="option-label">D</span> Data and identity/access management
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which cloud characteristic allows a developer to create a new virtual machine without contacting the cloud provider?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! On-demand self-service means users can provision computing resources whenever they need them — through a portal or API — without any interaction with provider staff.')">
+                <span class="option-label">A</span> On-demand self-service
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Measured service refers to usage monitoring and metered billing — not self-provisioning.')">
+                <span class="option-label">B</span> Measured service
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resource pooling is about sharing infrastructure across multiple tenants — not the ability to self-provision.')">
+                <span class="option-label">C</span> Resource pooling
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Broad network access means you can reach resources from any device — not provision them yourself.')">
+                <span class="option-label">D</span> Broad network access
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <!-- Related Topics -->
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="iaas-paas-saas.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">IaaS vs PaaS vs SaaS</span>
+            </a>
+            <a class="related-card" href="cloud-types.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Public vs Private vs Hybrid Cloud</span>
+            </a>
+            <a class="related-card" href="what-is-azure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">What is Microsoft Azure?</span>
+            </a>
+            <a class="related-card" href="global-infrastructure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Global Infrastructure</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Prev / Next -->
+        <div class="page-nav">
+          <div></div>
+          <a class="nav-card next" href="iaas-paas-saas.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">IaaS vs PaaS vs SaaS</span>
+          </a>
+        </div>
+
+        <!-- Disqus -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <div id="disqus_thread"></div>
+          <script>
+            var disqus_config = function () {
+              this.page.url = 'https://www.redkitecloud.com/docs/azure-fundamentals/what-is-cloud-computing.html';
+              this.page.identifier = 'azure-fundamentals-what-is-cloud-computing';
+            };
+            (function() {
+              var d = document, s = d.createElement('script');
+              s.src = 'https://redkitecloud.disqus.com/embed.js';
+              s.setAttribute('data-timestamp', +new Date());
+              (d.head || d.body).appendChild(s);
+            })();
+          </script>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
