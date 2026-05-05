@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Certifications Guide | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure, AWS, and Google Cloud certifications — exam details, prerequisites, cost, topics, and recommended study order for beginners." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+  <style>
+    /* ── Page-specific styles ── */
+    .cert-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .cert-hero { text-align: center; padding: 3rem 1rem 2rem; }
+    .cert-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 0.75rem; }
+    .cert-hero p { color: var(--text-3); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+
+    /* Tab switcher */
+    .cert-tabs { display: flex; gap: 0.5rem; justify-content: center; margin: 2rem 0; flex-wrap: wrap; }
+    .cert-tab {
+      padding: 0.55rem 1.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+      color: var(--text-3);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .cert-tab:hover { border-color: var(--text-3); color: var(--text-1); }
+    .cert-tab.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+    /* Tab panels */
+    .cert-panel { display: none; }
+    .cert-panel.active { display: block; }
+
+    /* Provider header */
+    .provider-header {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .provider-logo { font-size: 2rem; }
+    .provider-info h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .provider-info p { color: var(--text-3); font-size: 0.9rem; }
+
+    /* Cert path / roadmap */
+    .cert-path-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-4);
+      margin-bottom: 1rem;
+    }
+
+    .cert-roadmap {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+    .roadmap-item {
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .roadmap-badge {
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .roadmap-badge:hover { opacity: 0.8; }
+    .roadmap-arrow { color: var(--text-4); font-size: 0.9rem; padding: 0 0.1rem; }
+
+    .level-fundamental { background: #1a3a2a; color: #4ade80; border: 1px solid #2d6b45; }
+    .level-associate    { background: #1a2a3a; color: #60a5fa; border: 1px solid #2d4f6b; }
+    .level-expert       { background: #3a1a2a; color: #f472b6; border: 1px solid #6b2d4f; }
+    .level-specialty    { background: #2a2a1a; color: #fbbf24; border: 1px solid #6b5a2d; }
+
+    /* Cert cards */
+    .cert-cards { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .cert-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .cert-card:hover { border-color: var(--text-4); }
+
+    .cert-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cert-card-badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .cert-card-title { flex: 1; }
+    .cert-card-title h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .cert-card-title p { color: var(--text-3); font-size: 0.88rem; }
+    .cert-card-toggle {
+      color: var(--text-4);
+      font-size: 0.8rem;
+      transition: transform 0.25s;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .cert-card.open .cert-card-toggle { transform: rotate(90deg); }
+
+    .cert-card-body {
+      display: none;
+      padding: 0 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .cert-card.open .cert-card-body { display: block; }
+
+    /* Quick stats row */
+    .cert-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin: 1.25rem 0;
+    }
+    .cert-stat {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+    }
+    .cert-stat-label { font-size: 0.7rem; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+    .cert-stat-value { font-size: 0.95rem; font-weight: 700; color: var(--text-1); }
+
+    /* Sections inside card */
+    .cert-section { margin-top: 1.25rem; }
+    .cert-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-4);
+      margin-bottom: 0.6rem;
+    }
+    .cert-section ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+    .cert-section ul li { font-size: 0.88rem; color: var(--text-2); padding-left: 1.1rem; position: relative; }
+    .cert-section ul li::before { content: "›"; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+
+    .cert-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .cert-tag {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.78rem;
+      color: var(--text-3);
+    }
+
+    .cert-tip {
+      background: #1a2a1a;
+      border: 1px solid #2d5a2d;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text-2);
+      margin-top: 1rem;
+    }
+    .cert-tip strong { color: #4ade80; }
+
+    .cert-official-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 0.83rem;
+      font-weight: 600;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .cert-official-link:hover { border-color: var(--red); color: var(--red); }
+
+    /* Difficulty stars */
+    .difficulty { color: var(--red); font-size: 0.9rem; letter-spacing: 2px; }
+    .difficulty-empty { color: var(--border); }
+
+    @media (max-width: 600px) {
+      .cert-card-header { flex-wrap: wrap; }
+      .cert-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="cert-page">
+
+        <div class="cert-hero">
+          <h1>Cloud Certification Guide</h1>
+          <p>Everything a beginner needs to know about Azure, AWS, and Google Cloud certifications — exam details, prerequisites, topics, cost, and the right order to attempt them.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="cert-tabs">
+          <button class="cert-tab active" onclick="switchTab('azure', this)">☁️ Microsoft Azure</button>
+          <button class="cert-tab" onclick="switchTab('aws', this)">🟠 Amazon AWS</button>
+          <button class="cert-tab" onclick="switchTab('gcp', this)">🔵 Google Cloud</button>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             AZURE PANEL
+        ══════════════════════════════════════════ -->
+        <div class="cert-panel active" id="panel-azure">
+
+          <div class="provider-header">
+            <div class="provider-logo">☁️</div>
+            <div class="provider-info">
+              <h2>Microsoft Azure Certifications</h2>
+              <p>Role-based certifications across Fundamentals, Associate, and Expert levels. Recognised globally by enterprises. Managed by Microsoft Learn.</p>
+            </div>
+          </div>
+
+          <div class="cert-path-label">Recommended Learning Path</div>
+          <div class="cert-roadmap">
+            <div class="roadmap-item"><span class="roadmap-badge level-fundamental" onclick="toggleCard('az900')">AZ-900</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('az104')">AZ-104</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('az204')">AZ-204</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('az500')">AZ-500</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-expert" onclick="toggleCard('az305')">AZ-305</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-expert" onclick="toggleCard('az400')">AZ-400</span></div>
+          </div>
+
+          <div class="cert-cards">
+
+            <!-- AZ-900 -->
+            <div class="cert-card open" id="card-az900">
+              <div class="cert-card-header" onclick="toggleCard('az900')">
+                <span class="cert-card-badge level-fundamental">AZ-900</span>
+                <div class="cert-card-title">
+                  <h3>Microsoft Azure Fundamentals</h3>
+                  <p>The perfect starting point — no technical background required</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Fundamentals</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">40–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">45 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$165 (₹13,700)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">Lifetime</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★</span><span class="difficulty-empty">★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">2–4 weeks</div></div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Who Should Take This</div>
+                  <ul>
+                    <li>Complete beginners with no cloud experience</li>
+                    <li>IT professionals transitioning to cloud</li>
+                    <li>Sales, finance, and business roles working with Azure teams</li>
+                    <li>Students starting their cloud career journey</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>None — this is designed for complete beginners</li>
+                    <li>Basic computer literacy is helpful but not required</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Cloud Concepts (25–30%)</span>
+                    <span class="cert-tag">Azure Architecture (15–20%)</span>
+                    <span class="cert-tag">Azure Services (30–35%)</span>
+                    <span class="cert-tag">Security & Compliance (25–30%)</span>
+                    <span class="cert-tag">Pricing & Support (20–25%)</span>
+                  </div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Question Types</div>
+                  <ul>
+                    <li>Multiple choice (single and multiple correct answers)</li>
+                    <li>Drag and drop matching</li>
+                    <li>True/False statements</li>
+                    <li>Short scenario-based questions</li>
+                  </ul>
+                </div>
+
+                <div class="cert-tip">
+                  <strong>💡 Tip:</strong> AZ-900 is non-expiring — once you pass, it's yours forever. Microsoft occasionally offers free vouchers for this exam through Microsoft Virtual Training Days. Watch for these events to save ₹13,700.
+                </div>
+
+                <a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/" target="_blank" class="cert-official-link">↗ Official Microsoft Page</a>
+              </div>
+            </div>
+
+            <!-- AZ-104 -->
+            <div class="cert-card" id="card-az104">
+              <div class="cert-card-header" onclick="toggleCard('az104')">
+                <span class="cert-card-badge level-associate">AZ-104</span>
+                <div class="cert-card-title">
+                  <h3>Microsoft Azure Administrator</h3>
+                  <p>The most popular Azure certification — manages Azure infrastructure day-to-day</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">40–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$165 (₹13,700)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">1 year (renewable)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★</span><span class="difficulty-empty">★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">6–8 weeks</div></div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Who Should Take This</div>
+                  <ul>
+                    <li>Cloud administrators managing Azure environments</li>
+                    <li>IT professionals moving to cloud infrastructure roles</li>
+                    <li>System administrators expanding into Azure</li>
+                    <li>Anyone wanting a solid, well-recognised Azure credential</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>AZ-900 recommended but not mandatory</li>
+                    <li>6+ months hands-on Azure experience recommended</li>
+                    <li>Understanding of networking, storage, and virtualisation</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Manage Azure Identities (15–20%)</span>
+                    <span class="cert-tag">Implement Storage (15–20%)</span>
+                    <span class="cert-tag">Deploy Compute Resources (20–25%)</span>
+                    <span class="cert-tag">Configure Networking (15–20%)</span>
+                    <span class="cert-tag">Monitor & Backup (10–15%)</span>
+                  </div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Key Skills Tested</div>
+                  <ul>
+                    <li>Create and manage Virtual Machines, storage accounts, and VNets</li>
+                    <li>Configure Azure Active Directory / Entra ID, users, and groups</li>
+                    <li>Implement load balancers, VPN gateways, and network security</li>
+                    <li>Monitor Azure resources with Azure Monitor and Log Analytics</li>
+                    <li>Configure Azure backup and site recovery</li>
+                  </ul>
+                </div>
+
+                <div class="cert-tip">
+                  <strong>💡 Tip:</strong> AZ-104 requires annual renewal via a free online assessment on Microsoft Learn. Don't let it expire — set a calendar reminder 2 months before expiry.
+                </div>
+
+                <a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/" target="_blank" class="cert-official-link">↗ Official Microsoft Page</a>
+              </div>
+            </div>
+
+            <!-- AZ-204 -->
+            <div class="cert-card" id="card-az204">
+              <div class="cert-card-header" onclick="toggleCard('az204')">
+                <span class="cert-card-badge level-associate">AZ-204</span>
+                <div class="cert-card-title">
+                  <h3>Developing Solutions for Microsoft Azure</h3>
+                  <p>For developers building cloud-native applications on Azure</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">40–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$165 (₹13,700)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">1 year (renewable)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★</span><span class="difficulty-empty">★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">8–10 weeks</div></div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Who Should Take This</div>
+                  <ul>
+                    <li>Software developers building apps on Azure</li>
+                    <li>Full-stack developers working with Azure services</li>
+                    <li>Backend developers integrating Azure APIs and services</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>1–2 years of professional software development experience</li>
+                    <li>Proficiency in at least one Azure-supported language (C#, Python, Java, JS)</li>
+                    <li>AZ-900 recommended</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Develop Azure Compute (25–30%)</span>
+                    <span class="cert-tag">Develop for Storage (15–20%)</span>
+                    <span class="cert-tag">Implement Azure Security (20–25%)</span>
+                    <span class="cert-tag">Monitor & Optimise (15–20%)</span>
+                    <span class="cert-tag">Connect to Azure Services (15–20%)</span>
+                  </div>
+                </div>
+
+                <div class="cert-tip">
+                  <strong>💡 Tip:</strong> AZ-204 is one of the harder Associate exams — it requires real coding knowledge. Practise deploying App Service, Functions, and Cosmos DB with actual code, not just portal clicks.
+                </div>
+
+                <a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-developer/" target="_blank" class="cert-official-link">↗ Official Microsoft Page</a>
+              </div>
+            </div>
+
+            <!-- AZ-500 -->
+            <div class="cert-card" id="card-az500">
+              <div class="cert-card-header" onclick="toggleCard('az500')">
+                <span class="cert-card-badge level-associate">AZ-500</span>
+                <div class="cert-card-title">
+                  <h3>Microsoft Azure Security Technologies</h3>
+                  <p>For security engineers protecting Azure environments</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">40–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$165 (₹13,700)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">1 year (renewable)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★</span><span class="difficulty-empty">★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">8–10 weeks</div></div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Who Should Take This</div>
+                  <ul>
+                    <li>Security engineers and analysts working with Azure</li>
+                    <li>Cloud administrators with a security focus</li>
+                    <li>Anyone pursuing a cybersecurity career in cloud</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>AZ-104 or equivalent Azure administration experience strongly recommended</li>
+                    <li>Understanding of security concepts — identity, access, threat protection</li>
+                    <li>Familiarity with Azure networking and compute</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Manage Identity & Access (25–30%)</span>
+                    <span class="cert-tag">Secure Networking (20–25%)</span>
+                    <span class="cert-tag">Secure Compute & Storage (20–25%)</span>
+                    <span class="cert-tag">Manage Security Operations (25–30%)</span>
+                  </div>
+                </div>
+
+                <div class="cert-tip">
+                  <strong>💡 Tip:</strong> Security is one of the highest-paying cloud specialisations. AZ-500 combined with AZ-104 makes you highly employable in enterprise security roles.
+                </div>
+
+                <a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-security-engineer/" target="_blank" class="cert-official-link">↗ Official Microsoft Page</a>
+              </div>
+            </div>
+
+            <!-- AZ-305 -->
+            <div class="cert-card" id="card-az305">
+              <div class="cert-card-header" onclick="toggleCard('az305')">
+                <span class="cert-card-badge level-expert">AZ-305</span>
+                <div class="cert-card-title">
+                  <h3>Designing Microsoft Azure Infrastructure Solutions</h3>
+                  <p>Expert-level — design complex, scalable Azure architectures</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Expert</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">40–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$165 (₹13,700)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">1 year (renewable)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">10–12 weeks</div></div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Who Should Take This</div>
+                  <ul>
+                    <li>Cloud architects designing enterprise Azure solutions</li>
+                    <li>Senior engineers wanting to move into architecture roles</li>
+                    <li>Solution architects working with enterprise clients</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>AZ-104 is a prerequisite — must be passed first</li>
+                    <li>Advanced knowledge of Azure networking, compute, storage, and security</li>
+                    <li>Real-world Azure architecture experience strongly recommended</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Design Identity & Security (25–30%)</span>
+                    <span class="cert-tag">Design Data Storage (25–30%)</span>
+                    <span class="cert-tag">Design Infrastructure (25–30%)</span>
+                    <span class="cert-tag">Design Business Continuity (10–15%)</span>
+                  </div>
+                </div>
+
+                <div class="cert-tip">
+                  <strong>💡 Tip:</strong> AZ-305 is scenario-heavy — you're given complex business requirements and must choose the right Azure architecture. Focus on understanding trade-offs between services, not just memorising features.
+                </div>
+
+                <a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/" target="_blank" class="cert-official-link">↗ Official Microsoft Page</a>
+              </div>
+            </div>
+
+            <!-- AZ-400 -->
+            <div class="cert-card" id="card-az400">
+              <div class="cert-card-header" onclick="toggleCard('az400')">
+                <span class="cert-card-badge level-expert">AZ-400</span>
+                <div class="cert-card-title">
+                  <h3>Designing and Implementing Microsoft DevOps Solutions</h3>
+                  <p>Expert-level — CI/CD pipelines, IaC, and DevOps culture on Azure</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Expert</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">40–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$165 (₹13,700)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">1 year (renewable)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">10–12 weeks</div></div>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Who Should Take This</div>
+                  <ul>
+                    <li>DevOps engineers implementing CI/CD on Azure</li>
+                    <li>Developers wanting to specialise in DevOps practices</li>
+                    <li>Platform engineers building developer tooling and pipelines</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>AZ-104 OR AZ-204 must be passed first</li>
+                    <li>Familiarity with Git, CI/CD concepts, and scripting</li>
+                    <li>Experience with Azure DevOps or GitHub Actions</li>
+                  </ul>
+                </div>
+
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Design & Implement Pipelines (35–40%)</span>
+                    <span class="cert-tag">Design Source Control (10–15%)</span>
+                    <span class="cert-tag">Secure the Pipeline (15–20%)</span>
+                    <span class="cert-tag">Instrument the Process (10–15%)</span>
+                    <span class="cert-tag">Design & Implement Release (10–15%)</span>
+                  </div>
+                </div>
+
+                <div class="cert-tip">
+                  <strong>💡 Tip:</strong> AZ-400 requires passing either AZ-104 or AZ-204 first. Most people take the AZ-104 → AZ-400 path. Hands-on experience with Azure Pipelines and GitHub Actions is essential.
+                </div>
+
+                <a href="https://learn.microsoft.com/en-us/credentials/certifications/devops-engineer/" target="_blank" class="cert-official-link">↗ Official Microsoft Page</a>
+              </div>
+            </div>
+
+          </div><!-- end cert-cards -->
+        </div><!-- end azure panel -->
+
+        <!-- ══════════════════════════════════════════
+             AWS PANEL
+        ══════════════════════════════════════════ -->
+        <div class="cert-panel" id="panel-aws">
+
+          <div class="provider-header">
+            <div class="provider-logo">🟠</div>
+            <div class="provider-info">
+              <h2>Amazon Web Services Certifications</h2>
+              <p>The most widely held cloud certifications globally. AWS has the largest market share and its certifications are highly valued by employers worldwide.</p>
+            </div>
+          </div>
+
+          <div class="cert-path-label">Recommended Learning Path</div>
+          <div class="cert-roadmap">
+            <div class="roadmap-item"><span class="roadmap-badge level-fundamental" onclick="toggleCard('clf')">CLF-C02</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('saa')">SAA-C03</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('dva')">DVA-C02</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('soa')">SOA-C02</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-expert" onclick="toggleCard('sap')">SAP-C02</span></div>
+          </div>
+
+          <div class="cert-cards">
+
+            <!-- CLF-C02 -->
+            <div class="cert-card" id="card-clf">
+              <div class="cert-card-header" onclick="toggleCard('clf')">
+                <span class="cert-card-badge level-fundamental">CLF-C02</span>
+                <div class="cert-card-title">
+                  <h3>AWS Certified Cloud Practitioner</h3>
+                  <p>AWS equivalent of AZ-900 — broad cloud and AWS fundamentals</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Foundational</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">65</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">90 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">700 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$100 (₹8,300)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★</span><span class="difficulty-empty">★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">2–4 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Cloud Concepts (24%)</span>
+                    <span class="cert-tag">Security & Compliance (30%)</span>
+                    <span class="cert-tag">Cloud Technology (34%)</span>
+                    <span class="cert-tag">Billing & Pricing (12%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> CLF-C02 is cheaper than Azure exams ($100 vs $165) and valid for 3 years. Great value as a first certification alongside AZ-900.</div>
+                <a href="https://aws.amazon.com/certification/certified-cloud-practitioner/" target="_blank" class="cert-official-link">↗ Official AWS Page</a>
+              </div>
+            </div>
+
+            <!-- SAA-C03 -->
+            <div class="cert-card" id="card-saa">
+              <div class="cert-card-header" onclick="toggleCard('saa')">
+                <span class="cert-card-badge level-associate">SAA-C03</span>
+                <div class="cert-card-title">
+                  <h3>AWS Certified Solutions Architect — Associate</h3>
+                  <p>The most popular AWS certification globally — highly sought by employers</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">65</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">130 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">720 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$150 (₹12,500)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★</span><span class="difficulty-empty">★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">6–8 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Secure Architectures (30%)</span>
+                    <span class="cert-tag">Resilient Architectures (26%)</span>
+                    <span class="cert-tag">High-Performing Architectures (24%)</span>
+                    <span class="cert-tag">Cost-Optimised Architectures (20%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> SAA-C03 is the single most recognised cloud certification in job listings. Combining it with AZ-104 makes you extremely competitive in the job market.</div>
+                <a href="https://aws.amazon.com/certification/certified-solutions-architect-associate/" target="_blank" class="cert-official-link">↗ Official AWS Page</a>
+              </div>
+            </div>
+
+            <!-- DVA-C02 -->
+            <div class="cert-card" id="card-dva">
+              <div class="cert-card-header" onclick="toggleCard('dva')">
+                <span class="cert-card-badge level-associate">DVA-C02</span>
+                <div class="cert-card-title">
+                  <h3>AWS Certified Developer — Associate</h3>
+                  <p>For developers building and deploying applications on AWS</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">65</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">130 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">720 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$150 (₹12,500)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★</span><span class="difficulty-empty">★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">6–8 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Development with AWS Services (32%)</span>
+                    <span class="cert-tag">Security (26%)</span>
+                    <span class="cert-tag">Deployment (24%)</span>
+                    <span class="cert-tag">Troubleshooting (18%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> DVA-C02 focuses on Lambda, DynamoDB, API Gateway, and CI/CD. Ideal for developers already working with AWS services day-to-day.</div>
+                <a href="https://aws.amazon.com/certification/certified-developer-associate/" target="_blank" class="cert-official-link">↗ Official AWS Page</a>
+              </div>
+            </div>
+
+            <!-- SOA-C02 -->
+            <div class="cert-card" id="card-soa">
+              <div class="cert-card-header" onclick="toggleCard('soa')">
+                <span class="cert-card-badge level-associate">SOA-C02</span>
+                <div class="cert-card-title">
+                  <h3>AWS Certified SysOps Administrator — Associate</h3>
+                  <p>For operations engineers managing and monitoring AWS environments</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">65 + lab</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">180 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">720 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$150 (₹12,500)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★</span><span class="difficulty-empty">★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">8–10 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Monitoring & Reporting (20%)</span>
+                    <span class="cert-tag">High Availability (16%)</span>
+                    <span class="cert-tag">Deployment & Provisioning (18%)</span>
+                    <span class="cert-tag">Storage & Data Management (12%)</span>
+                    <span class="cert-tag">Security & Compliance (18%)</span>
+                    <span class="cert-tag">Networking (16%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> SOA-C02 includes a hands-on lab section — you actually perform tasks in a real AWS console during the exam. Practise in AWS, not just theory.</div>
+                <a href="https://aws.amazon.com/certification/certified-sysops-admin-associate/" target="_blank" class="cert-official-link">↗ Official AWS Page</a>
+              </div>
+            </div>
+
+            <!-- SAP-C02 -->
+            <div class="cert-card" id="card-sap">
+              <div class="cert-card-header" onclick="toggleCard('sap')">
+                <span class="cert-card-badge level-expert">SAP-C02</span>
+                <div class="cert-card-title">
+                  <h3>AWS Certified Solutions Architect — Professional</h3>
+                  <p>The most prestigious AWS certification — complex enterprise architectures</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Professional</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">75</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">180 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">750 / 1000</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$300 (₹24,900)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">12–16 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>SAA-C03 must be held before attempting</li>
+                    <li>2+ years of hands-on AWS experience strongly recommended</li>
+                  </ul>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Design for Organisational Complexity (26%)</span>
+                    <span class="cert-tag">Design for New Solutions (29%)</span>
+                    <span class="cert-tag">Migration Planning (25%)</span>
+                    <span class="cert-tag">Cost Control (20%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> SAP-C02 is considered the hardest AWS certification. Questions involve complex multi-page scenarios requiring deep knowledge of 20+ AWS services simultaneously. Not for beginners.</div>
+                <a href="https://aws.amazon.com/certification/certified-solutions-architect-professional/" target="_blank" class="cert-official-link">↗ Official AWS Page</a>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- end aws panel -->
+
+        <!-- ══════════════════════════════════════════
+             GCP PANEL
+        ══════════════════════════════════════════ -->
+        <div class="cert-panel" id="panel-gcp">
+
+          <div class="provider-header">
+            <div class="provider-logo">🔵</div>
+            <div class="provider-info">
+              <h2>Google Cloud Certifications</h2>
+              <p>Google Cloud certifications are highly valued in data engineering, machine learning, and Kubernetes-heavy environments. Growing rapidly in enterprise adoption.</p>
+            </div>
+          </div>
+
+          <div class="cert-path-label">Recommended Learning Path</div>
+          <div class="cert-roadmap">
+            <div class="roadmap-item"><span class="roadmap-badge level-fundamental" onclick="toggleCard('cdl')">CDL</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-associate" onclick="toggleCard('ace')">ACE</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-expert" onclick="toggleCard('pca')">PCA</span><span class="roadmap-arrow">→</span></div>
+            <div class="roadmap-item"><span class="roadmap-badge level-specialty" onclick="toggleCard('pde')">PDE</span></div>
+          </div>
+
+          <div class="cert-cards">
+
+            <!-- Cloud Digital Leader -->
+            <div class="cert-card" id="card-cdl">
+              <div class="cert-card-header" onclick="toggleCard('cdl')">
+                <span class="cert-card-badge level-fundamental">CDL</span>
+                <div class="cert-card-title">
+                  <h3>Cloud Digital Leader</h3>
+                  <p>GCP's entry-level cert — cloud concepts and Google Cloud overview</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Foundational</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">50–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">90 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">~70%</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$99 (₹8,200)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★</span><span class="difficulty-empty">★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">2–3 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Digital Transformation with GCP (17%)</span>
+                    <span class="cert-tag">Innovating with Data (17%)</span>
+                    <span class="cert-tag">Modernising Infrastructure (17%)</span>
+                    <span class="cert-tag">Security & Compliance (17%)</span>
+                    <span class="cert-tag">Scaling with GCP (16%)</span>
+                    <span class="cert-tag">AI & ML on GCP (16%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> CDL is ideal for business leaders, project managers, and non-technical roles. It's less technical than AZ-900 or CLF-C02 — more focused on business value of cloud.</div>
+                <a href="https://cloud.google.com/learn/certification/cloud-digital-leader" target="_blank" class="cert-official-link">↗ Official Google Page</a>
+              </div>
+            </div>
+
+            <!-- ACE -->
+            <div class="cert-card" id="card-ace">
+              <div class="cert-card-header" onclick="toggleCard('ace')">
+                <span class="cert-card-badge level-associate">ACE</span>
+                <div class="cert-card-title">
+                  <h3>Associate Cloud Engineer</h3>
+                  <p>GCP equivalent of AZ-104 — deploy and manage Google Cloud infrastructure</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Associate</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">50–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">~70%</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$200 (₹16,600)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★</span><span class="difficulty-empty">★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">6–8 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Setting Up Cloud Environment (17.5%)</span>
+                    <span class="cert-tag">Planning & Configuring Solutions (17.5%)</span>
+                    <span class="cert-tag">Deploying & Implementing (25%)</span>
+                    <span class="cert-tag">Ensuring Success (25%)</span>
+                    <span class="cert-tag">Configuring Access & Security (15%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> ACE has a heavy focus on gcloud CLI commands. Practise using gcloud in Google Cloud Shell, not just the Console. Knowing CLI flags is frequently tested.</div>
+                <a href="https://cloud.google.com/learn/certification/cloud-engineer" target="_blank" class="cert-official-link">↗ Official Google Page</a>
+              </div>
+            </div>
+
+            <!-- PCA -->
+            <div class="cert-card" id="card-pca">
+              <div class="cert-card-header" onclick="toggleCard('pca')">
+                <span class="cert-card-badge level-expert">PCA</span>
+                <div class="cert-card-title">
+                  <h3>Professional Cloud Architect</h3>
+                  <p>GCP's most prestigious certification — design enterprise-grade cloud solutions</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Professional</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">50–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">~70%</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$200 (₹16,600)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">10–12 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Prerequisites</div>
+                  <ul>
+                    <li>ACE recommended but not mandatory</li>
+                    <li>3+ years industry experience including 1+ year GCP experience</li>
+                  </ul>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Designing Cloud Solutions (30%)</span>
+                    <span class="cert-tag">Managing & Provisioning (22%)</span>
+                    <span class="cert-tag">Designing for Security (18%)</span>
+                    <span class="cert-tag">Analysing & Optimising (18%)</span>
+                    <span class="cert-tag">Managing Compliance (12%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> PCA uses case studies — you read about a fictional company and answer multiple questions about the best architecture for them. Study the official case studies provided by Google.</div>
+                <a href="https://cloud.google.com/learn/certification/cloud-architect" target="_blank" class="cert-official-link">↗ Official Google Page</a>
+              </div>
+            </div>
+
+            <!-- PDE -->
+            <div class="cert-card" id="card-pde">
+              <div class="cert-card-header" onclick="toggleCard('pde')">
+                <span class="cert-card-badge level-specialty">PDE</span>
+                <div class="cert-card-title">
+                  <h3>Professional Data Engineer</h3>
+                  <p>Google Cloud's specialist data certification — BigQuery, Dataflow, and ML pipelines</p>
+                </div>
+                <span class="cert-card-toggle">▶</span>
+              </div>
+              <div class="cert-card-body">
+                <div class="cert-stats">
+                  <div class="cert-stat"><div class="cert-stat-label">Level</div><div class="cert-stat-value">Professional</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Questions</div><div class="cert-stat-value">50–60</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Duration</div><div class="cert-stat-value">120 minutes</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Passing Score</div><div class="cert-stat-value">~70%</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Cost</div><div class="cert-stat-value">$200 (₹16,600)</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Validity</div><div class="cert-stat-value">3 years</div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Difficulty</div><div class="cert-stat-value"><span class="difficulty">★★★★★</span></div></div>
+                  <div class="cert-stat"><div class="cert-stat-label">Study Time</div><div class="cert-stat-value">10–14 weeks</div></div>
+                </div>
+                <div class="cert-section">
+                  <div class="cert-section-title">Exam Topics</div>
+                  <div class="cert-tags">
+                    <span class="cert-tag">Designing Data Processing Systems (30%)</span>
+                    <span class="cert-tag">Ingesting & Processing Data (25%)</span>
+                    <span class="cert-tag">Storing Data (20%)</span>
+                    <span class="cert-tag">Preparing & Using Data for Analysis (15%)</span>
+                    <span class="cert-tag">Maintaining & Automating (10%)</span>
+                  </div>
+                </div>
+                <div class="cert-tip"><strong>💡 Tip:</strong> PDE is Google Cloud's most in-demand specialist certification. BigQuery, Dataflow, Pub/Sub, and Vertex AI are heavily tested. Ideal for data engineers and analysts moving to GCP.</div>
+                <a href="https://cloud.google.com/learn/certification/data-engineer" target="_blank" class="cert-official-link">↗ Official Google Page</a>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- end gcp panel -->
+
+      </div><!-- end cert-page -->
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. Exam prices and details are subject to change — always verify on the official certification provider's website before registering.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+  <script>
+    function switchTab(provider, btn) {
+      document.querySelectorAll('.cert-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.cert-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + provider).classList.add('active');
+    }
+
+    function toggleCard(id) {
+      const card = document.getElementById('card-' + id);
+      if (card) card.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
