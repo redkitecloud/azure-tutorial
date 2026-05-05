@@ -34,10 +34,10 @@ const RKC_MODULES = [
     exam: 'AZ-104',
     topics: [
       { title: 'Azure VMs Overview',               file: 'overview.html',                 done: true  },
-      { title: 'VM Series & Sizes',                file: 'vm-sizes.html',                 done: false },
-      { title: 'Create a Windows VM',              file: 'create-windows-vm.html',        done: false },
-      { title: 'Create a Linux VM',                file: 'create-linux-vm.html',          done: false },
-      { title: 'Connect to VM via SSH',            file: 'connect-ssh.html',              done: false },
+      { title: 'VM Series & Sizes',                file: 'vm-sizes.html',                 done: true  },
+      { title: 'Create a Windows VM',              file: 'create-windows-vm.html',        done: true  },
+      { title: 'Create a Linux VM',                file: 'create-linux-vm.html',          done: true  },
+      { title: 'Connect to VM via SSH',            file: 'connect-ssh.html',              done: true  },
       { title: 'Connect to VM via RDP',            file: 'connect-rdp.html',              done: false },
       { title: 'VM Disks Explained',               file: 'vm-disks.html',                 done: false },
       { title: 'Azure Managed Disks',              file: 'managed-disks.html',            done: false },
@@ -328,9 +328,9 @@ function renderSidebar() {
   let html = `
     <div class="sb-topics" id="sb-topics-navigate">
       <div class="sb-module" style="cursor:default;pointer-events:none">Navigate</div>
-      <a class="sb-item ${curMod === '' ? 'active' : ''}" href="${root}index.html"><span class="dot"></span>Home</a>
-      <a class="sb-item" href="${root}certifications.html"><span class="dot"></span>Certifications</a>
-      <a class="sb-item" href="${root}practice.html"><span class="dot"></span>Practice Questions</a>
+      <a class="sb-item ${curMod === '' && curFile !== 'certifications.html' && curFile !== 'practice.html' ? 'active' : ''}" href="${root}index.html"><span class="dot"></span>Home</a>
+      <a class="sb-item ${curFile === 'certifications.html' ? 'active' : ''}" href="${root}certifications.html"><span class="dot"></span>Certifications</a>
+      <a class="sb-item ${curFile === 'practice.html' ? 'active' : ''}" href="${root}practice.html"><span class="dot"></span>Practice Questions</a>
     </div>
   `;
 

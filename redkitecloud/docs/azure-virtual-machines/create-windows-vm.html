@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create a Windows VM in Azure | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Step-by-step guide to creating a Windows VM in Azure — portal walkthrough, CLI commands, configuration options, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Create a Windows VM</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 15 min read</span>
+        </div>
+
+        <h1 class="page-title">Create a Windows VM in Azure</h1>
+
+        <p class="page-intro">
+          Creating a Windows VM in Azure is straightforward once you understand what each setting does. This page walks you through every step — from the Azure Portal, with equivalent CLI commands alongside each step. By the end, you'll have a running Windows Server VM and understand every configuration choice you made.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Creating a VM via the Azure Portal · Every configuration option explained · Equivalent Azure CLI commands · Networking basics for VMs · Disk configuration · Administrator credentials · Connecting via RDP · Common mistakes to avoid
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#portal-steps">Create VM via Azure Portal</a></li>
+            <li><a href="#basics-tab">Basics Tab — Explained</a></li>
+            <li><a href="#disks-tab">Disks Tab — Explained</a></li>
+            <li><a href="#networking-tab">Networking Tab — Explained</a></li>
+            <li><a href="#management-tab">Management Tab — Key Settings</a></li>
+            <li><a href="#review-create">Review + Create</a></li>
+            <li><a href="#cli-method">Create via Azure CLI</a></li>
+            <li><a href="#after-creation">After the VM is Created</a></li>
+            <li><a href="#cleanup">Cleaning Up</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="prerequisites">Prerequisites</h2>
+          <ul>
+            <li>An Azure account — <a href="https://azure.microsoft.com/free" target="_blank">sign up free here</a></li>
+            <li>Access to the Azure Portal at <strong>portal.azure.com</strong></li>
+            <li>A Resource Group to deploy into (create one first if needed)</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Cost Warning</strong>
+              A Windows VM incurs costs even when idle (OS licence fee). Always <strong>deallocate</strong> (stop) the VM when not using it — or delete it entirely after this tutorial. A B2s Windows VM costs approximately ₹3,500–4,000/month on pay-as-you-go.
+            </div>
+          </div>
+
+          <h2 id="portal-steps">Create VM via Azure Portal</h2>
+          <p>Navigate to the Azure Portal and follow these steps:</p>
+          <ol>
+            <li>In the search bar, type <strong>Virtual Machines</strong> and click it</li>
+            <li>Click <strong>+ Create</strong> → <strong>Azure virtual machine</strong></li>
+            <li>The "Create a virtual machine" wizard opens with multiple tabs</li>
+          </ol>
+
+          <h2 id="basics-tab">Basics Tab — Explained</h2>
+          <p>The Basics tab is where you configure the core identity and compute settings of your VM.</p>
+
+          <h3>Subscription &amp; Resource Group</h3>
+          <p>Select your subscription and the Resource Group where the VM will live. Create a new Resource Group if needed — name it something like <code>rg-windows-vm-demo</code>.</p>
+
+          <h3>Virtual Machine Name</h3>
+          <p>Choose a meaningful name. Azure VM names have rules:</p>
+          <ul>
+            <li>1–15 characters for Windows VMs</li>
+            <li>Letters, numbers, and hyphens only</li>
+            <li>Cannot start or end with a hyphen</li>
+            <li>Must be unique within the Resource Group</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Naming Convention</strong>
+              Use a consistent pattern: <code>vm-[purpose]-[env]-[number]</code><br/>
+              Example: <code>vm-webserver-prod-01</code> or <code>vm-sqldb-dev-01</code>
+            </div>
+          </div>
+
+          <h3>Region</h3>
+          <p>Choose the region closest to your users. For Indian workloads, use <strong>Central India (Pune)</strong>. Remember — not all VM sizes are available in all regions.</p>
+
+          <h3>Availability Options</h3>
+          <p>This determines your redundancy level:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Option</th><th>SLA</th><th>Use For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>No infrastructure redundancy</td><td>99.9% (Premium SSD)</td><td>Dev/test, single-instance apps</td></tr>
+                <tr><td>Availability Zone</td><td>99.99%</td><td>Production — zone-level protection</td></tr>
+                <tr><td>Availability Set</td><td>99.95%</td><td>Legacy approach — use zones instead</td></tr>
+                <tr><td>Virtual Machine Scale Set</td><td>99.99%</td><td>Auto-scaling applications</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Security Type</h3>
+          <p>Leave as <strong>Trusted launch virtual machines</strong> for most workloads. This enables Secure Boot and vTPM for enhanced security.</p>
+
+          <h3>Image</h3>
+          <p>The operating system image. For Windows, common choices:</p>
+          <ul>
+            <li><strong>Windows Server 2022 Datacenter</strong> — Latest, recommended for new workloads</li>
+            <li><strong>Windows Server 2019 Datacenter</strong> — Stable, widely used</li>
+            <li><strong>Windows 11 Pro</strong> — Desktop OS for developer workstations</li>
+            <li><strong>Windows 10 Pro</strong> — Desktop OS (older)</li>
+          </ul>
+
+          <h3>Size</h3>
+          <p>Click <strong>See all sizes</strong> to browse all available VM sizes for your region. For this tutorial, use <strong>Standard_B2s</strong> (2 vCPUs, 4 GB RAM) — cheap and sufficient for learning.</p>
+
+          <h3>Administrator Account</h3>
+          <p>Create a local administrator account for the VM:</p>
+          <ul>
+            <li><strong>Username</strong> — Cannot be "admin", "administrator", "root", "guest", or "test"</li>
+            <li><strong>Password</strong> — Minimum 12 characters, must include uppercase, lowercase, number, and special character</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Save Your Credentials!</strong>
+              Azure does not store VM passwords. If you forget your administrator password, recovering access is complex. Write it down or use a password manager immediately.
+            </div>
+          </div>
+
+          <h3>Inbound Port Rules</h3>
+          <p>For Windows VMs you need <strong>RDP (port 3389)</strong> to connect. Select:</p>
+          <ul>
+            <li><strong>Public inbound ports:</strong> Allow selected ports</li>
+            <li><strong>Select inbound ports:</strong> RDP (3389)</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Security Note</strong>
+              Opening RDP to the internet (0.0.0.0/0) is a security risk — bots constantly scan for open RDP ports. For production, use Azure Bastion instead. For this tutorial/learning, it's acceptable but restrict the source IP to your own IP address after creation.
+            </div>
+          </div>
+
+          <h2 id="disks-tab">Disks Tab — Explained</h2>
+
+          <h3>OS Disk Type</h3>
+          <p>Choose the storage type for your OS disk:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Disk Type</th><th>Performance</th><th>Cost</th><th>Use For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Premium SSD</td><td>High IOPS, low latency</td><td>Higher</td><td>Production workloads — also needed for 99.9% SLA</td></tr>
+                <tr><td>Standard SSD</td><td>Moderate IOPS</td><td>Medium</td><td>Dev/test, light production</td></tr>
+                <tr><td>Standard HDD</td><td>Low IOPS</td><td>Lowest</td><td>Backups, archives — no SLA</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Delete OS disk when VM is deleted</h3>
+          <p>Check this box! By default, the OS disk is NOT deleted when you delete the VM. Ticking this saves you from orphaned disk charges.</p>
+
+          <h2 id="networking-tab">Networking Tab — Explained</h2>
+
+          <h3>Virtual Network</h3>
+          <p>Azure will create a new VNet automatically if you don't have one. For a tutorial VM, the default is fine. Name it something like <code>vnet-demo</code>.</p>
+
+          <h3>Subnet</h3>
+          <p>A subnet within the VNet. Default subnet (<code>10.0.0.0/24</code>) is fine for this tutorial.</p>
+
+          <h3>Public IP</h3>
+          <p>Required if you want to connect to the VM from the internet. A new Standard SKU public IP is created automatically. Note: public IPs are billed even when the VM is stopped.</p>
+
+          <h3>NIC Network Security Group</h3>
+          <p>The firewall for your VM. Select <strong>Basic</strong> for this tutorial — it will configure RDP access based on your earlier port selection. For production, use <strong>Advanced</strong> to create custom rules.</p>
+
+          <h3>Delete NIC when VM is deleted</h3>
+          <p>Check this box — same reason as OS disk. Prevents orphaned NIC charges.</p>
+
+          <h2 id="management-tab">Management Tab — Key Settings</h2>
+
+          <h3>Auto-shutdown</h3>
+          <p>Enable auto-shutdown with a time (e.g., 8 PM daily). This is extremely useful for dev/test VMs — it automatically deallocates the VM every evening, saving cost.</p>
+
+          <h3>Azure Monitor agent</h3>
+          <p>Install this to collect performance metrics and logs. Recommended for production VMs — leave it enabled.</p>
+
+          <h2 id="review-create">Review + Create</h2>
+          <p>Click <strong>Review + create</strong>. Azure validates your configuration — if anything is wrong, it highlights the issue and which tab to fix it on. Once validation passes, you see a summary with the estimated monthly cost. Click <strong>Create</strong> to deploy.</p>
+
+          <p>Deployment typically takes 2–5 minutes. You'll see a notification in the portal when complete.</p>
+
+          <h2 id="cli-method">Create via Azure CLI</h2>
+          <p>The entire VM creation can be done in one CLI command:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Windows VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create resource group first
+az group create \
+  --name rg-windows-vm-demo \
+  --location centralindia
+
+# Create the Windows VM
+az vm create \
+  --resource-group rg-windows-vm-demo \
+  --name vm-windows-demo \
+  --image Win2022Datacenter \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --admin-password "YourSecureP@ssword123!" \
+  --location centralindia \
+  --public-ip-sku Standard
+
+# Open RDP port 3389
+az vm open-port \
+  --resource-group rg-windows-vm-demo \
+  --name vm-windows-demo \
+  --port 3389</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Get the Public IP After Creation</strong>
+              After the VM is created, get its public IP to connect via RDP:
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Get VM public IP address</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm show \
+  --resource-group rg-windows-vm-demo \
+  --name vm-windows-demo \
+  --show-details \
+  --query publicIps \
+  --output tsv</code></pre>
+          </div>
+
+          <h2 id="after-creation">After the VM is Created</h2>
+          <p>Once deployed, connect to your VM via RDP:</p>
+          <ol>
+            <li>In the Azure Portal, go to your VM → click <strong>Connect</strong> → <strong>RDP</strong></li>
+            <li>Download the <strong>.rdp file</strong></li>
+            <li>Open the .rdp file — Windows Remote Desktop opens</li>
+            <li>Enter your administrator username and password</li>
+            <li>Accept the certificate warning and connect</li>
+          </ol>
+          <p>You're now inside a Windows Server running in Azure's data centre in Pune!</p>
+
+          <h2 id="cleanup">Cleaning Up</h2>
+          <p>To avoid ongoing charges, clean up when done:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Delete the entire resource group and all resources</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az group delete \
+  --name rg-windows-vm-demo \
+  --yes \
+  --no-wait</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Deallocate vs Delete</strong>
+              Deallocating a VM stops compute billing but keeps the disk (small storage charge). Deleting removes everything. For learning VMs, delete the whole resource group when done — it removes the VM, disk, NIC, and public IP in one command.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the maximum character length for a Windows VM name in Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Windows VM names are limited to 15 characters — not 63. Linux VM names can be up to 64 characters.')">
+                <span class="option-label">A</span> 63 characters
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The limit for Windows VMs is 15 characters — not 20.')">
+                <span class="option-label">B</span> 20 characters
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Windows VM names are limited to 15 characters (due to Windows NetBIOS name restrictions). Linux VM names can be up to 64 characters.')">
+                <span class="option-label">C</span> 15 characters
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Windows VM names cannot be 255 characters — they are limited to 15 characters.')">
+                <span class="option-label">D</span> 255 characters
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which port must be open in the Network Security Group to connect to a Windows VM via RDP?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 22 is for SSH — used to connect to Linux VMs, not Windows VMs.')">
+                <span class="option-label">A</span> Port 22
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 80 is HTTP — for web traffic, not remote desktop connections.')">
+                <span class="option-label">B</span> Port 80
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 443 is HTTPS — for secure web traffic, not remote desktop connections.')">
+                <span class="option-label">C</span> Port 443
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! RDP (Remote Desktop Protocol) uses port 3389. You must allow inbound TCP port 3389 in the VM\'s Network Security Group to connect to a Windows VM remotely.')">
+                <span class="option-label">D</span> Port 3389
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A developer creates a Windows VM for testing and deletes it after finishing. They later notice they are still being charged for storage. What is the most likely cause?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting a VM stops compute billing. Storage billing is caused by the OS disk being left behind, not the VM itself.')">
+                <span class="option-label">A</span> The VM is still running in a different region
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! By default, when you delete a VM, the OS disk (and NIC, public IP) are NOT deleted — they remain as orphaned resources and continue incurring charges. Always check "Delete with VM" or manually delete these resources.')">
+                <span class="option-label">B</span> The OS disk was not deleted when the VM was deleted
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure backups would only exist if backup was explicitly configured — this is unlikely to be the cause for a test VM.')">
+                <span class="option-label">C</span> Azure automatically created a backup of the VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Snapshots would only exist if explicitly created by the developer.')">
+                <span class="option-label">D</span> A snapshot was automatically taken during deletion
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the difference between stopping (deallocating) a VM and deleting it?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both stopping and deleting stop compute billing. The key difference is that stopping keeps the VM and its data, while deleting removes everything permanently.')">
+                <span class="option-label">A</span> Stopping a VM still incurs full compute charges; deleting stops all charges
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deallocating (stopping) a VM stops compute billing but keeps the VM and its disk — you still pay for storage. Deleting permanently removes the VM and (if configured) all associated resources.')">
+                <span class="option-label">B</span> Stopping keeps the VM and disk (small storage charge); deleting permanently removes everything
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deallocating a VM does stop compute billing — it is not the same as just pausing it. The VM is fully powered off and compute resources are released.')">
+                <span class="option-label">C</span> Stopping and deleting are the same — both permanently remove the VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A deallocated VM can be restarted at any time — it is not permanently removed and can be started again.')">
+                <span class="option-label">D</span> A stopped VM cannot be restarted without creating a new one
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which disk type is required for a single Windows VM to qualify for Microsoft's 99.9% uptime SLA?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard HDD is the lowest tier — a VM with Standard HDD has NO uptime SLA from Microsoft.')">
+                <span class="option-label">A</span> Standard HDD
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard SSD does not qualify for the 99.9% SLA on a single VM — Premium SSD is required.')">
+                <span class="option-label">B</span> Standard SSD
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A single VM must use Premium SSD for all OS and data disks to qualify for Microsoft\'s 99.9% uptime SLA. Without Premium SSD, there is no SLA guarantee on a single VM.')">
+                <span class="option-label">C</span> Premium SSD
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Ultra Disk provides the highest performance but is not required for the basic 99.9% SLA — Premium SSD is sufficient.')">
+                <span class="option-label">D</span> Ultra Disk
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vm-sizes.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Series &amp; Sizes</span>
+            </a>
+            <a class="related-card" href="create-linux-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Linux VM</span>
+            </a>
+            <a class="related-card" href="connect-rdp.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Connect to VM via RDP</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vm-sizes.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">VM Series &amp; Sizes</span>
+          </a>
+          <a class="nav-card next" href="create-linux-vm.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Create a Linux VM</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
