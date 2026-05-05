@@ -10,21 +10,22 @@ const RKC_MODULES = [
     label: '☁️ Azure Fundamentals',
     exam: 'AZ-900',
     topics: [
-      { title: 'What is Cloud Computing?',         file: 'what-is-cloud-computing.html',  done: true  },
-      { title: 'IaaS vs PaaS vs SaaS',             file: 'iaas-paas-saas.html',           done: true  },
-      { title: 'Public vs Private vs Hybrid',      file: 'cloud-types.html',              done: true  },
-      { title: 'What is Microsoft Azure?',          file: 'what-is-azure.html',            done: true  },
-      { title: 'Azure Global Infrastructure',       file: 'global-infrastructure.html',    done: true  },
-      { title: 'Azure Regions & Availability Zones',file: 'regions-availability-zones.html', done: false },
-      { title: 'Azure Region Pairs',                file: 'region-pairs.html',             done: false },
-      { title: 'Azure Portal Walkthrough',          file: 'azure-portal.html',             done: false },
-      { title: 'Azure CLI — Complete Guide',        file: 'azure-cli.html',                done: false },
-      { title: 'Azure PowerShell',                  file: 'azure-powershell.html',         done: false },
-      { title: 'Azure Cloud Shell',                 file: 'cloud-shell.html',              done: false },
-      { title: 'Azure Pricing & Free Tier',         file: 'pricing.html',                  done: false },
-      { title: 'Azure Resource Groups',             file: 'resource-groups.html',          done: false },
-      { title: 'Azure Subscriptions',               file: 'subscriptions.html',            done: false },
-      { title: 'Azure Management Groups',           file: 'management-groups.html',        done: false },
+      { title: 'What is Cloud Computing?',          file: 'what-is-cloud-computing.html',    done: true  },
+      { title: 'IaaS vs PaaS vs SaaS',              file: 'iaas-paas-saas.html',             done: true  },
+      { title: 'Public vs Private vs Hybrid',       file: 'cloud-types.html',                done: true  },
+      { title: 'What is Microsoft Azure?',           file: 'what-is-azure.html',              done: true  },
+      { title: 'Azure Global Infrastructure',        file: 'global-infrastructure.html',      done: true  },
+      { title: 'Azure Regions & Availability Zones', file: 'regions-availability-zones.html', done: true  },
+      { title: 'Azure Region Pairs',                 file: 'region-pairs.html',               done: true  },
+      { title: 'Azure Portal Walkthrough',           file: 'azure-portal.html',               done: true  },
+      { title: 'Azure CLI — Complete Guide',         file: 'azure-cli.html',                  done: true  },
+      { title: 'Azure PowerShell',                   file: 'azure-powershell.html',           done: true  },
+      { title: 'Azure Cloud Shell',                  file: 'cloud-shell.html',                done: true  },
+      { title: 'Azure Pricing & Free Tier',          file: 'pricing.html',                    done: true  },
+      { title: 'Azure Resource Groups',              file: 'resource-groups.html',            done: true  },
+      { title: 'Azure Subscriptions',                file: 'subscriptions.html',              done: true  },
+      { title: 'Azure Management Groups',            file: 'management-groups.html',          done: true  },
+      { title: 'Azure Arc',                          file: 'azure-arc.html',                  done: true  },
     ]
   },
   {
@@ -321,9 +322,9 @@ function renderSidebar() {
   let html = `
     <div class="sb-topics" id="sb-topics-navigate">
       <div class="sb-module" style="cursor:default;pointer-events:none">Navigate</div>
-      <a class="sb-item ${curMod === '' ? 'active' : ''}" href="${root}index.html"><span class="dot"></span>Home</a>
-      <a class="sb-item" href="${root}certifications.html"><span class="dot"></span>Certifications</a>
-      <a class="sb-item" href="${root}practice.html"><span class="dot"></span>Practice Questions</a>
+      <a class="sb-item ${curMod === '' && curFile !== 'certifications.html' && curFile !== 'practice.html' ? 'active' : ''}" href="${root}index.html"><span class="dot"></span>Home</a>
+      <a class="sb-item ${curFile === 'certifications.html' ? 'active' : ''}" href="${root}certifications.html"><span class="dot"></span>Certifications</a>
+      <a class="sb-item ${curFile === 'practice.html' ? 'active' : ''}" href="${root}practice.html"><span class="dot"></span>Practice Questions</a>
     </div>
   `;
 
