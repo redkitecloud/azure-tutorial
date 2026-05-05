@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RedKiteCloud — Learn Azure, AWS &amp; Google Cloud</title>
+  <meta name="description" content="End-to-end cloud tutorials covering Azure, AWS, Google Cloud and DevOps. Every topic covered in depth. Fly high in your cloud career." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="js/topbar.js"></script>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="js/sidebar.js"></script>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-title">Learn Cloud &amp; DevOps —<br><span>End to End.</span></div>
+        <div class="hero-desc">From complete beginner to certified professional. Deep tutorials on Azure, AWS, Google Cloud and DevOps tools. Every topic covered. Nothing left out. 🪁</div>
+        <div class="hero-tags">
+          <span class="hero-tag">☁️ Microsoft Azure</span>
+          <span class="hero-tag">🟠 AWS — Coming Soon</span>
+          <span class="hero-tag">🔵 Google Cloud — Coming Soon</span>
+          <span class="hero-tag">🛠️ DevOps — Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Azure Modules -->
+      <div class="section-label">☁️ Microsoft Azure</div>
+      <div class="modules-grid" id="azure-grid"></div>
+
+      <!-- Other Clouds -->
+      <div class="section-label">🟠 AWS &nbsp;·&nbsp; 🔵 Google Cloud &nbsp;·&nbsp; 🛠️ DevOps</div>
+      <div class="modules-grid" id="others-grid"></div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+  <script>
+  // Module card data
+  const MODULE_CARDS = [
+    {
+      id: 'azure-fundamentals',
+      icon: '☁️', iconBg: 'rgba(0,120,212,0.12)',
+      title: 'Azure Fundamentals',
+      desc: 'Cloud computing basics, Azure overview, portal, CLI and pricing',
+      count: '15 topics', cert: 'AZ-900',
+      href: 'docs/azure-fundamentals/what-is-cloud-computing.html',
+      available: true
+    },
+    {
+      id: 'azure-virtual-machines',
+      icon: '🖥️', iconBg: 'rgba(229,9,20,0.12)',
+      title: 'Azure Virtual Machines',
+      desc: 'VM series, create, connect, disks, scaling, bastion and cost tips',
+      count: '14 topics', cert: 'AZ-104',
+      href: 'docs/azure-virtual-machines/overview.html',
+      available: true
+    },
+    {
+      id: 'azure-storage',
+      icon: '💾', iconBg: 'rgba(251,188,5,0.12)',
+      title: 'Azure Storage',
+      desc: 'Blob, Files, Queue, Table, redundancy, SAS and lifecycle',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-networking',
+      icon: '🌐', iconBg: 'rgba(52,168,83,0.12)',
+      title: 'Azure Networking',
+      desc: 'VNets, NSGs, Load Balancer, VPN, DNS, Firewall and more',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-databases',
+      icon: '🗄️', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Azure Databases',
+      desc: 'SQL, Cosmos DB, MySQL, PostgreSQL, Redis and Synapse',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-identity-security',
+      icon: '🔐', iconBg: 'rgba(234,67,53,0.12)',
+      title: 'Identity & Security',
+      desc: 'Entra ID, RBAC, MFA, Key Vault, Defender and Sentinel',
+      count: 'Coming Soon', cert: 'AZ-500',
+      available: false
+    },
+    {
+      id: 'azure-app-service',
+      icon: '🌍', iconBg: 'rgba(0,120,212,0.12)',
+      title: 'Azure App Service',
+      desc: 'Web apps, deployment slots, auto-scaling and custom domains',
+      count: 'Coming Soon', cert: 'AZ-204',
+      available: false
+    },
+    {
+      id: 'azure-functions',
+      icon: '⚡', iconBg: 'rgba(251,188,5,0.12)',
+      title: 'Azure Functions',
+      desc: 'Serverless triggers, bindings, hosting plans and durable functions',
+      count: 'Coming Soon', cert: 'AZ-204',
+      available: false
+    },
+    {
+      id: 'azure-containers',
+      icon: '🐳', iconBg: 'rgba(52,168,83,0.12)',
+      title: 'Azure Containers',
+      desc: 'Docker, ACR, ACI, AKS and Azure Container Apps',
+      count: 'Coming Soon', cert: 'AZ-204',
+      available: false
+    },
+    {
+      id: 'azure-monitoring',
+      icon: '📊', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Monitoring & Governance',
+      desc: 'Azure Monitor, Log Analytics, KQL, Alerts and Cost Management',
+      count: 'Coming Soon', cert: 'AZ-104',
+      available: false
+    },
+    {
+      id: 'azure-devops',
+      icon: '🚀', iconBg: 'rgba(229,9,20,0.12)',
+      title: 'Azure DevOps & CI/CD',
+      desc: 'Boards, Repos, Pipelines, Bicep and Terraform on Azure',
+      count: 'Coming Soon', cert: 'AZ-400',
+      available: false
+    },
+    {
+      id: 'azure-ai-ml',
+      icon: '🤖', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Azure AI & ML',
+      desc: 'OpenAI, Cognitive Services, Vision, Speech and Machine Learning',
+      count: 'Coming Soon', cert: 'AI-900',
+      available: false
+    },
+    {
+      id: 'azure-architecture',
+      icon: '🏗️', iconBg: 'rgba(251,188,5,0.12)',
+      title: 'Azure Architecture',
+      desc: 'Well-Architected Framework, HA, DR, Landing Zones and patterns',
+      count: 'Coming Soon', cert: 'AZ-305',
+      available: false
+    }
+  ];
+
+  const OTHER_CARDS = [
+    {
+      icon: '🟠', iconBg: 'rgba(255,153,0,0.12)',
+      title: 'Amazon Web Services',
+      desc: 'EC2, S3, Lambda, VPC, IAM, RDS and more',
+      count: 'Coming Soon', cert: 'AWS SAA',
+      available: false
+    },
+    {
+      icon: '🔵', iconBg: 'rgba(66,133,244,0.12)',
+      title: 'Google Cloud Platform',
+      desc: 'Compute Engine, GCS, GKE, BigQuery and more',
+      count: 'Coming Soon', cert: 'GCP ACE',
+      available: false
+    },
+    {
+      icon: '🛠️', iconBg: 'rgba(52,168,83,0.12)',
+      title: 'DevOps Tools',
+      desc: 'Docker, Kubernetes, Terraform, Jenkins and GitHub Actions',
+      count: 'Coming Soon', cert: '',
+      available: false
+    }
+  ];
+
+  function buildCard(card) {
+    const tag   = card.available ? 'a' : 'div';
+    const href  = card.available ? `href="${card.href}"` : '';
+    const cls   = card.available ? 'module-card' : 'module-card disabled';
+    return `
+      <${tag} class="${cls}" ${href}>
+        <div class="module-icon" style="background:${card.iconBg}">${card.icon}</div>
+        <div class="module-title">${card.title}</div>
+        <div class="module-desc">${card.desc}</div>
+        <div class="module-footer">
+          <span class="module-count">${card.count}</span>
+          ${card.cert ? `<span class="module-cert">${card.cert}</span>` : ''}
+        </div>
+      </${tag}>
+    `;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('azure-grid').innerHTML  = MODULE_CARDS.map(buildCard).join('');
+    document.getElementById('others-grid').innerHTML = OTHER_CARDS.map(buildCard).join('');
+  });
+  </script>
+
+</body>
+</html>
