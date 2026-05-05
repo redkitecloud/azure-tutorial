@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Subscriptions | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Understand Azure Subscriptions — what they are, types of subscriptions, how billing works, and how subscriptions relate to Resource Groups and Management Groups." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Subscriptions</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Subscriptions</h1>
+
+        <p class="page-intro">
+          A Resource Group is a folder for your resources. But what's the folder that holds all your Resource Groups? That's an Azure Subscription. Subscriptions are the billing and access boundary in Azure — every resource you create belongs to a subscription, and that subscription is what gets the monthly bill. Understanding subscriptions is essential for managing Azure at scale.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What an Azure Subscription is · The relationship between subscriptions, resource groups, and resources · Types of Azure subscriptions · When to use multiple subscriptions · Subscription limits and quotas · How billing works at the subscription level · Subscription best practices
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is">What is an Azure Subscription?</a></li>
+            <li><a href="#hierarchy">The Azure Hierarchy</a></li>
+            <li><a href="#subscription-types">Types of Azure Subscriptions</a></li>
+            <li><a href="#multiple-subs">When to Use Multiple Subscriptions</a></li>
+            <li><a href="#limits">Subscription Limits &amp; Quotas</a></li>
+            <li><a href="#billing">How Billing Works</a></li>
+            <li><a href="#managing">Managing Subscriptions</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is">What is an Azure Subscription?</h2>
+          <p>An Azure Subscription is a logical unit of Azure services that is linked to an Azure account. It serves two key purposes:</p>
+          <ul>
+            <li><strong>Billing boundary</strong> — All resources in a subscription are billed together. Each subscription generates its own monthly invoice.</li>
+            <li><strong>Access control boundary</strong> — You can apply policies and access controls at the subscription level that affect all resources within it.</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Simple Analogy</strong>
+              Think of a Subscription like a bank account. A Resource Group is a category in that account (food, rent, transport). Individual resources are transactions. All transactions are charged to the bank account — and you get one statement per account per month.
+            </div>
+          </div>
+
+          <h2 id="hierarchy">The Azure Hierarchy</h2>
+          <p>Azure has a clear organisational hierarchy. Understanding it is fundamental to managing Azure at any scale:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Level</th><th>What It Is</th><th>Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Management Group</td><td>Container for multiple subscriptions</td><td>Root MG → Production MG</td></tr>
+                <tr><td>Subscription</td><td>Billing and access control boundary</td><td>Contoso Production Subscription</td></tr>
+                <tr><td>Resource Group</td><td>Logical container for related resources</td><td>rg-webapp-prod</td></tr>
+                <tr><td>Resource</td><td>Individual Azure service</td><td>myVM, myStorageAccount</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Policies, access controls, and cost tracking can be applied at any level — and they inherit downward. A policy applied to a subscription applies to all Resource Groups and resources within it.</p>
+
+          <h2 id="subscription-types">Types of Azure Subscriptions</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Type</th><th>Who It's For</th><th>Key Features</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Free</td><td>New users learning Azure</td><td>$200 credits for 30 days, 12 months free services</td></tr>
+                <tr><td>Pay-As-You-Go</td><td>Individuals and small businesses</td><td>Pay only for usage, no commitment</td></tr>
+                <tr><td>Enterprise Agreement (EA)</td><td>Large enterprises (&gt;500 seats)</td><td>Volume discounts, committed spend, central billing</td></tr>
+                <tr><td>Cloud Solution Provider (CSP)</td><td>Customers buying through Microsoft partners</td><td>Partner-managed billing, often discounted</td></tr>
+                <tr><td>Visual Studio / Dev/Test</td><td>Developers with Visual Studio subscriptions</td><td>Discounted dev/test rates, not for production</td></tr>
+                <tr><td>Student</td><td>Verified students</td><td>$100 credits, no credit card required</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>For Learning</strong>
+              Start with a Free subscription. Once your credits expire, it converts to Pay-As-You-Go. If you're a student, the Azure Student subscription is even better — $100 credits with no credit card required.
+            </div>
+          </div>
+
+          <h2 id="multiple-subs">When to Use Multiple Subscriptions</h2>
+          <p>A single organisation can have many Azure subscriptions. Here are the most common reasons to use multiple:</p>
+
+          <h3>Environment Separation</h3>
+          <p>Keep development, staging, and production in separate subscriptions. This creates a hard billing and access boundary — a dev mistake cannot accidentally affect production, and you get separate invoices per environment.</p>
+
+          <h3>Department / Business Unit Billing</h3>
+          <p>Each business unit (Engineering, Marketing, Finance) gets its own subscription so their Azure spend appears as separate invoices. This makes internal chargeback simple.</p>
+
+          <h3>Subscription Limits</h3>
+          <p>Each subscription has resource limits (quotas). For example, a single subscription can have a maximum of 980 Resource Groups. High-scale organisations hit these limits and need multiple subscriptions.</p>
+
+          <h3>Regulatory / Compliance Boundaries</h3>
+          <p>Some organisations keep regulated workloads (healthcare data, financial data) in a dedicated subscription with strict policies, completely isolated from regular workloads.</p>
+
+          <h3>Geographic / Regional Isolation</h3>
+          <p>Multinational organisations may have separate subscriptions per country to manage local compliance requirements and give regional teams autonomy.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Multiple Subscriptions + Management Groups</strong>
+              Once you have multiple subscriptions, managing policies across all of them becomes complex. This is where Management Groups come in — they let you apply policies and access controls across multiple subscriptions at once. Covered in the next tutorial.
+            </div>
+          </div>
+
+          <h2 id="limits">Subscription Limits &amp; Quotas</h2>
+          <p>Every Azure subscription has default limits on the number of resources you can create. These are called <strong>quotas</strong>. Here are key ones to know:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Resource</th><th>Default Limit per Subscription</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Resource Groups</td><td>980</td></tr>
+                <tr><td>Virtual Machines (per region)</td><td>25,000 vCPUs</td></tr>
+                <tr><td>Storage Accounts (per region)</td><td>250</td></tr>
+                <tr><td>Virtual Networks</td><td>1,000</td></tr>
+                <tr><td>Azure Active Directory tenants</td><td>1 per subscription</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Quota Increases</strong>
+              Most quotas can be increased by submitting a support request in the Azure Portal. Go to Help + Support → New support request → Service and subscription limits (quotas). Microsoft usually approves increases quickly for valid business needs.
+            </div>
+          </div>
+
+          <h2 id="billing">How Billing Works</h2>
+          <p>Every subscription has a billing cycle — typically monthly. At the end of each cycle, Azure generates an invoice for all resource usage within that subscription during that period.</p>
+
+          <h3>Billing Account Structure</h3>
+          <ul>
+            <li><strong>Billing Account</strong> — Created when you sign up for Azure. One per company or individual.</li>
+            <li><strong>Billing Profile</strong> — Contains payment method and invoice settings. You can have multiple billing profiles.</li>
+            <li><strong>Invoice Section</strong> — Organises charges within a billing profile by department or project.</li>
+            <li><strong>Subscription</strong> — Linked to an invoice section. All resource charges roll up here.</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">List all subscriptions in your account</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az account list --output table</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Show the currently active subscription</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az account show</code></pre>
+          </div>
+
+          <h2 id="managing">Managing Subscriptions</h2>
+          <p>You can manage subscriptions from the Azure Portal under <strong>Subscriptions</strong> (search in the top bar). From there you can:</p>
+          <ul>
+            <li>View all subscriptions linked to your account</li>
+            <li>See spending and budgets per subscription</li>
+            <li>Assign access roles at the subscription level</li>
+            <li>Apply Azure Policies</li>
+            <li>Cancel or transfer a subscription</li>
+          </ul>
+
+          <h2 id="best-practices">Best Practices</h2>
+          <ul>
+            <li><strong>Separate prod from non-prod</strong> — At minimum, use different subscriptions for production and development/test</li>
+            <li><strong>Use Management Groups</strong> — Once you have 3+ subscriptions, use Management Groups to apply policies centrally</li>
+            <li><strong>Name subscriptions clearly</strong> — E.g., <code>Contoso-Production</code>, <code>Contoso-Dev-Test</code>, <code>Contoso-Shared-Services</code></li>
+            <li><strong>Assign an owner</strong> — Every subscription should have a designated owner who is responsible for its costs and governance</li>
+            <li><strong>Set budgets</strong> — Configure monthly budget alerts on every subscription</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Know that a Subscription is both a billing boundary and an access control boundary. Know the hierarchy: Management Groups → Subscriptions → Resource Groups → Resources. Know that one Azure account can have multiple subscriptions.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What are the two primary purposes of an Azure Subscription?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Subscription is not a physical data centre — that is an Azure Region. And it is not a security firewall.')">
+                <span class="option-label">A</span> A physical data centre location and a security firewall
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! An Azure Subscription serves as a billing boundary (all resources in a subscription are billed together) and an access control boundary (policies and RBAC can be applied at the subscription level).')">
+                <span class="option-label">B</span> A billing boundary and an access control boundary
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Subscription is not a VM container or a network boundary — those are Resource Groups and Virtual Networks respectively.')">
+                <span class="option-label">C</span> A container for virtual machines and a network boundary
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Subscription is not a backup policy or monitoring tool — those are separate Azure services.')">
+                <span class="option-label">D</span> A backup policy boundary and a monitoring boundary
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the correct order of the Azure resource hierarchy from highest to lowest level?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This order is reversed — Resources are at the bottom of the hierarchy, not the top.')">
+                <span class="option-label">A</span> Resources → Resource Groups → Subscriptions → Management Groups
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure hierarchy from top to bottom is: Management Groups → Subscriptions → Resource Groups → Resources. Policies and access controls applied at higher levels inherit downward.')">
+                <span class="option-label">B</span> Management Groups → Subscriptions → Resource Groups → Resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Subscriptions are above Resource Groups in the hierarchy — not below them.')">
+                <span class="option-label">C</span> Management Groups → Resource Groups → Subscriptions → Resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Management Groups are the highest-level containers — they sit above Subscriptions.')">
+                <span class="option-label">D</span> Subscriptions → Management Groups → Resource Groups → Resources
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A large enterprise wants to ensure development teams cannot accidentally affect production resources. What is the recommended approach?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Putting dev and prod in the same subscription with different resource groups provides some separation but not a hard billing or access boundary.')">
+                <span class="option-label">A</span> Put dev and prod resources in different Resource Groups within the same subscription
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Separate subscriptions for dev and production create a hard boundary — different billing, different access controls, and no shared resource scope. A mistake in dev cannot cross subscription boundaries into production.')">
+                <span class="option-label">B</span> Use separate subscriptions for development and production
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Separate regions do not prevent cross-environment access — the problem is about permissions and billing boundaries, not geographic location.')">
+                <span class="option-label">C</span> Deploy dev and prod in different Azure regions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Different billing accounts are for completely separate organisations — that is too extreme for separating dev and prod within the same company.')">
+                <span class="option-label">D</span> Create separate billing accounts for dev and prod
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Can a single Azure account have multiple subscriptions?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A single Azure account can have multiple subscriptions. This is common in enterprises — separate subscriptions for production, dev/test, different departments, or different business units, all managed under the same account.')">
+                <span class="option-label">A</span> Yes — one account can have multiple subscriptions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no one-subscription-per-account limit. Azure is designed to support multiple subscriptions under a single account.')">
+                <span class="option-label">B</span> No — each account is limited to one subscription
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no such limit — accounts can have many subscriptions, not just three.')">
+                <span class="option-label">C</span> Yes — but only up to 3 subscriptions per account
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multiple subscriptions per account is a standard feature for all account types, not a premium feature.')">
+                <span class="option-label">D</span> Only with an Enterprise Agreement — not with Pay-As-You-Go
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the default maximum number of Resource Groups per Azure Subscription?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default limit is 980 Resource Groups per subscription — not 100.')">
+                <span class="option-label">A</span> 100
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default limit is 980 — not 500.')">
+                <span class="option-label">B</span> 500
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The default limit is 980 Resource Groups per subscription. This limit can be increased by submitting a quota increase request through Azure Support.')">
+                <span class="option-label">C</span> 980
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While the limit can be increased through a support request, the default is 980 — not unlimited.')">
+                <span class="option-label">D</span> Unlimited
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="resource-groups.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Resource Groups</span>
+            </a>
+            <a class="related-card" href="management-groups.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Management Groups</span>
+            </a>
+            <a class="related-card" href="pricing.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Pricing &amp; Free Tier</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="resource-groups.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Resource Groups</span>
+          </a>
+          <a class="nav-card next" href="management-groups.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Management Groups</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Cloud Shell | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Learn Azure Cloud Shell — the browser-based terminal built into the Azure Portal. No installation required. Covers CLI, PowerShell, and AZ-900 exam topics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Cloud Shell</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 10 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Cloud Shell</h1>
+
+        <p class="page-intro">
+          What if you could run Azure CLI and PowerShell commands from any browser, on any device, anywhere in the world — without installing anything? That's exactly what Azure Cloud Shell does. It's a fully functional, authenticated, browser-based terminal built directly into the Azure Portal. For learners and professionals alike, it's the fastest way to get hands-on with Azure.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Azure Cloud Shell is · How to access it · First-time setup · Bash vs PowerShell mode · What's pre-installed · Persistent storage explained · The Cloud Shell editor · Accessing Cloud Shell outside the portal · Limitations to be aware of
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is">What is Azure Cloud Shell?</a></li>
+            <li><a href="#accessing">How to Access Cloud Shell</a></li>
+            <li><a href="#first-time">First-Time Setup</a></li>
+            <li><a href="#bash-vs-ps">Bash vs PowerShell Mode</a></li>
+            <li><a href="#pre-installed">What's Pre-Installed</a></li>
+            <li><a href="#storage">Persistent Storage</a></li>
+            <li><a href="#editor">The Cloud Shell Editor</a></li>
+            <li><a href="#outside-portal">Accessing Cloud Shell Outside the Portal</a></li>
+            <li><a href="#limitations">Limitations</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is">What is Azure Cloud Shell?</h2>
+          <p>Azure Cloud Shell is an interactive, browser-based shell environment hosted by Microsoft. It gives you an authenticated terminal session running in the cloud — no installation, no configuration, and no need to manage credentials. Open a browser, go to the portal, click the terminal icon, and you're ready to run commands within seconds.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Key Point</strong>
+              Cloud Shell runs on a temporary container hosted by Azure. Microsoft manages the underlying infrastructure — you just use the terminal. Every time you open Cloud Shell, you get a fresh container, but your files persist because they're stored in Azure File Storage (which you set up once).
+            </div>
+          </div>
+
+          <h2 id="accessing">How to Access Cloud Shell</h2>
+          <p>There are three ways to open Cloud Shell:</p>
+
+          <h3>Option 1 — From the Azure Portal</h3>
+          <p>Click the terminal icon (<strong>&gt;_</strong>) in the top navigation bar of the Azure Portal at portal.azure.com. This opens Cloud Shell in a panel at the bottom of the portal — you can use the portal and the terminal side by side.</p>
+
+          <h3>Option 2 — Dedicated Cloud Shell URL</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">URL</span>
+              <span class="code-label">Dedicated Cloud Shell window</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>https://shell.azure.com</code></pre>
+          </div>
+          <p>This opens Cloud Shell in a full browser window — no portal chrome around it. Useful when you want a larger terminal workspace.</p>
+
+          <h3>Option 3 — From Azure Documentation</h3>
+          <p>Many Azure documentation pages have an "Open Cloud Shell" button embedded inline. Clicking it launches Cloud Shell with the relevant command pre-populated — great for following tutorials.</p>
+
+          <h2 id="first-time">First-Time Setup</h2>
+          <p>The very first time you open Cloud Shell, Azure will ask you to configure storage for persistent files. This is a one-time setup:</p>
+
+          <ol>
+            <li>Choose your <strong>Subscription</strong></li>
+            <li>Click <strong>Create storage</strong> (Azure creates a storage account and file share automatically)</li>
+            <li>Wait ~30 seconds for the container to initialise</li>
+            <li>Your shell prompt appears — you're ready</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>What Storage Gets Created?</strong>
+              Azure creates a Storage Account (named something like <code>cs[randomchars]</code>) and a File Share inside it. Your Cloud Shell home directory (<code>~/</code>) is mapped to this file share. Anything you save there persists between sessions.
+            </div>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Small Cost</strong>
+              The storage account created for Cloud Shell incurs a small cost — typically less than ₹100/month for the file storage. It's minimal, but worth knowing. If you delete the storage account, your Cloud Shell files are gone and you'll need to set up storage again.
+            </div>
+          </div>
+
+          <h2 id="bash-vs-ps">Bash vs PowerShell Mode</h2>
+          <p>Cloud Shell supports two shells — you choose when you first set it up, and can switch anytime using the dropdown at the top of the shell:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Bash Mode</th><th>PowerShell Mode</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Shell</td><td>Bash on Linux container</td><td>PowerShell 7 on Linux container</td></tr>
+                <tr><td>Azure tool</td><td>Azure CLI (<code>az</code>)</td><td>Azure PowerShell (<code>Connect-AzAccount</code> etc.)</td></tr>
+                <tr><td>Best for</td><td>Developers, Linux users, CLI learners</td><td>Windows admins, PowerShell scripts</td></tr>
+                <tr><td>Scripting</td><td>.sh shell scripts</td><td>.ps1 PowerShell scripts</td></tr>
+                <tr><td>Both available?</td><td>Azure CLI only in Bash mode by default</td><td>Both CLI and PS available in PS mode</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Both Are Available in Both Modes</strong>
+              Even in Bash mode, you can run <code>pwsh</code> to switch to a PowerShell sub-shell. In PowerShell mode, you can run <code>bash</code> to switch to Bash. Cloud Shell is flexible — you're not locked into one shell.
+            </div>
+          </div>
+
+          <h2 id="pre-installed">What's Pre-Installed</h2>
+          <p>Cloud Shell comes loaded with tools so you never have to install anything:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Category</th><th>Tools</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Azure tools</td><td>Azure CLI, Azure PowerShell, Azure Functions Core Tools</td></tr>
+                <tr><td>Container tools</td><td>kubectl, helm, Docker</td></tr>
+                <tr><td>IaC tools</td><td>Terraform, Bicep, Ansible</td></tr>
+                <tr><td>Languages</td><td>Python, Node.js, .NET, Java, Go, Ruby</td></tr>
+                <tr><td>Source control</td><td>Git, GitHub CLI</td></tr>
+                <tr><td>Text editors</td><td>vim, nano, emacs, Cloud Shell Editor (GUI)</td></tr>
+                <tr><td>Databases</td><td>MySQL client, PostgreSQL client, sqlcmd</td></tr>
+                <tr><td>Misc</td><td>jq, wget, curl, zip, ssh, sftp</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Always Up to Date</strong>
+              Microsoft keeps all Cloud Shell tools updated automatically. You never need to run <code>az upgrade</code> or update PowerShell modules — Cloud Shell always has the latest stable versions.
+            </div>
+          </div>
+
+          <h2 id="storage">Persistent Storage</h2>
+          <p>Cloud Shell runs on a temporary container — when you close your session, the container is discarded. But your files survive because Cloud Shell mounts an Azure File Share to your home directory (<code>~/clouddrive</code> in Bash, or the home directory in PowerShell).</p>
+
+          <h3>What Persists</h3>
+          <ul>
+            <li>Files in your home directory (<code>~/</code>) and <code>~/clouddrive</code></li>
+            <li>Shell history (bash_history or PowerShell history)</li>
+            <li>SSH keys stored in <code>~/.ssh/</code></li>
+            <li>Git credentials stored in <code>~/.gitconfig</code></li>
+            <li>Custom scripts you save to <code>~/</code></li>
+          </ul>
+
+          <h3>What Does NOT Persist</h3>
+          <ul>
+            <li>Installed packages (e.g., <code>pip install</code> or <code>npm install -g</code> — gone when session ends)</li>
+            <li>Environment variables set in the session</li>
+            <li>Any changes outside the home directory</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Save a script for reuse across sessions</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Save a frequently used script to your home directory
+# It will persist across all Cloud Shell sessions
+
+cat > ~/deploy.sh << 'EOF'
+#!/bin/bash
+az group create --name rg-test --location centralindia
+az vm create --resource-group rg-test --name myVM \
+  --image Ubuntu2204 --size Standard_B1s \
+  --admin-username azureuser --generate-ssh-keys
+EOF
+
+chmod +x ~/deploy.sh
+echo "Script saved!"</code></pre>
+          </div>
+
+          <h2 id="editor">The Cloud Shell Editor</h2>
+          <p>Cloud Shell includes a built-in graphical code editor — type <code>code .</code> or <code>code filename.sh</code> to open it. It's based on VS Code's Monaco editor and gives you syntax highlighting, IntelliSense, and a proper file explorer.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Open the Cloud Shell editor</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Open a file in the editor
+code myscript.sh
+
+# Open the current directory in the editor
+code .</code></pre>
+          </div>
+
+          <h2 id="outside-portal">Accessing Cloud Shell Outside the Portal</h2>
+          <p>You're not limited to using Cloud Shell through the Azure Portal. You can access it in several other ways:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Method</th><th>How</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Browser (full screen)</td><td>shell.azure.com</td><td>Dedicated terminal work</td></tr>
+                <tr><td>VS Code extension</td><td>Azure Account extension → Cloud Shell</td><td>Developers using VS Code</td></tr>
+                <tr><td>Windows Terminal</td><td>Add Azure Cloud Shell profile</td><td>Windows power users</td></tr>
+                <tr><td>Mobile</td><td>Microsoft Azure app → Cloud Shell</td><td>Quick tasks on the go</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="limitations">Limitations</h2>
+          <p>Cloud Shell is powerful, but it has some limitations you should know:</p>
+          <ul>
+            <li><strong>20-minute timeout</strong> — If you don't type anything for 20 minutes, the session closes. Your files are safe, but you lose unsaved terminal state.</li>
+            <li><strong>No root access</strong> — You can't run commands as root or install system-level packages permanently.</li>
+            <li><strong>Single session</strong> — Cloud Shell supports one active session per user at a time.</li>
+            <li><strong>No inbound connections</strong> — You can't host a web server or expose ports in Cloud Shell.</li>
+            <li><strong>Requires storage</strong> — Cloud Shell requires an Azure Storage account. If your subscription doesn't support storage in your chosen region, setup will fail.</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Key facts about Cloud Shell for the exam: browser-based terminal built into the portal · no installation required · supports both Bash (CLI) and PowerShell · requires Azure File Storage for persistence · accessible via portal.azure.com and shell.azure.com.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is Azure Cloud Shell?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell is not a desktop application — it runs entirely in the browser with no installation required.')">
+                <span class="option-label">A</span> A desktop terminal application you install on Windows
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cloud Shell is a browser-based, authenticated terminal built into the Azure Portal. It requires no installation and comes pre-loaded with Azure CLI, PowerShell, and many other tools.')">
+                <span class="option-label">B</span> A browser-based authenticated terminal built into the Azure Portal
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell is a command-line terminal — not a visual monitoring dashboard.')">
+                <span class="option-label">C</span> A visual dashboard for monitoring Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell supports both Azure CLI (Bash mode) and Azure PowerShell — it is not limited to one tool.')">
+                <span class="option-label">D</span> A command-line interface only for Azure PowerShell
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What URL can you use to access Azure Cloud Shell directly in a full browser window?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. portal.azure.com is the Azure Portal — it contains Cloud Shell, but it is not the dedicated Cloud Shell URL.')">
+                <span class="option-label">A</span> portal.azure.com
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! shell.azure.com opens Azure Cloud Shell in a full browser window without the portal around it — giving you a larger terminal workspace.')">
+                <span class="option-label">B</span> shell.azure.com
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. terminal.azure.com is not the correct URL for Azure Cloud Shell.')">
+                <span class="option-label">C</span> terminal.azure.com
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. cli.azure.com is not the correct URL for Azure Cloud Shell.')">
+                <span class="option-label">D</span> cli.azure.com
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Why does Azure Cloud Shell require a Storage Account during first-time setup?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The storage account is not for billing — Azure already tracks your subscription usage separately. Cloud Shell storage is for file persistence.')">
+                <span class="option-label">A</span> To track and bill Cloud Shell usage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Cloud Shell runs on a temporary container that is discarded after each session. An Azure File Share (in the storage account) is mounted to your home directory so your files, scripts, and SSH keys persist between sessions.')">
+                <span class="option-label">B</span> To persist your files and scripts between Cloud Shell sessions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The storage account is not for tool installation — Cloud Shell tools are pre-installed in the container image itself.')">
+                <span class="option-label">C</span> To store the Azure CLI and PowerShell tool installations
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Authentication is handled via your Azure subscription credentials — not through storage.')">
+                <span class="option-label">D</span> To authenticate your identity when accessing Azure
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which of the following is a limitation of Azure Cloud Shell?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell does support Azure PowerShell — you can switch to PowerShell mode or run pwsh in Bash mode.')">
+                <span class="option-label">A</span> It only supports Azure CLI and not Azure PowerShell
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell is available in all Azure regions — it is not limited to the US.')">
+                <span class="option-label">B</span> It is only available in the US Azure regions
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Cloud Shell sessions time out after 20 minutes of inactivity. Your files are safe (stored in Azure Storage), but your terminal session and any unsaved state are lost.')">
+                <span class="option-label">C</span> Sessions time out after 20 minutes of inactivity
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cloud Shell does support Git — it is pre-installed in the container and git credentials can be persisted in the home directory.')">
+                <span class="option-label">D</span> It does not support Git commands
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A developer wants to run Azure CLI commands from their iPad while travelling without installing any apps. What is the best option?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no Azure CLI iOS app available for iPad.')">
+                <span class="option-label">A</span> Install the Azure CLI app from the App Store
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cloud Shell at shell.azure.com works in any modern browser — including mobile browsers on iPad. No installation required. The developer gets a fully functional, authenticated Azure CLI session instantly.')">
+                <span class="option-label">B</span> Open shell.azure.com in the iPad browser — Cloud Shell works in any browser
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CLI cannot be installed on an iPad — it requires a desktop OS like Windows, macOS, or Linux.')">
+                <span class="option-label">C</span> Install Azure CLI directly on the iPad
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal app provides limited management features — it does not give full Azure CLI command access.')">
+                <span class="option-label">D</span> Use the Microsoft Azure app — it provides full CLI functionality
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="azure-portal.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Portal Walkthrough</span>
+            </a>
+            <a class="related-card" href="azure-cli.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure CLI — Complete Guide</span>
+            </a>
+            <a class="related-card" href="azure-powershell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure PowerShell</span>
+            </a>
+            <a class="related-card" href="pricing.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Pricing &amp; Free Tier</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="azure-powershell.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure PowerShell</span>
+          </a>
+          <a class="nav-card next" href="pricing.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Pricing &amp; Free Tier</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

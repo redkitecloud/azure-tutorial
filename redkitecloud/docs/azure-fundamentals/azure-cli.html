@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure CLI — Complete Guide | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Learn Azure CLI from scratch — installation, authentication, core commands, and real-world examples. Complete AZ-900 and AZ-104 coverage." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure CLI — Complete Guide</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 15 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure CLI — Complete Guide</h1>
+
+        <p class="page-intro">
+          The Azure Portal is great for learning and exploration, but when you need to create 50 virtual machines, automate a deployment pipeline, or write a script that runs every night — you need the Azure CLI. It's fast, scriptable, cross-platform, and once you learn the pattern, every command feels intuitive. This guide takes you from installation to confident everyday usage.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What the Azure CLI is and why it matters · Installing on Windows, Mac, and Linux · Signing in and managing accounts · The command structure explained · Core commands for resources, VMs, storage, and networking · Output formats · Querying with JMESPath · Tips for scripting and automation
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-cli">What is the Azure CLI?</a></li>
+            <li><a href="#installing">Installing the Azure CLI</a></li>
+            <li><a href="#signing-in">Signing In</a></li>
+            <li><a href="#command-structure">Command Structure Explained</a></li>
+            <li><a href="#core-commands">Essential Commands</a></li>
+            <li><a href="#output-formats">Output Formats</a></li>
+            <li><a href="#querying">Querying Output with JMESPath</a></li>
+            <li><a href="#real-world">Real-World Examples</a></li>
+            <li><a href="#tips">Tips &amp; Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-cli">What is the Azure CLI?</h2>
+          <p>The Azure CLI (Command-Line Interface) is a cross-platform tool that lets you manage Azure resources from a terminal. It runs on Windows, macOS, and Linux. You type commands, Azure executes them, and results come back as text (or JSON).</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>CLI vs Portal vs PowerShell</strong>
+              All three can do the same things. The Portal is best for visual exploration. Azure CLI is best for Bash scripting, Linux environments, and developers. Azure PowerShell is best for Windows administrators and those already using PowerShell. On this site, we primarily use Azure CLI.
+            </div>
+          </div>
+
+          <h2 id="installing">Installing the Azure CLI</h2>
+
+          <h3>Windows</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Install via MSI (recommended for Windows)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Download and run the MSI installer
+# Visit: https://aka.ms/installazurecliwindows
+# OR install via winget:
+winget install Microsoft.AzureCLI</code></pre>
+          </div>
+
+          <h3>macOS</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Install via Homebrew</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>brew update && brew install azure-cli</code></pre>
+          </div>
+
+          <h3>Linux (Ubuntu / Debian)</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Install on Ubuntu/Debian</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash</code></pre>
+          </div>
+
+          <h3>Verify Installation</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Check installed version</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az version</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>No Installation? Use Cloud Shell</strong>
+              If you don't want to install anything locally, use Azure Cloud Shell at portal.azure.com. It has the latest Azure CLI pre-installed and authenticated — perfect for learning.
+            </div>
+          </div>
+
+          <h2 id="signing-in">Signing In</h2>
+
+          <h3>Interactive Login (Most Common)</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Login to Azure</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az login</code></pre>
+          </div>
+          <p>This opens a browser window for you to sign in with your Microsoft account. Once signed in, the terminal shows a list of your subscriptions.</p>
+
+          <h3>Check Currently Signed-In Account</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Show current account</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az account show</code></pre>
+          </div>
+
+          <h3>List All Subscriptions</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">List subscriptions</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az account list --output table</code></pre>
+          </div>
+
+          <h3>Switch Active Subscription</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Set active subscription</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az account set --subscription "My Subscription Name"
+# OR using subscription ID:
+az account set --subscription "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"</code></pre>
+          </div>
+
+          <h2 id="command-structure">Command Structure Explained</h2>
+          <p>Every Azure CLI command follows the same pattern. Once you understand it, any command becomes readable:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Structure</span>
+              <span class="code-label">Azure CLI command pattern</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az [group] [subgroup] [command] [--parameter value]
+
+# Examples:
+az vm create ...          # group=vm, command=create
+az storage account list   # group=storage, subgroup=account, command=list
+az network vnet show ...  # group=network, subgroup=vnet, command=show</code></pre>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Part</th><th>Meaning</th><th>Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>az</code></td><td>The CLI tool itself</td><td><code>az</code></td></tr>
+                <tr><td><code>[group]</code></td><td>The Azure service or resource type</td><td><code>vm</code>, <code>storage</code>, <code>network</code></td></tr>
+                <tr><td><code>[subgroup]</code></td><td>Sub-resource within the service</td><td><code>account</code>, <code>vnet</code>, <code>nsg</code></td></tr>
+                <tr><td><code>[command]</code></td><td>The action to perform</td><td><code>create</code>, <code>list</code>, <code>show</code>, <code>delete</code></td></tr>
+                <tr><td><code>--parameter</code></td><td>Options and values</td><td><code>--name myVM --location centralindia</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Built-in Help</strong>
+              Add <code>--help</code> to any command to see all available parameters and examples. Works at any level: <code>az --help</code>, <code>az vm --help</code>, <code>az vm create --help</code>.
+            </div>
+          </div>
+
+          <h2 id="core-commands">Essential Commands</h2>
+
+          <h3>Resource Groups</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Resource Group commands</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a resource group
+az group create --name myResourceGroup --location centralindia
+
+# List all resource groups
+az group list --output table
+
+# Show details of a resource group
+az group show --name myResourceGroup
+
+# Delete a resource group (and ALL resources inside it)
+az group delete --name myResourceGroup --yes --no-wait</code></pre>
+          </div>
+
+          <h3>Virtual Machines</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">VM commands</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a Linux VM
+az vm create \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --image Ubuntu2204 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys \
+  --location centralindia
+
+# List VMs in a resource group
+az vm list --resource-group myResourceGroup --output table
+
+# Start a VM
+az vm start --resource-group myResourceGroup --name myVM
+
+# Stop a VM (deallocated — stops billing)
+az vm deallocate --resource-group myResourceGroup --name myVM
+
+# Delete a VM
+az vm delete --resource-group myResourceGroup --name myVM --yes</code></pre>
+          </div>
+
+          <h3>Storage Accounts</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Storage commands</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a storage account
+az storage account create \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --location centralindia \
+  --sku Standard_LRS
+
+# List storage accounts
+az storage account list --output table
+
+# Delete a storage account
+az storage account delete --name mystorageaccount \
+  --resource-group myResourceGroup --yes</code></pre>
+          </div>
+
+          <h2 id="output-formats">Output Formats</h2>
+          <p>Azure CLI can return results in different formats using the <code>--output</code> (or <code>-o</code>) flag:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Format</th><th>Flag</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>JSON</td><td><code>--output json</code></td><td>Default. Full details, good for scripting</td></tr>
+                <tr><td>Table</td><td><code>--output table</code></td><td>Human-readable, easy to scan</td></tr>
+                <tr><td>YAML</td><td><code>--output yaml</code></td><td>Readable structured format</td></tr>
+                <tr><td>TSV</td><td><code>--output tsv</code></td><td>Tab-separated, good for piping to scripts</td></tr>
+                <tr><td>None</td><td><code>--output none</code></td><td>Suppress all output</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Output format examples</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm list --output table      # Clean table view
+az vm list --output json       # Full JSON
+az vm list --output tsv        # Tab-separated for scripts</code></pre>
+          </div>
+
+          <h2 id="querying">Querying Output with JMESPath</h2>
+          <p>The <code>--query</code> flag lets you filter and transform CLI output using JMESPath syntax — a query language for JSON. This is incredibly powerful for extracting specific values from responses.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">JMESPath query examples</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Get just the name and location of all VMs
+az vm list --query "[].{Name:name, Location:location}" --output table
+
+# Get the public IP of a specific VM
+az vm show \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --query "publicIps" \
+  --output tsv
+
+# Get only running VMs
+az vm list \
+  --query "[?powerState=='VM running'].name" \
+  --output table</code></pre>
+          </div>
+
+          <h2 id="real-world">Real-World Examples</h2>
+
+          <h3>Deploy a Complete Web App Stack</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Create RG + App Service Plan + Web App</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># 1. Create resource group
+az group create --name rg-webapp-prod --location centralindia
+
+# 2. Create App Service Plan (PaaS)
+az appservice plan create \
+  --name asp-webapp-prod \
+  --resource-group rg-webapp-prod \
+  --sku B1 \
+  --is-linux
+
+# 3. Create Web App
+az webapp create \
+  --resource-group rg-webapp-prod \
+  --plan asp-webapp-prod \
+  --name my-webapp-redkite \
+  --runtime "NODE:18-lts"
+
+# 4. Open the app in browser
+az webapp browse \
+  --resource-group rg-webapp-prod \
+  --name my-webapp-redkite</code></pre>
+          </div>
+
+          <h2 id="tips">Tips &amp; Best Practices</h2>
+          <ul>
+            <li><strong>Always set a default location</strong> — <code>az configure --defaults location=centralindia</code> so you don't have to type <code>--location</code> every time</li>
+            <li><strong>Always set a default resource group</strong> — <code>az configure --defaults group=myResourceGroup</code></li>
+            <li><strong>Use <code>--no-wait</code></strong> — For long operations like VM creation, add <code>--no-wait</code> to return immediately and let it run in the background</li>
+            <li><strong>Use <code>--yes</code> or <code>-y</code></strong> — Skip confirmation prompts in scripts</li>
+            <li><strong>Update regularly</strong> — <code>az upgrade</code> keeps the CLI up to date</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              For the exam, know what the Azure CLI is (cross-platform command-line tool), that it uses the <code>az</code> command, that it can run in Cloud Shell without installation, and that it's an alternative to the Portal and PowerShell for managing Azure resources.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the Azure CLI?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure CLI is a cross-platform tool — it runs on Windows, macOS, and Linux. It is not Windows-only.')">
+                <span class="option-label">A</span> A Windows-only graphical tool for managing Azure resources
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure CLI is a cross-platform command-line tool that lets you manage Azure resources from a terminal on Windows, macOS, and Linux using the az command.')">
+                <span class="option-label">B</span> A cross-platform command-line tool for managing Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CLI is not a browser-based interface — that\'s the Azure Portal. CLI runs in a terminal on your local machine or in Cloud Shell.')">
+                <span class="option-label">C</span> A browser-based interface for managing Azure resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CLI is not specific to virtual machines — it can manage all Azure services including storage, networking, databases, and more.')">
+                <span class="option-label">D</span> A tool specifically for managing Azure Virtual Machines
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What command do you run to sign in to Azure using the CLI?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az connect</code> is not a valid Azure CLI command.')">
+                <span class="option-label">A</span> az connect
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az authenticate</code> is not the correct command for signing in.')">
+                <span class="option-label">B</span> az authenticate
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! <code>az login</code> is the command to sign in to Azure. It opens a browser window for authentication and then returns a list of your subscriptions.')">
+                <span class="option-label">C</span> az login
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az signin</code> is not a valid Azure CLI command.')">
+                <span class="option-label">D</span> az signin
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Which output format is best for human-readable, easy-to-scan results in the Azure CLI?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JSON is the default output — it is complete and good for scripting, but not the most human-readable for quick scanning.')">
+                <span class="option-label">A</span> JSON
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Table format (--output table) presents results in a clean, aligned table that is much easier to read at a glance than raw JSON.')">
+                <span class="option-label">B</span> Table
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. TSV (tab-separated values) is designed for piping output into scripts — not for human readability.')">
+                <span class="option-label">C</span> TSV
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. None suppresses all output — nothing is displayed at all.')">
+                <span class="option-label">D</span> None
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the correct Azure CLI command to create a Resource Group named "rg-test" in the Central India region?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az resource group create</code> is not the correct syntax — it should be <code>az group create</code>.')">
+                <span class="option-label">A</span> az resource group create --name rg-test --location centralindia
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! <code>az group create</code> with <code>--name</code> and <code>--location</code> is the correct syntax for creating a Resource Group.')">
+                <span class="option-label">B</span> az group create --name rg-test --location centralindia
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az group new</code> is not a valid Azure CLI command — the correct verb is <code>create</code>.')">
+                <span class="option-label">C</span> az group new --name rg-test --location centralindia
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. <code>az create group</code> has the wrong order — the resource type comes before the command: <code>az group create</code>.')">
+                <span class="option-label">D</span> az create group --name rg-test --location centralindia
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A developer wants to use the Azure CLI without installing anything on their local machine. What is the best option?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal is a GUI — it is not the Azure CLI. Though the Portal contains Cloud Shell which has the CLI.')">
+                <span class="option-label">A</span> Use the Azure Portal directly — it includes CLI functionality
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cloud Shell (accessible from portal.azure.com via the terminal icon) provides a fully functional Azure CLI environment in the browser — no installation required, pre-authenticated, always up to date.')">
+                <span class="option-label">B</span> Use Azure Cloud Shell — it provides CLI in the browser with no installation
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure mobile app does not provide a full Azure CLI experience — it is for monitoring and basic management only.')">
+                <span class="option-label">C</span> Use the Azure mobile app which includes a built-in CLI
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure PowerShell is a separate tool — it is not the Azure CLI, and it also requires installation.')">
+                <span class="option-label">D</span> Use Azure PowerShell instead — it requires no installation
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="azure-portal.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Portal Walkthrough</span>
+            </a>
+            <a class="related-card" href="azure-powershell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure PowerShell</span>
+            </a>
+            <a class="related-card" href="cloud-shell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Cloud Shell</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="azure-portal.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Portal Walkthrough</span>
+          </a>
+          <a class="nav-card next" href="azure-powershell.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure PowerShell</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

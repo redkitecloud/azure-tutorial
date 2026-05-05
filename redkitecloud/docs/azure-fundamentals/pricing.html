@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Pricing & Free Tier | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Understand how Azure pricing works — pay-as-you-go, reserved instances, spot pricing, the free tier, and how to estimate and control costs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Pricing &amp; Free Tier</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Pricing &amp; Free Tier</h1>
+
+        <p class="page-intro">
+          One of the most important skills in cloud computing is understanding how you're billed — and how to keep costs under control. Azure's pricing model is flexible and powerful, but it can also be complex. This page demystifies Azure pricing from the ground up: the free tier, pay-as-you-go, reserved instances, spot pricing, and the tools Azure gives you to estimate and manage costs.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          The Azure free account and what's included · Pay-as-you-go pricing explained · Reserved Instances vs Spot pricing · Factors that affect your Azure bill · The Azure Pricing Calculator · Cost Management and Budgets · Tips for keeping costs low
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#free-account">The Azure Free Account</a></li>
+            <li><a href="#always-free">Always-Free Services</a></li>
+            <li><a href="#payg">Pay-As-You-Go Pricing</a></li>
+            <li><a href="#pricing-factors">What Affects Your Bill</a></li>
+            <li><a href="#reserved">Reserved Instances</a></li>
+            <li><a href="#spot">Spot Pricing</a></li>
+            <li><a href="#pricing-calculator">The Azure Pricing Calculator</a></li>
+            <li><a href="#tco">The TCO Calculator</a></li>
+            <li><a href="#cost-management">Cost Management &amp; Budgets</a></li>
+            <li><a href="#tips">Cost-Saving Tips</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="free-account">The Azure Free Account</h2>
+          <p>When you sign up for Azure for the first time, you get a free account that includes three layers of free usage:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Layer</th><th>What You Get</th><th>Duration</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Credit</td><td>$200 (approx. ₹16,600) in Azure credits</td><td>First 30 days only</td></tr>
+                <tr><td>Popular free services</td><td>Linux VMs (B1s), Windows VMs (B1s), SQL Database (250GB), Blob Storage (5GB), and more</td><td>12 months</td></tr>
+                <tr><td>Always-free services</td><td>25+ services with permanent free tiers</td><td>Forever</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>After 30 Days / Credits Run Out</strong>
+              Once your $200 credit is used or 30 days pass, your account converts to pay-as-you-go. You won't be charged automatically — Azure requires you to explicitly upgrade. The 12-month free services and always-free services continue regardless.
+            </div>
+          </div>
+
+          <h2 id="always-free">Always-Free Services</h2>
+          <p>These services have a permanent free tier that never expires — even after your free account period ends:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Service</th><th>Free Limit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Azure Functions</td><td>1 million executions per month</td></tr>
+                <tr><td>Azure App Service</td><td>10 web, mobile, or API apps (F1 tier)</td></tr>
+                <tr><td>Azure Cosmos DB</td><td>1,000 RU/s throughput + 25 GB storage</td></tr>
+                <tr><td>Azure Kubernetes Service (AKS)</td><td>Free cluster management (pay only for VMs)</td></tr>
+                <tr><td>Azure DevOps</td><td>5 users free, unlimited public pipelines</td></tr>
+                <tr><td>Azure Active Directory (Entra ID)</td><td>500,000 objects free</td></tr>
+                <tr><td>Azure Blob Storage</td><td>5 GB LRS storage (first 12 months)</td></tr>
+                <tr><td>Azure Bandwidth</td><td>15 GB outbound data transfer per month</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Azure Functions Free Tier is Generous</strong>
+              1 million function executions per month is genuinely useful for small to medium workloads. Many hobby projects and small APIs run entirely within the free tier and never incur a charge.
+            </div>
+          </div>
+
+          <h2 id="payg">Pay-As-You-Go Pricing</h2>
+          <p>Beyond the free tier, Azure uses a pay-as-you-go (PAYG) model. You are billed for exactly what you use — to the second for compute, to the GB for storage, to the request for API calls.</p>
+          <p>There are no upfront commitments and no termination fees. You can start using a service today and stop tomorrow — paying only for those hours of usage.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Billing Granularity</strong>
+              Virtual Machines are billed per second. Storage is billed per GB per month. Data transfer is billed per GB. API calls are billed per 1,000 or 1 million calls. Each service has its own billing unit — always check the pricing page for the specific service.
+            </div>
+          </div>
+
+          <h2 id="pricing-factors">What Affects Your Azure Bill</h2>
+          <p>Five main factors influence how much you pay in Azure:</p>
+
+          <h3>1. Resource Type</h3>
+          <p>Different resources have completely different pricing models. A VM is priced per hour of compute. A storage account is priced per GB stored. An API call is priced per request. Always check the pricing page for each specific service.</p>
+
+          <h3>2. Region</h3>
+          <p>The same VM size can cost 10–30% more in one region than another. East US is typically one of the cheapest regions. India regions are moderately priced. Always check regional pricing before committing to a deployment location.</p>
+
+          <h3>3. Bandwidth (Data Transfer)</h3>
+          <p>Inbound data to Azure is free. Outbound data (from Azure to the internet) is charged per GB. Data transfer between Azure services in the same region is free. Cross-region transfers are charged.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Data Transfer Type</th><th>Cost</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Inbound to Azure</td><td>Free</td></tr>
+                <tr><td>Outbound to internet (first 15 GB/month)</td><td>Free</td></tr>
+                <tr><td>Outbound to internet (beyond 15 GB)</td><td>Charged per GB</td></tr>
+                <tr><td>Between services in same region</td><td>Free</td></tr>
+                <tr><td>Between Azure regions</td><td>Charged per GB</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>4. Subscription Type</h3>
+          <p>Enterprise Agreement (EA) customers with large commitments get significant discounts. Pay-as-you-go customers pay list price. Microsoft partners and CSP (Cloud Solution Provider) resellers also offer discounted rates.</p>
+
+          <h3>5. Reserved vs On-Demand</h3>
+          <p>Paying upfront for 1 or 3 years (Reserved Instances) gives you up to 72% off pay-as-you-go prices. This is covered in detail in the next section.</p>
+
+          <h2 id="reserved">Reserved Instances</h2>
+          <p>Reserved Instances (RIs) let you commit to using a specific VM size in a specific region for 1 or 3 years — in exchange for a massive discount over pay-as-you-go pricing.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Commitment</th><th>Discount vs PAYG</th><th>Payment Options</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1-year reservation</td><td>Up to 40% off</td><td>All upfront, monthly, or partial upfront</td></tr>
+                <tr><td>3-year reservation</td><td>Up to 72% off</td><td>All upfront, monthly, or partial upfront</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>When to Use Reserved Instances</strong>
+              If you have a workload that runs 24/7 and you know what size VM you need — Reserved Instances are almost always worth it. A VM that would cost ₹10,000/month on PAYG might cost ₹2,800/month on a 3-year reservation. The savings are enormous for stable, long-running workloads.
+            </div>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Commitment Risk</strong>
+              Reserved Instances are a commitment. If you stop using the VM, you still pay for the reservation (though you can exchange or cancel with some penalty). Only reserve capacity you're confident you'll use.
+            </div>
+          </div>
+
+          <h2 id="spot">Spot Pricing</h2>
+          <p>Azure Spot VMs let you use Azure's unused compute capacity at up to 90% discount compared to pay-as-you-go prices. The catch: Azure can evict (terminate) your Spot VM with 30 seconds notice when it needs the capacity back.</p>
+
+          <h3>When to Use Spot VMs</h3>
+          <ul>
+            <li>Batch processing jobs that can be interrupted and resumed</li>
+            <li>Rendering workloads</li>
+            <li>Dev/test environments that can be recreated</li>
+            <li>CI/CD build agents</li>
+            <li>Any workload that is fault-tolerant and stateless</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Never Use Spot For</strong>
+              Production web servers, databases, or any workload where sudden termination would cause user-facing downtime. Spot is for resilient, interruptible workloads only.
+            </div>
+          </div>
+
+          <h2 id="pricing-calculator">The Azure Pricing Calculator</h2>
+          <p>Before deploying anything, use the Azure Pricing Calculator to estimate your monthly costs. It lets you configure services, choose regions, and see a cost breakdown before you spend a rupee.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">URL</span>
+              <span class="code-label">Azure Pricing Calculator</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>https://azure.microsoft.com/pricing/calculator</code></pre>
+          </div>
+
+          <p>How to use it:</p>
+          <ol>
+            <li>Search for a service (e.g., "Virtual Machines")</li>
+            <li>Configure the options — region, size, OS, hours/month</li>
+            <li>Add more services as needed</li>
+            <li>See total estimated monthly cost at the bottom</li>
+            <li>Export the estimate as PDF or share a link</li>
+          </ol>
+
+          <h2 id="tco">The TCO Calculator</h2>
+          <p>The Total Cost of Ownership (TCO) Calculator helps you compare the cost of running workloads on-premises vs on Azure. It accounts for hardware, power, cooling, labour, and facilities costs — not just compute.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">URL</span>
+              <span class="code-label">Azure TCO Calculator</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>https://azure.microsoft.com/pricing/tco/calculator</code></pre>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Pricing Calculator vs TCO Calculator</strong>
+              Use the <strong>Pricing Calculator</strong> to estimate what Azure will cost. Use the <strong>TCO Calculator</strong> to show your management how much you'll save by moving from on-premises to Azure.
+            </div>
+          </div>
+
+          <h2 id="cost-management">Cost Management &amp; Budgets</h2>
+          <p>Azure Cost Management is a built-in tool in the portal that helps you monitor, analyse, and optimise your spending.</p>
+
+          <h3>Key Features</h3>
+          <ul>
+            <li><strong>Cost analysis</strong> — Break down costs by service, resource group, tag, or time period</li>
+            <li><strong>Budgets</strong> — Set a monthly spending limit and get email alerts when you approach it</li>
+            <li><strong>Recommendations</strong> — Azure Advisor suggests resources you can resize or shut down to save money</li>
+            <li><strong>Exports</strong> — Export cost data to a storage account for custom reporting</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure Portal</span>
+              <span class="code-label">Where to find Cost Management</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>Portal → Search "Cost Management" → Cost Management + Billing</code></pre>
+          </div>
+
+          <h2 id="tips">Cost-Saving Tips</h2>
+          <ul>
+            <li><strong>Deallocate VMs when not in use</strong> — A stopped (deallocated) VM doesn't charge for compute. Use it for dev/test VMs overnight.</li>
+            <li><strong>Right-size your VMs</strong> — Many teams over-provision. Azure Advisor will tell you if your VM is using less than 5% CPU — a sign you can downsize.</li>
+            <li><strong>Use Reserved Instances for stable workloads</strong> — If a VM runs 24/7, reserve it for 1–3 years for up to 72% savings.</li>
+            <li><strong>Use Spot for batch jobs</strong> — Up to 90% savings for fault-tolerant workloads.</li>
+            <li><strong>Delete unused resources</strong> — Orphaned disks, unattached public IPs, and idle load balancers all cost money.</li>
+            <li><strong>Use Azure Hybrid Benefit</strong> — If you have existing Windows Server or SQL Server licences with Software Assurance, you can use them on Azure VMs for significant savings.</li>
+            <li><strong>Set budget alerts</strong> — Configure alerts at 80% and 100% of your monthly budget so surprises don't happen.</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Know the difference between the Pricing Calculator (estimate Azure costs) and the TCO Calculator (compare on-premises vs cloud costs). Also know the three pricing options: PAYG, Reserved Instances (1 or 3 year), and Spot pricing.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What does the Azure free account include for the first 30 days?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The free account does not provide unlimited access — it provides $200 in credits for 30 days, after which normal pay-as-you-go rates apply.')">
+                <span class="option-label">A</span> Unlimited access to all Azure services
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure free account includes $200 in credits for the first 30 days, 12 months of popular free services, and 25+ always-free services.')">
+                <span class="option-label">B</span> $200 in credits plus 12 months of popular free services
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The free account does not require a credit card upfront — Azure will not charge you until you explicitly upgrade to pay-as-you-go.')">
+                <span class="option-label">C</span> Access only after paying a $200 deposit
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The free account includes much more than storage — it includes compute, databases, AI services, and more.')">
+                <span class="option-label">D</span> Free storage only with no compute resources
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company has a production web server that runs 24/7 and will continue to do so for the next 3 years. Which pricing option gives the best cost savings?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Pay-as-you-go is the most expensive option for stable, long-running workloads. It is best for variable or unpredictable usage.')">
+                <span class="option-label">A</span> Pay-as-you-go
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Spot pricing is for interruptible workloads — Azure can terminate Spot VMs with 30 seconds notice, making them unsuitable for a production web server.')">
+                <span class="option-label">B</span> Spot pricing
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A 3-year Reserved Instance provides up to 72% savings compared to pay-as-you-go. For a stable, 24/7 production workload with a known lifespan, reservations offer the best value.')">
+                <span class="option-label">C</span> 3-year Reserved Instance
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The free tier has strict limits — it cannot support a production web server that runs continuously at scale.')">
+                <span class="option-label">D</span> Free tier
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is Azure Spot pricing best suited for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Production databases require continuous availability — a Spot VM can be evicted with 30 seconds notice, which would cause data loss or corruption.')">
+                <span class="option-label">A</span> Production databases requiring high availability
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Customer-facing web servers need to be always available — Spot VMs can be terminated unexpectedly, causing downtime for users.')">
+                <span class="option-label">B</span> Customer-facing web applications
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Spot VMs are ideal for fault-tolerant, interruptible batch processing jobs like data transformation, rendering, or CI/CD builds — workloads that can be paused and resumed without user impact.')">
+                <span class="option-label">C</span> Fault-tolerant batch processing jobs that can be interrupted
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Real-time transaction processing needs guaranteed availability — Spot VMs are too unreliable for this use case.')">
+                <span class="option-label">D</span> Real-time financial transaction processing
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the purpose of the Azure Pricing Calculator?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. That is the purpose of the TCO Calculator — which compares on-premises vs Azure costs. The Pricing Calculator estimates Azure-only costs.')">
+                <span class="option-label">A</span> To compare the cost of on-premises infrastructure vs Azure
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure Pricing Calculator (azure.microsoft.com/pricing/calculator) lets you configure Azure services and estimate your monthly costs before deploying anything.')">
+                <span class="option-label">B</span> To estimate the monthly cost of Azure services before deploying
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Cost Management (in the portal) shows actual spending on already-deployed resources. The Pricing Calculator is for estimating future costs.')">
+                <span class="option-label">C</span> To view actual spending on already-deployed resources
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reserved Instances are purchased through the Azure Portal, not through the Pricing Calculator.')">
+                <span class="option-label">D</span> To purchase Reserved Instances at a discount
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which of the following data transfer scenarios in Azure is free?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Inbound data transfer to Azure is always free. You are only charged for outbound data (from Azure to the internet) beyond 15 GB per month, and for cross-region transfers.')">
+                <span class="option-label">A</span> Inbound data transfer from the internet to Azure
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Outbound data transfer from Azure to the internet is free for the first 15 GB/month, but charged per GB beyond that.')">
+                <span class="option-label">B</span> All outbound data transfer from Azure to the internet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Data transfer between different Azure regions is charged per GB — it is not free.')">
+                <span class="option-label">C</span> Data transfer between two different Azure regions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While egress to other cloud providers may be minimal in practice, it is technically charged as outbound internet data transfer.')">
+                <span class="option-label">D</span> Data transfer from Azure to another cloud provider
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="resource-groups.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Resource Groups</span>
+            </a>
+            <a class="related-card" href="subscriptions.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Subscriptions</span>
+            </a>
+            <a class="related-card" href="cloud-shell.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Cloud Shell</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="cloud-shell.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Cloud Shell</span>
+          </a>
+          <a class="nav-card next" href="resource-groups.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Resource Groups</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

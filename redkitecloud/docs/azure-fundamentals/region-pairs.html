@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Region Pairs | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Understand Azure Region Pairs — how they work, why they exist, and how to use them for disaster recovery. Full AZ-900 coverage with real examples." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Region Pairs</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 10 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Region Pairs</h1>
+
+        <p class="page-intro">
+          Availability Zones protect you against a single data centre failing. But what if an entire region goes down? A major natural disaster, a widespread power grid failure, or a severe network outage could take down every data centre in a city. Azure Region Pairs are the answer — a built-in disaster recovery strategy pairing two geographically distant regions so your workloads survive even a full regional catastrophe.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What region pairs are and why they exist · The 5 key benefits · Global region pairs list · India-specific pairs in detail · Availability Zones vs Region Pairs · How to use pairs for disaster recovery
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-pairs">What Are Region Pairs?</a></li>
+            <li><a href="#benefits">The 5 Benefits of Region Pairs</a></li>
+            <li><a href="#global-pairs">Global Region Pairs</a></li>
+            <li><a href="#india-pairs">India Region Pairs — In Detail</a></li>
+            <li><a href="#az-vs-pairs">Availability Zones vs Region Pairs</a></li>
+            <li><a href="#using-pairs">Using Region Pairs for Disaster Recovery</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-pairs">What Are Region Pairs?</h2>
+          <p>Every Azure region is automatically paired with another region within the same geography. These two regions form a <strong>Region Pair</strong>. The pairing is defined by Microsoft — you don't choose your pair.</p>
+          <p>Region pairs are always located <strong>at least 300 miles (480 km) apart</strong>. This distance ensures that a single catastrophic event — a major earthquake, regional power grid failure, or widespread flooding — cannot take down both regions simultaneously.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Geography Boundary</strong>
+              Region pairs always stay within the same Azure Geography — both in India, both in Europe, both in the US. This ensures data never crosses national or legal jurisdiction boundaries during a failover, which is critical for compliance requirements.
+            </div>
+          </div>
+
+          <h2 id="benefits">The 5 Benefits of Region Pairs</h2>
+
+          <h3>1. Sequential Platform Updates</h3>
+          <p>When Microsoft rolls out platform updates, they never update both regions in a pair at the same time. Updates go to one region first — only after that region is confirmed healthy does the update roll to the paired region. This means at least one region in every pair is always available and healthy during planned maintenance.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Why This Matters</strong>
+              If Azure deploys a faulty update that causes unexpected downtime, your DR failover target in the paired region is unaffected — it hasn't been updated yet. Sequential updates ensure your backup is always in a known-good state.
+            </div>
+          </div>
+
+          <h3>2. Prioritised Recovery</h3>
+          <p>In a broad Azure outage affecting multiple regions, Microsoft prioritises restoring at least one region from each pair first. Workloads designed with region pair DR will always have a functioning region restored as a priority.</p>
+
+          <h3>3. Data Residency Preserved</h3>
+          <p>Since pairs are within the same geography, failing over keeps your data within the same country and legal jurisdiction. An Indian company failing over from Central India to South India never has data leave India — vital for RBI, DISHA, and other regulatory requirements.</p>
+
+          <h3>4. Physical Isolation</h3>
+          <p>The 300+ mile separation means a single physical event cannot affect both regions. Floods, earthquakes, power grid failures, and large-scale network disruptions are extremely unlikely to simultaneously impact two locations that far apart.</p>
+
+          <h3>5. Azure-Native Service Integration</h3>
+          <p>Many Azure services use region pairs natively. Azure Geo-Redundant Storage (GRS) automatically replicates your data to the paired region. Azure SQL geo-replication defaults to the paired region as secondary. These services understand pairs and use them without any manual configuration from you.</p>
+
+          <h2 id="global-pairs">Global Region Pairs</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Geography</th><th>Region A</th><th>Region B</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>India</td><td>Central India (Pune)</td><td>South India (Chennai)</td></tr>
+                <tr><td>India</td><td>West India (Mumbai)</td><td>South India (Chennai)*</td></tr>
+                <tr><td>United States</td><td>East US (Virginia)</td><td>West US (California)</td></tr>
+                <tr><td>United States</td><td>East US 2 (Virginia)</td><td>Central US (Iowa)</td></tr>
+                <tr><td>Europe</td><td>West Europe (Netherlands)</td><td>North Europe (Ireland)</td></tr>
+                <tr><td>United Kingdom</td><td>UK South (London)</td><td>UK West (Wales)</td></tr>
+                <tr><td>Asia Pacific</td><td>Southeast Asia (Singapore)</td><td>East Asia (Hong Kong)</td></tr>
+                <tr><td>Australia</td><td>Australia East (NSW)</td><td>Australia Southeast (Victoria)</td></tr>
+                <tr><td>Japan</td><td>Japan East (Tokyo)</td><td>Japan West (Osaka)</td></tr>
+                <tr><td>UAE</td><td>UAE North (Dubai)</td><td>UAE Central (Abu Dhabi)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text-4)">* West India is a one-directional pair — South India is the backup for West India, but West India is not the backup for South India.</p>
+
+          <h2 id="india-pairs">India Region Pairs — In Detail</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Primary</th><th>Paired With</th><th>Distance</th><th>Notes</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Central India (Pune)</td><td>South India (Chennai)</td><td>~1,100 km</td><td>Bidirectional — full DR in both directions</td></tr>
+                <tr><td>South India (Chennai)</td><td>Central India (Pune)</td><td>~1,100 km</td><td>Bidirectional</td></tr>
+                <tr><td>West India (Mumbai)</td><td>South India (Chennai)</td><td>~1,300 km</td><td>One-directional — West India backs up to South India only</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>West India Is Special</strong>
+              West India pairs with South India — but it's one-directional. West India backs up TO South India. South India's own backup is Central India, not West India. This is an important detail for AZ-900 exam questions about India region pairs.
+            </div>
+          </div>
+
+          <h3>Recommended India DR Architecture</h3>
+          <ul>
+            <li><strong>Primary:</strong> Central India (Pune) — supports AZs, broadest service coverage</li>
+            <li><strong>DR:</strong> South India (Chennai) — paired region, also supports AZs</li>
+            <li>Use Azure Site Recovery to replicate VMs from Central India to South India</li>
+            <li>Use GRS storage to replicate data to South India automatically</li>
+            <li>Use Azure Traffic Manager to detect failure and reroute traffic to DR region</li>
+          </ul>
+
+          <h2 id="az-vs-pairs">Availability Zones vs Region Pairs</h2>
+          <p>A common source of confusion — what's the difference? They solve different problems at different scales.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Availability Zones</th><th>Region Pairs</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Protects against</td><td>Data centre failure (one building)</td><td>Regional failure (entire city/area)</td></tr>
+                <tr><td>Distance</td><td>A few kilometres (same city)</td><td>300+ miles (different cities)</td></tr>
+                <tr><td>Latency between locations</td><td>&lt;2ms — synchronous replication</td><td>Tens of ms — asynchronous replication</td></tr>
+                <tr><td>Failover speed</td><td>Automatic, near-instant</td><td>Manual or scripted, minutes</td></tr>
+                <tr><td>Best for</td><td>High Availability (HA)</td><td>Disaster Recovery (DR)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Use Both Together</strong>
+              A truly resilient architecture uses both. Deploy zone-redundant within your primary region for HA, and replicate to the paired region for DR. This protects against both data centre failures and full regional disasters.
+            </div>
+          </div>
+
+          <h2 id="using-pairs">Using Region Pairs for Disaster Recovery</h2>
+
+          <h3>Azure Geo-Redundant Storage (GRS)</h3>
+          <p>Creating a storage account with GRS automatically replicates your data to the paired region — no configuration needed. If your primary region fails, Microsoft can initiate a failover and your data becomes accessible from the paired region.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a GRS storage account in Central India</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az storage account create \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --location centralindia \
+  --sku Standard_GRS</code></pre>
+          </div>
+
+          <h3>Azure Site Recovery</h3>
+          <p>Azure Site Recovery (ASR) continuously replicates your VMs from a primary region to the paired region. If the primary fails, you trigger a failover and VMs boot in the paired region within minutes. When the primary recovers, you fail back.</p>
+
+          <h3>Azure SQL Geo-Replication</h3>
+          <p>Azure SQL Database supports active geo-replication — continuously replicating to up to 4 secondary regions. The paired region is the default secondary. If the primary fails, failover to the secondary can happen automatically.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              Know these 4 key facts: (1) always within the same geography, (2) at least 300 miles apart, (3) Azure never updates both simultaneously, (4) one region in each pair is prioritised for recovery first in a broad outage.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the minimum distance between two regions in an Azure Region Pair?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 10 miles is too close — a localised disaster could affect both regions. Azure requires at least 300 miles of separation.')">
+                <span class="option-label">A</span> 10 miles
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 100 miles may seem significant but Azure requires at least 300 miles to protect against large-scale regional disasters.')">
+                <span class="option-label">B</span> 100 miles
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Region Pairs are at least 300 miles (480 km) apart. This separation ensures a single regional disaster cannot take down both paired regions simultaneously.')">
+                <span class="option-label">C</span> 300 miles
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While some pairs are further than 1,000 miles apart, the minimum guaranteed separation is 300 miles.')">
+                <span class="option-label">D</span> 1,000 miles
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which region is paired with Central India?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. West India (Mumbai) pairs with South India — not with Central India.')">
+                <span class="option-label">A</span> West India
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Central India (Pune) is paired with South India (Chennai). This is a bidirectional pair — each serves as the DR target for the other.')">
+                <span class="option-label">B</span> South India
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Southeast Asia (Singapore) is outside the India geography and would violate data residency requirements.')">
+                <span class="option-label">C</span> Southeast Asia
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. East US is in the United States — pairing with it would move Indian data outside India entirely.')">
+                <span class="option-label">D</span> East US
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Why does Azure never update both regions in a pair simultaneously?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Sequential updates require more engineering effort — the reason is availability, not cost savings.')">
+                <span class="option-label">A</span> To reduce the cost of platform updates
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure sequentially updates paired regions to ensure at least one is always available. If an update causes problems, the second region (not yet updated) remains a healthy failover target.')">
+                <span class="option-label">B</span> To ensure at least one region is always available and healthy during maintenance
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Sequential updates are about maintaining availability, not testing updates before global rollout.')">
+                <span class="option-label">C</span> To test updates in one region before rolling them out globally
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Internet bandwidth is not a limiting factor for Microsoft\'s internal infrastructure updates.')">
+                <span class="option-label">D</span> Because simultaneous updates would consume too much bandwidth
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the key difference between using Availability Zones and Region Pairs for resilience?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both AZs and region pairs can involve additional cost — cost is not the key differentiator.')">
+                <span class="option-label">A</span> Availability Zones are free; Region Pairs cost extra
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both AZs and region pairs are available in most major Azure regions — availability is not the differentiator.')">
+                <span class="option-label">B</span> Availability Zones are only available in the US; Region Pairs are global
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Availability Zones protect against data centre-level failures within a region (HA). Region Pairs protect against full regional failures spanning an entire city or area (DR). Use both together for complete resilience.')">
+                <span class="option-label">C</span> AZs protect against data centre failures (HA); Region Pairs protect against full regional failures (DR)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones and Region Pairs are complementary — they solve different problems and are often used together.')">
+                <span class="option-label">D</span> They are the same thing — just different names for the same concept
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> An Indian company needs to replicate storage data for disaster recovery while keeping data within India. Which Azure storage option should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. LRS (Locally Redundant Storage) replicates within a single data centre only — it provides no protection against a regional failure.')">
+                <span class="option-label">A</span> Locally Redundant Storage (LRS)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ZRS (Zone-Redundant Storage) replicates across availability zones within a single region — it does not replicate to a paired region for DR.')">
+                <span class="option-label">B</span> Zone-Redundant Storage (ZRS)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! GRS (Geo-Redundant Storage) automatically replicates data to the paired region. For Indian workloads, this means data replicates from Central India to South India (or vice versa) — staying within India while providing full regional DR.')">
+                <span class="option-label">C</span> Geo-Redundant Storage (GRS)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium SSD is a disk performance tier — it has nothing to do with geo-replication or disaster recovery across regions.')">
+                <span class="option-label">D</span> Premium SSD storage
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="global-infrastructure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Global Infrastructure</span>
+            </a>
+            <a class="related-card" href="regions-availability-zones.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Regions &amp; Availability Zones</span>
+            </a>
+            <a class="related-card" href="azure-portal.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Portal Walkthrough</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="regions-availability-zones.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Regions &amp; Availability Zones</span>
+          </a>
+          <a class="nav-card next" href="azure-portal.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Portal Walkthrough</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
