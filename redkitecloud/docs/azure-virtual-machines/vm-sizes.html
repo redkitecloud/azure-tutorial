@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure VM Series & Sizes | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure VM series and sizes — understand every VM family, naming conventions, vCPU/RAM specs, and how to choose the right size for your workload." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">VM Series &amp; Sizes</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure VM Series &amp; Sizes</h1>
+
+        <p class="page-intro">
+          Choosing the right VM size is one of the most important decisions when deploying on Azure. Too small and your application crashes under load. Too big and you waste money on idle resources. Azure offers hundreds of VM sizes across dozens of families — this guide breaks down every major family, explains the naming convention, and helps you pick the right size every time.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          How to read Azure VM naming conventions · Every major VM family explained · vCPU, RAM, and disk specs · Which family to use for each workload · Comparing sizes within a family · How to change VM size after deployment · Cost estimates for common sizes
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#naming">Understanding the Naming Convention</a></li>
+            <li><a href="#b-series">B-Series — Burstable</a></li>
+            <li><a href="#d-series">D-Series — General Purpose</a></li>
+            <li><a href="#e-series">E-Series — Memory Optimised</a></li>
+            <li><a href="#f-series">F-Series — Compute Optimised</a></li>
+            <li><a href="#n-series">N-Series — GPU</a></li>
+            <li><a href="#l-series">L-Series — Storage Optimised</a></li>
+            <li><a href="#m-series">M-Series — Large Memory</a></li>
+            <li><a href="#choosing">How to Choose the Right Size</a></li>
+            <li><a href="#resizing">Resizing a VM</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="naming">Understanding the Naming Convention</h2>
+          <p>Azure VM names follow a consistent pattern. Once you learn to read it, you can instantly understand what any VM offers:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Format</span>
+              <span class="code-label">Azure VM naming convention</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>[Family][Sub-family][vCPUs][Constrained vCPUs]_[Add-on features][Version]
+
+Examples:
+Standard_D4s_v5   → D family, 4 vCPUs, premium storage support, version 5
+Standard_E8ds_v5  → E family, 8 vCPUs, local temp disk + premium storage, v5
+Standard_B2ms     → B family, 2 vCPUs, large memory variant
+Standard_F4s_v2   → F family, 4 vCPUs, premium storage, version 2</code></pre>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Suffix Letter</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>s</code></td><td>Premium Storage support (SSD)</td></tr>
+                <tr><td><code>d</code></td><td>Local temp disk (NVMe)</td></tr>
+                <tr><td><code>a</code></td><td>AMD processor instead of Intel</td></tr>
+                <tr><td><code>l</code></td><td>Low memory variant</td></tr>
+                <tr><td><code>m</code></td><td>Large memory variant</td></tr>
+                <tr><td><code>t</code></td><td>Small memory variant</td></tr>
+                <tr><td><code>v5</code>, <code>v4</code></td><td>Generation/version number</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Always prefer newer versions</strong>
+              Newer versions (v5 over v4, v4 over v3) offer better performance per cost. When choosing between <code>Standard_D4s_v4</code> and <code>Standard_D4s_v5</code>, always choose v5 — same price, better hardware.
+            </div>
+          </div>
+
+          <h2 id="b-series">B-Series — Burstable</h2>
+          <p>The B-series is designed for workloads that don't need full CPU performance continuously. The VM earns CPU credits when idle and spends them when bursting. It's the most cost-effective series for low-to-moderate workloads.</p>
+
+          <h3>How CPU Credits Work</h3>
+          <p>A B1s earns 6 credits/hour when idle. Each credit = 1 minute of 100% CPU usage. The VM can accumulate up to 144 credits (24 hours of burst). This is perfect for workloads like dev servers, small websites, or microservices that have occasional spikes but are mostly quiet.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Size</th><th>vCPUs</th><th>RAM</th><th>Approx Cost/Month (India)</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>B1s</td><td>1</td><td>1 GB</td><td>~₹550</td><td>Learning, tiny apps</td></tr>
+                <tr><td>B1ms</td><td>1</td><td>2 GB</td><td>~₹1,100</td><td>Small websites</td></tr>
+                <tr><td>B2s</td><td>2</td><td>4 GB</td><td>~₹2,200</td><td>Dev/test environments</td></tr>
+                <tr><td>B2ms</td><td>2</td><td>8 GB</td><td>~₹4,400</td><td>Small production apps</td></tr>
+                <tr><td>B4ms</td><td>4</td><td>16 GB</td><td>~₹8,800</td><td>Medium applications</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>B-series Limitation</strong>
+              If you run out of CPU credits (sustained high CPU for hours), your VM throttles to baseline performance. B-series is NOT suitable for consistently high CPU workloads. Use D or F series for those.
+            </div>
+          </div>
+
+          <h2 id="d-series">D-Series — General Purpose</h2>
+          <p>The D-series is the most commonly used VM family. It offers a balanced CPU-to-memory ratio (1:4, meaning 1 vCPU per 4 GB RAM) and is suitable for most production workloads — web servers, application servers, small-to-medium databases.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Size</th><th>vCPUs</th><th>RAM</th><th>Approx Cost/Month (India)</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>D2s_v5</td><td>2</td><td>8 GB</td><td>~₹6,500</td><td>Small web apps</td></tr>
+                <tr><td>D4s_v5</td><td>4</td><td>16 GB</td><td>~₹13,000</td><td>Web/app servers</td></tr>
+                <tr><td>D8s_v5</td><td>8</td><td>32 GB</td><td>~₹26,000</td><td>Medium workloads</td></tr>
+                <tr><td>D16s_v5</td><td>16</td><td>64 GB</td><td>~₹52,000</td><td>Large applications</td></tr>
+                <tr><td>D32s_v5</td><td>32</td><td>128 GB</td><td>~₹104,000</td><td>Heavy workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="e-series">E-Series — Memory Optimised</h2>
+          <p>The E-series has a high RAM-to-CPU ratio (1:8, meaning 1 vCPU per 8 GB RAM). Use it when your workload needs lots of memory — in-memory databases, large caches, analytics engines, or SAP HANA.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Size</th><th>vCPUs</th><th>RAM</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>E2s_v5</td><td>2</td><td>16 GB</td><td>Small in-memory workloads</td></tr>
+                <tr><td>E4s_v5</td><td>4</td><td>32 GB</td><td>Redis, small HANA</td></tr>
+                <tr><td>E8s_v5</td><td>8</td><td>64 GB</td><td>Medium databases</td></tr>
+                <tr><td>E16s_v5</td><td>16</td><td>128 GB</td><td>Large in-memory databases</td></tr>
+                <tr><td>E32s_v5</td><td>32</td><td>256 GB</td><td>SAP HANA, enterprise DB</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="f-series">F-Series — Compute Optimised</h2>
+          <p>The F-series has a high CPU-to-memory ratio (1:2, meaning 1 vCPU per 2 GB RAM). Use it when raw CPU performance matters more than memory — batch processing, game servers, analytics, video transcoding, or CI/CD build agents.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Size</th><th>vCPUs</th><th>RAM</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>F2s_v2</td><td>2</td><td>4 GB</td><td>Light compute tasks</td></tr>
+                <tr><td>F4s_v2</td><td>4</td><td>8 GB</td><td>Game servers, build agents</td></tr>
+                <tr><td>F8s_v2</td><td>8</td><td>16 GB</td><td>Batch processing</td></tr>
+                <tr><td>F16s_v2</td><td>16</td><td>32 GB</td><td>Heavy analytics</td></tr>
+                <tr><td>F32s_v2</td><td>32</td><td>64 GB</td><td>Intensive compute jobs</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="n-series">N-Series — GPU</h2>
+          <p>The N-series VMs include NVIDIA GPUs. They are significantly more expensive but are the only choice for machine learning training, 3D rendering, video encoding, or scientific simulations.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Sub-family</th><th>GPU</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>NC-series</td><td>NVIDIA Tesla</td><td>Machine learning training, scientific compute</td></tr>
+                <tr><td>NV-series</td><td>NVIDIA Tesla M60</td><td>GPU virtualisation, remote visualisation</td></tr>
+                <tr><td>ND-series</td><td>NVIDIA Tesla P40/V100</td><td>Deep learning, large model training</td></tr>
+                <tr><td>NVads A10 v5</td><td>NVIDIA A10</td><td>GPU-accelerated apps, VDI</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="l-series">L-Series — Storage Optimised</h2>
+          <p>L-series VMs have high local disk throughput and IOPS — ideal for I/O-heavy workloads like NoSQL databases (Cassandra, MongoDB), data warehousing, or any workload that needs fast local storage access.</p>
+
+          <h2 id="m-series">M-Series — Large Memory</h2>
+          <p>M-series is Azure's largest memory option — up to 11.4 TB of RAM in a single VM. Used exclusively for very large enterprise workloads like massive SAP HANA databases or in-memory analytics platforms. These are extremely expensive and should only be used when truly needed.</p>
+
+          <h2 id="choosing">How to Choose the Right Size</h2>
+          <p>Follow this decision process when selecting a VM size:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Question</th><th>If Yes → Consider</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Is this for learning or dev/test?</td><td>B-series (cheapest)</td></tr>
+                <tr><td>Is this a general web or app server?</td><td>D-series</td></tr>
+                <tr><td>Does your app need lots of RAM?</td><td>E-series</td></tr>
+                <tr><td>Is this CPU-intensive batch processing?</td><td>F-series</td></tr>
+                <tr><td>Do you need a GPU?</td><td>N-series</td></tr>
+                <tr><td>Is this a high-I/O database?</td><td>L-series</td></tr>
+                <tr><td>Massive enterprise in-memory workload?</td><td>M-series</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Right-Sizing with Azure Advisor</strong>
+              After running a VM for a few days, check Azure Advisor in the portal. It analyses your CPU and memory usage and recommends if you can downsize to save money. Many teams over-provision — Azure Advisor helps find the right size.
+            </div>
+          </div>
+
+          <h2 id="resizing">Resizing a VM</h2>
+          <p>You can change a VM's size after deployment — but it requires a restart. The VM will be briefly unavailable during the resize operation.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Resize a VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Check available sizes in your region
+az vm list-vm-resize-options \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --output table
+
+# Resize the VM (requires a restart)
+az vm resize \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --size Standard_D4s_v5</code></pre>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Not All Sizes Are Available in All Regions</strong>
+              Some VM sizes are not available in certain regions. If your target size isn't available, you may need to deallocate the VM first, then resize, or choose a different region. Always check availability before planning.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What does the "s" suffix in a VM size like "Standard_D4s_v5" indicate?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "s" does not mean "small" — small/large variants use different letters like "l" for low memory.')">
+                <span class="option-label">A</span> Small memory variant
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The "s" suffix indicates Premium Storage (SSD) support. VMs with "s" in their name can use Premium SSD managed disks, which are required for the 99.9% single-VM SLA.')">
+                <span class="option-label">B</span> Premium Storage (SSD) support
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "s" does not indicate spot pricing capability — all VMs can be used as spot instances regardless of their size name.')">
+                <span class="option-label">C</span> Spot pricing capability
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "s" does not stand for Standard tier — Standard is a pricing tier that appears at the beginning of the name (Standard_D4s_v5).')">
+                <span class="option-label">D</span> Standard tier
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A developer needs a cheap VM for learning and occasional testing. Which VM series is most appropriate?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! B-series (Burstable) VMs are the most cost-effective for dev/test and learning. They earn CPU credits when idle and burst when needed — perfect for low-to-moderate workloads. A B1s costs only ~₹550/month.')">
+                <span class="option-label">A</span> B-series (Burstable)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. M-series is Azure\'s largest memory option costing tens of thousands per month — completely overkill for learning or testing.')">
+                <span class="option-label">B</span> M-series (Large Memory)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. N-series (GPU) VMs are expensive and specialised for ML/rendering — not appropriate for general learning or dev/test.')">
+                <span class="option-label">C</span> N-series (GPU)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. E-series is memory-optimised for in-memory databases — more expensive and specialised than needed for learning.')">
+                <span class="option-label">D</span> E-series (Memory Optimised)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Which VM series should you use for running SAP HANA, an in-memory database that requires 256 GB of RAM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. D-series is general purpose with 4 GB RAM per vCPU — not enough memory for large in-memory databases like SAP HANA.')">
+                <span class="option-label">A</span> D-series (General Purpose)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. F-series is compute-optimised with only 2 GB RAM per vCPU — the opposite of what SAP HANA needs.')">
+                <span class="option-label">B</span> F-series (Compute Optimised)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! E-series is memory-optimised with 8 GB RAM per vCPU. A Standard_E32s_v5 provides 32 vCPUs and 256 GB RAM — ideal for in-memory databases like SAP HANA, Redis, or large analytics workloads.')">
+                <span class="option-label">C</span> E-series (Memory Optimised)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. B-series is burstable and cost-effective for light workloads — not suitable for memory-intensive enterprise databases.')">
+                <span class="option-label">D</span> B-series (Burstable)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What happens when a B-series VM runs out of CPU credits?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure does not automatically shut down a B-series VM when credits run out — it continues running but at reduced performance.')">
+                <span class="option-label">A</span> The VM shuts down automatically
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure does not charge extra for bursting beyond credits — instead it restricts CPU performance to the baseline.')">
+                <span class="option-label">B</span> Azure charges extra for additional CPU usage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a B-series VM exhausts its CPU credits, it throttles to the baseline CPU performance — a fraction of full speed. This is why B-series is not suitable for sustained high CPU workloads.')">
+                <span class="option-label">C</span> CPU performance throttles to baseline speed
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The VM does not upgrade automatically — you would need to manually resize it to a D or F series for consistently high CPU workloads.')">
+                <span class="option-label">D</span> The VM automatically upgrades to D-series
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Does resizing an Azure VM require a restart?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Resizing a VM requires a restart — the VM is briefly unavailable during the resize operation. Plan maintenance windows accordingly, especially for production workloads.')">
+                <span class="option-label">A</span> Yes — resizing always requires a brief restart
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VM resizing is not live/hot — it requires a restart. Azure does not support live resizing of VMs.')">
+                <span class="option-label">B</span> No — resizing is done live without any downtime
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. You can resize between different families (e.g., B to D) with a restart — you are not locked to one family after deployment.')">
+                <span class="option-label">C</span> Only when resizing within the same family
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VM resizing always requires a restart regardless of whether you are increasing or decreasing the size.')">
+                <span class="option-label">D</span> Only when increasing size, not when decreasing
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="overview.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure VMs Overview</span>
+            </a>
+            <a class="related-card" href="create-windows-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Windows VM</span>
+            </a>
+            <a class="related-card" href="create-linux-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Linux VM</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="overview.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure VMs Overview</span>
+          </a>
+          <a class="nav-card next" href="create-windows-vm.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Create a Windows VM</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

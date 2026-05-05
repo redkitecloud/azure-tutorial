@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect to Azure VM via SSH | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to connecting to Azure Linux VMs via SSH — from Windows, Mac, and Linux. Key-based auth, troubleshooting, SSH config, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Connect to VM via SSH</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Connect to Azure VM via SSH</h1>
+
+        <p class="page-intro">
+          SSH (Secure Shell) is the standard way to connect to Linux VMs. It's a secure, encrypted terminal session — everything you type and see is encrypted end-to-end. This page covers connecting from any platform, understanding key-based authentication, setting up SSH config for easier connections, troubleshooting common issues, and using Azure Bastion as a portal-based alternative.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          SSH from Windows, Mac, and Linux · Key-based vs password authentication · SSH config file for easier connections · Port forwarding · Troubleshooting connection failures · Azure Bastion — SSH without opening port 22 · Copying files with SCP
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#how-ssh-works">How SSH Works</a></li>
+            <li><a href="#before-connecting">Before You Connect</a></li>
+            <li><a href="#connect-mac-linux">Connect from Mac or Linux</a></li>
+            <li><a href="#connect-windows">Connect from Windows</a></li>
+            <li><a href="#ssh-config">SSH Config File — Simplify Connections</a></li>
+            <li><a href="#port-forwarding">SSH Port Forwarding</a></li>
+            <li><a href="#scp">Copy Files with SCP</a></li>
+            <li><a href="#bastion">Azure Bastion — No Port 22 Needed</a></li>
+            <li><a href="#troubleshooting">Troubleshooting SSH Issues</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="how-ssh-works">How SSH Works</h2>
+          <p>SSH creates an encrypted tunnel between your machine and the VM. Here's what happens when you run <code>ssh azureuser@4.188.23.45</code>:</p>
+          <ol>
+            <li>Your SSH client connects to port 22 on the VM's public IP</li>
+            <li>The server sends its host key fingerprint — you verify it once on first connection</li>
+            <li>Your client proves your identity using your private key (or password)</li>
+            <li>An encrypted channel is established — everything is encrypted from this point</li>
+            <li>You get an interactive terminal prompt on the remote VM</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Key-based Authentication Flow</strong>
+              The VM has your public key in <code>~/.ssh/authorized_keys</code>. When you connect, the server encrypts a challenge with your public key. Only your private key can decrypt it. If the response is correct, you're authenticated — without ever sending a password over the network.
+            </div>
+          </div>
+
+          <h2 id="before-connecting">Before You Connect</h2>
+          <p>Make sure these are in place:</p>
+          <ul>
+            <li>VM is running (not deallocated)</li>
+            <li>Port 22 is open in the VM's Network Security Group</li>
+            <li>You have the VM's public IP address</li>
+            <li>You have either the private key or the password for the admin account</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Get VM public IP</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm show \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --show-details \
+  --query publicIps \
+  --output tsv</code></pre>
+          </div>
+
+          <h2 id="connect-mac-linux">Connect from Mac or Linux</h2>
+          <p>SSH is built into macOS and Linux — open Terminal and connect directly:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Basic SSH connection</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Connect with default key (~/.ssh/id_rsa)
+ssh azureuser@4.188.23.45
+
+# Connect with a specific key file
+ssh -i ~/.ssh/my-azure-key azureuser@4.188.23.45
+
+# Connect with verbose output (useful for debugging)
+ssh -v azureuser@4.188.23.45
+
+# Connect on a non-standard port (if SSH is not on port 22)
+ssh -p 2222 azureuser@4.188.23.45</code></pre>
+          </div>
+
+          <h2 id="connect-windows">Connect from Windows</h2>
+          <p>Windows 10/11 includes a built-in OpenSSH client. Open <strong>PowerShell</strong> or <strong>Command Prompt</strong> and use the same <code>ssh</code> commands as Mac/Linux.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Connect from Windows</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Same command works in PowerShell
+ssh azureuser@4.188.23.45
+
+# With a specific key file
+ssh -i C:\Users\YourName\.ssh\id_rsa azureuser@4.188.23.45</code></pre>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Third-Party SSH Clients for Windows</strong>
+              If you prefer a GUI, <strong>PuTTY</strong> is the classic Windows SSH client. <strong>MobaXterm</strong> is a more feature-rich option. <strong>Windows Terminal</strong> with the built-in SSH is the modern recommended approach.
+            </div>
+          </div>
+
+          <h2 id="ssh-config">SSH Config File — Simplify Connections</h2>
+          <p>Typing the full SSH command every time is tedious. The SSH config file lets you create shortcuts:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">~/.ssh/config</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Edit or create ~/.ssh/config
+# On Windows: C:\Users\YourName\.ssh\config
+
+Host azure-prod
+    HostName 4.188.23.45
+    User azureuser
+    IdentityFile ~/.ssh/id_rsa
+    Port 22
+
+Host azure-dev
+    HostName 52.140.67.89
+    User azureuser
+    IdentityFile ~/.ssh/azure-dev-key
+    Port 22</code></pre>
+          </div>
+
+          <p>Now instead of typing the full command, just use:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Connect using SSH config alias</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>ssh azure-prod
+ssh azure-dev</code></pre>
+          </div>
+
+          <h2 id="port-forwarding">SSH Port Forwarding</h2>
+          <p>Port forwarding lets you securely access services running on the VM that aren't publicly exposed. For example, if a web app runs on port 8080 of the VM, you can access it locally:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Local port forwarding</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Forward local port 8080 to VM's port 8080
+# After running this, open http://localhost:8080 in your browser
+ssh -L 8080:localhost:8080 azureuser@4.188.23.45
+
+# Forward local port 5432 to VM's PostgreSQL (port 5432)
+ssh -L 5432:localhost:5432 azureuser@4.188.23.45</code></pre>
+          </div>
+
+          <h2 id="scp">Copy Files with SCP</h2>
+          <p>SCP (Secure Copy Protocol) uses SSH to transfer files securely:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Copy files to/from the VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Copy a local file TO the VM
+scp myfile.txt azureuser@4.188.23.45:/home/azureuser/
+
+# Copy a file FROM the VM to local machine
+scp azureuser@4.188.23.45:/home/azureuser/logs.txt ./logs.txt
+
+# Copy an entire directory to the VM
+scp -r ./myapp/ azureuser@4.188.23.45:/home/azureuser/myapp/
+
+# Using SSH config alias
+scp myfile.txt azure-prod:/home/azureuser/</code></pre>
+          </div>
+
+          <h2 id="bastion">Azure Bastion — SSH Without Opening Port 22</h2>
+          <p>Opening SSH (port 22) to the internet exposes your VM to constant brute-force attempts. Azure Bastion is a managed service that provides browser-based SSH access without needing a public IP or open ports on your VM.</p>
+
+          <h3>How Azure Bastion Works</h3>
+          <p>Azure Bastion acts as a jump server inside your VNet. You connect to it through the Azure Portal over HTTPS (port 443). Bastion then connects to your VM over SSH on the private network — the VM doesn't need a public IP or open port 22.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Direct SSH</th><th>Azure Bastion</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Requires public IP on VM</td><td>Yes</td><td>No</td></tr>
+                <tr><td>Port 22 exposed to internet</td><td>Yes</td><td>No</td></tr>
+                <tr><td>Connection method</td><td>SSH client on your machine</td><td>Browser (Azure Portal)</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>~₹5,000–6,000/month per Bastion host</td></tr>
+                <tr><td>Security</td><td>Depends on NSG rules</td><td>Higher — no internet exposure</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>When to Use Bastion</strong>
+              For production VMs with sensitive workloads, Azure Bastion is the recommended approach. For dev/test or learning, direct SSH with a restricted NSG rule (your IP only) is acceptable and free.
+            </div>
+          </div>
+
+          <h2 id="troubleshooting">Troubleshooting SSH Issues</h2>
+
+          <h3>Connection Refused (port 22)</h3>
+          <ul>
+            <li>Check the NSG — is port 22 open for your IP?</li>
+            <li>Is the VM running? (not deallocated)</li>
+            <li>Check the correct public IP — it may have changed if using a dynamic IP</li>
+          </ul>
+
+          <h3>Permission Denied (publickey)</h3>
+          <ul>
+            <li>Are you using the right private key? Try <code>ssh -i /path/to/key</code></li>
+            <li>Check key permissions: <code>chmod 600 ~/.ssh/id_rsa</code> (must be 600, not 644)</li>
+            <li>Is the public key correctly installed in the VM's <code>~/.ssh/authorized_keys</code>?</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Fix SSH key permissions</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># SSH key permissions must be restricted
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/id_rsa
+chmod 644 ~/.ssh/id_rsa.pub</code></pre>
+          </div>
+
+          <h3>Connection Timeout</h3>
+          <ul>
+            <li>VM may be stopped or deallocated</li>
+            <li>NSG may be blocking your IP — check what IP you're connecting from</li>
+            <li>The VM may be in a different region and the public IP may have changed</li>
+          </ul>
+
+          <h3>Host Key Verification Failed</h3>
+          <ul>
+            <li>This happens when you recreate a VM with the same IP — the host key changes</li>
+            <li>Remove the old key: <code>ssh-keygen -R 4.188.23.45</code></li>
+            <li>Then connect again and accept the new host key</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that SSH uses port 22, that you need NSG rules to allow port 22, that SSH keys are more secure than passwords, and that Azure Bastion provides browser-based SSH access without exposing port 22 to the internet.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A security team wants to allow administrators to connect to Linux VMs via SSH without exposing port 22 to the internet. What Azure service should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure VPN Gateway creates a VPN tunnel for network connectivity — it does not specifically provide SSH access to VMs without opening port 22.')">
+                <span class="option-label">A</span> Azure VPN Gateway
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Bastion provides browser-based SSH (and RDP) access to VMs directly from the Azure Portal over HTTPS. The VM doesn\'t need a public IP or open port 22 — Bastion connects to the VM over the private network inside the VNet.')">
+                <span class="option-label">B</span> Azure Bastion
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Load Balancer distributes traffic across multiple VMs — it does not provide SSH access management.')">
+                <span class="option-label">C</span> Azure Load Balancer
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Firewall is a network security service — while it can restrict traffic, it doesn\'t provide the browser-based SSH access that Bastion does.')">
+                <span class="option-label">D</span> Azure Firewall
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> An administrator tries to SSH into a Linux VM and gets "Permission denied (publickey)". What is the most likely cause?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Permission denied (publickey)" specifically indicates an authentication failure with the key — not a network connectivity issue. A network block would show "Connection refused" or a timeout.')">
+                <span class="option-label">A</span> Port 22 is blocked in the Network Security Group
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Permission denied (publickey)" occurs before any commands run — it is an authentication error, not a permissions error on a specific file.')">
+                <span class="option-label">B</span> The administrator does not have permission to read a file on the VM
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! "Permission denied (publickey)" means SSH authentication failed. The most common causes are: using the wrong private key, the private key file having incorrect permissions (should be 600), or the public key not being in the VM\'s authorized_keys file.')">
+                <span class="option-label">C</span> The wrong private key is being used or the key has incorrect file permissions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Permission denied (publickey)" is a key authentication error, not a username error. An invalid username would also show this error, but the most common cause is a wrong or misconfigured key.')">
+                <span class="option-label">D</span> The VM has been deallocated
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is SSH port forwarding used for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH port forwarding does not speed up data transfer — it creates a secure tunnel to access services, not a performance optimisation.')">
+                <span class="option-label">A</span> To speed up SSH connections to the VM
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SSH port forwarding creates an encrypted tunnel that lets you securely access services running on the VM that are not publicly exposed. For example, you can access a database or web app on the VM through your local machine without opening additional firewall ports.')">
+                <span class="option-label">B</span> To securely access services on the VM through an encrypted tunnel without opening additional ports
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH port forwarding does not change what port SSH uses on the server — it forwards traffic from a local port to a remote port through an existing SSH connection.')">
+                <span class="option-label">C</span> To change the SSH port from 22 to a custom port
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH port forwarding is not about authentication — it\'s about creating tunnels to access services on the remote machine.')">
+                <span class="option-label">D</span> To allow password authentication instead of key authentication
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What command would you use to copy a local file "app.zip" to the /home/azureuser/ directory on a remote VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This SSH command would connect to the VM interactively — not copy a file. SSH is for remote shell access, SCP is for file transfers.')">
+                <span class="option-label">A</span> ssh azureuser@4.188.23.45 app.zip /home/azureuser/
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SCP (Secure Copy Protocol) uses SSH to transfer files. The syntax is: scp [source] [destination]. For local-to-remote: scp localfile user@host:/remote/path/')">
+                <span class="option-label">B</span> scp app.zip azureuser@4.188.23.45:/home/azureuser/
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This syntax is reversed — this would copy FROM the VM to your local machine, not the other way around.')">
+                <span class="option-label">C</span> scp azureuser@4.188.23.45:/home/azureuser/ app.zip
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. curl is for downloading files from URLs over HTTP/HTTPS — not for copying local files to a remote server via SSH.')">
+                <span class="option-label">D</span> curl app.zip azureuser@4.188.23.45:/home/azureuser/
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> An administrator connects to a new VM and sees: "The authenticity of host '4.188.23.45' can't be established." What should they do?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This message is completely normal and expected on EVERY first SSH connection — it is not an attack or error. Recreating the VM would not solve this.')">
+                <span class="option-label">A</span> Immediately disconnect — the VM has been compromised
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disabling host key checking (StrictHostKeyChecking=no) removes an important security feature and should not be done as a routine practice.')">
+                <span class="option-label">B</span> Disable host key checking in the SSH config
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! This message appears on every first SSH connection to a new host — it is completely normal. Type "yes" to accept and save the host fingerprint. SSH will remember it for future connections. If this message appears again for the same IP later, THEN it could indicate something changed.')">
+                <span class="option-label">C</span> Type "yes" to accept and save the host fingerprint — this is normal on first connection
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While you can optionally verify the fingerprint against the Azure Portal, for a newly created VM you can safely accept it by typing "yes".')">
+                <span class="option-label">D</span> Contact Microsoft support before proceeding
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="create-linux-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Linux VM</span>
+            </a>
+            <a class="related-card" href="connect-rdp.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Connect to VM via RDP</span>
+            </a>
+            <a class="related-card" href="bastion.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Bastion</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="create-linux-vm.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Create a Linux VM</span>
+          </a>
+          <a class="nav-card next" href="connect-rdp.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Connect to VM via RDP</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

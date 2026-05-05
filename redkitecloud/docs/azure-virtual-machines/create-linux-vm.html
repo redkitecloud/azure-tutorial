@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create a Linux VM in Azure | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Step-by-step guide to creating a Linux VM in Azure — portal walkthrough, SSH key authentication, CLI commands, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Create a Linux VM</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 15 min read</span>
+        </div>
+
+        <h1 class="page-title">Create a Linux VM in Azure</h1>
+
+        <p class="page-intro">
+          Linux VMs are the most common VM type in Azure — cheaper than Windows (no OS licence fee), more flexible, and the standard choice for web servers, containers, and cloud-native workloads. This page walks you through creating a Linux VM from scratch, with a focus on SSH key authentication — the secure, professional way to connect.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Linux VM creation via Portal and CLI · SSH key authentication explained · Choosing the right Linux distribution · Networking configuration · Connecting via SSH · Running your first commands · Linux VM vs Windows VM differences · Cleanup
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#linux-vs-windows">Linux VM vs Windows VM</a></li>
+            <li><a href="#distros">Choosing a Linux Distribution</a></li>
+            <li><a href="#ssh-keys">SSH Keys — The Right Way to Authenticate</a></li>
+            <li><a href="#portal-steps">Create VM via Azure Portal</a></li>
+            <li><a href="#cli-method">Create via Azure CLI (Fastest Method)</a></li>
+            <li><a href="#connecting">Connecting via SSH</a></li>
+            <li><a href="#first-commands">First Commands After Login</a></li>
+            <li><a href="#cleanup">Cleaning Up</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="linux-vs-windows">Linux VM vs Windows VM</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Factor</th><th>Linux VM</th><th>Windows VM</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>OS licence cost</td><td>Free — no licence fee</td><td>Included in VM price (~40% premium)</td></tr>
+                <tr><td>Connection method</td><td>SSH (port 22)</td><td>RDP (port 3389)</td></tr>
+                <tr><td>Authentication</td><td>SSH keys (recommended) or password</td><td>Password</td></tr>
+                <tr><td>Typical use</td><td>Web servers, containers, cloud-native</td><td>Legacy apps, .NET, SQL Server, AD</td></tr>
+                <tr><td>VM name limit</td><td>64 characters</td><td>15 characters</td></tr>
+                <tr><td>Cost (B2s example)</td><td>~₹2,200/month</td><td>~₹4,000/month</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="distros">Choosing a Linux Distribution</h2>
+          <p>Azure supports many Linux distributions. Here are the most popular:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Distribution</th><th>Best For</th><th>Notes</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Ubuntu Server 22.04 LTS</td><td>General use, developers</td><td>Most popular, huge community, great documentation</td></tr>
+                <tr><td>Ubuntu Server 20.04 LTS</td><td>Stable workloads</td><td>Older LTS, still widely used</td></tr>
+                <tr><td>Red Hat Enterprise Linux (RHEL)</td><td>Enterprise, regulated industries</td><td>Paid licence, enterprise support</td></tr>
+                <tr><td>CentOS Stream</td><td>RHEL-compatible workloads</td><td>Free, upstream of RHEL</td></tr>
+                <tr><td>Debian</td><td>Stable, minimal footprint</td><td>Rock-solid stability</td></tr>
+                <tr><td>SUSE Linux Enterprise</td><td>SAP workloads</td><td>Certified for SAP HANA on Azure</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Recommendation</strong>
+              Start with <strong>Ubuntu Server 22.04 LTS</strong>. It has the best Azure integration, the largest community, the most documentation, and free OS support. Unless you have a specific reason to use another distro, Ubuntu is the safe default.
+            </div>
+          </div>
+
+          <h2 id="ssh-keys">SSH Keys — The Right Way to Authenticate</h2>
+          <p>SSH keys are a more secure alternative to passwords. Instead of typing a password every time you connect, you use a pair of cryptographic keys:</p>
+          <ul>
+            <li><strong>Private key</strong> — Stays on your local machine. Never share this.</li>
+            <li><strong>Public key</strong> — Goes on the VM. Azure installs this automatically during VM creation.</li>
+          </ul>
+          <p>When you connect, SSH uses your private key to prove your identity — no password needed, and much harder to brute-force than a password.</p>
+
+          <h3>Generate an SSH Key Pair</h3>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash / PowerShell</span>
+              <span class="code-label">Generate SSH key pair</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Works on Windows (PowerShell), macOS, and Linux
+ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+
+# When prompted for file location, press Enter for default:
+# Linux/Mac: ~/.ssh/id_rsa
+# Windows: C:\Users\YourName\.ssh\id_rsa
+
+# When prompted for passphrase:
+# Enter a passphrase for extra security (recommended)
+# Or press Enter for no passphrase (convenient but less secure)</code></pre>
+          </div>
+
+          <p>This creates two files:</p>
+          <ul>
+            <li><code>id_rsa</code> — Your private key (keep this safe!)</li>
+            <li><code>id_rsa.pub</code> — Your public key (this goes to Azure)</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Never Share Your Private Key</strong>
+              Your private key (<code>id_rsa</code>) is like a master password. Never share it, never upload it, never put it in a repository. If it's compromised, anyone can access any server where your public key is installed.
+            </div>
+          </div>
+
+          <h2 id="portal-steps">Create VM via Azure Portal</h2>
+          <p>The process is almost identical to creating a Windows VM. Key differences:</p>
+
+          <h3>Image</h3>
+          <p>Search for <strong>Ubuntu Server 22.04 LTS</strong> in the image selector.</p>
+
+          <h3>Authentication Type</h3>
+          <p>Select <strong>SSH public key</strong> (recommended over password):</p>
+          <ul>
+            <li><strong>Username</strong> — e.g., <code>azureuser</code></li>
+            <li><strong>SSH public key source</strong> — Choose "Use existing public key"</li>
+            <li><strong>SSH public key</strong> — Paste the contents of your <code>id_rsa.pub</code> file</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">View your public key to copy it</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Linux/Mac
+cat ~/.ssh/id_rsa.pub
+
+# Windows PowerShell
+Get-Content ~/.ssh/id_rsa.pub</code></pre>
+          </div>
+
+          <h3>Inbound Port Rules</h3>
+          <p>Select <strong>SSH (22)</strong> to allow SSH connections.</p>
+
+          <h2 id="cli-method">Create via Azure CLI (Fastest Method)</h2>
+          <p>The CLI method is significantly faster than the portal. Azure CLI can auto-generate SSH keys if you don't have one:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Linux VM with SSH keys</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create resource group
+az group create \
+  --name rg-linux-vm-demo \
+  --location centralindia
+
+# Create Ubuntu VM with auto-generated SSH keys
+# Keys saved to ~/.ssh/id_rsa automatically
+az vm create \
+  --resource-group rg-linux-vm-demo \
+  --name vm-ubuntu-demo \
+  --image Ubuntu2204 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys \
+  --location centralindia \
+  --public-ip-sku Standard
+
+# Open SSH port 22
+az vm open-port \
+  --resource-group rg-linux-vm-demo \
+  --name vm-ubuntu-demo \
+  --port 22</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>--generate-ssh-keys</strong>
+              This flag automatically creates an SSH key pair if one doesn't exist at <code>~/.ssh/id_rsa</code>. The public key is installed on the VM. The private key stays on your machine. This is the quickest way to get started.
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Get the VM's public IP address</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm show \
+  --resource-group rg-linux-vm-demo \
+  --name vm-ubuntu-demo \
+  --show-details \
+  --query publicIps \
+  --output tsv</code></pre>
+          </div>
+
+          <h2 id="connecting">Connecting via SSH</h2>
+          <p>Once you have the VM's public IP address:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash / PowerShell</span>
+              <span class="code-label">Connect to the Linux VM via SSH</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>ssh azureuser@&lt;YOUR-VM-PUBLIC-IP&gt;
+
+# Example:
+ssh azureuser@4.188.23.45
+
+# If your key is not at the default location:
+ssh -i ~/.ssh/id_rsa azureuser@4.188.23.45</code></pre>
+          </div>
+
+          <p>The first time you connect, SSH will ask you to verify the host fingerprint:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Output</span>
+              <span class="code-label">First connection prompt</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>The authenticity of host '4.188.23.45' can't be established.
+ED25519 key fingerprint is SHA256:abc123...
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes</code></pre>
+          </div>
+          <p>Type <strong>yes</strong> and press Enter. You're now connected to your Linux VM running in Azure!</p>
+
+          <h2 id="first-commands">First Commands After Login</h2>
+          <p>Once connected, here are the first commands to run on a new Ubuntu VM:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Essential first commands on a new Ubuntu VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Update package lists and upgrade all packages
+sudo apt update && sudo apt upgrade -y
+
+# Check OS version
+lsb_release -a
+
+# Check CPU and memory
+nproc         # Number of CPUs
+free -h       # Memory usage
+df -h         # Disk usage
+
+# Install useful tools
+sudo apt install -y curl wget git unzip htop
+
+# Check if the VM can reach the internet
+curl https://api.ipify.org</code></pre>
+          </div>
+
+          <h2 id="cleanup">Cleaning Up</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Delete the resource group and all resources</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az group delete \
+  --name rg-linux-vm-demo \
+  --yes \
+  --no-wait</code></pre>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What port must be open to connect to a Linux VM via SSH?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SSH (Secure Shell) uses port 22 by default. You must allow inbound TCP port 22 in the VM\'s Network Security Group to connect to a Linux VM via SSH.')">
+                <span class="option-label">A</span> Port 22
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 3389 is RDP — used for connecting to Windows VMs, not Linux VMs.')">
+                <span class="option-label">B</span> Port 3389
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 443 is HTTPS — for secure web traffic, not SSH connections.')">
+                <span class="option-label">C</span> Port 443
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 8080 is an alternate HTTP port — not used for SSH.')">
+                <span class="option-label">D</span> Port 8080
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the benefit of using SSH key authentication over password authentication for a Linux VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH keys do not make the VM faster — they only affect authentication security, not VM performance.')">
+                <span class="option-label">A</span> SSH keys make the VM run faster
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH keys do not reduce cost — they only affect how you authenticate to the VM.')">
+                <span class="option-label">B</span> SSH keys reduce the cost of the VM
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SSH key authentication is significantly more secure than passwords. Keys are cryptographically strong and cannot be brute-forced like passwords. Bots constantly scan the internet trying to guess VM passwords — SSH keys eliminate this attack vector entirely.')">
+                <span class="option-label">C</span> SSH keys are more secure and cannot be brute-forced like passwords
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH keys do not require an internet connection to generate — they are generated locally on your machine.')">
+                <span class="option-label">D</span> SSH keys require no internet connection to generate
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Why are Linux VMs generally cheaper than Windows VMs of the same size on Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Linux VMs use the same underlying hardware as Windows VMs — there is no hardware difference.')">
+                <span class="option-label">A</span> Linux VMs use older, slower hardware
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Linux operating systems are free and open source — there is no OS licence fee. Windows Server requires a paid Microsoft licence, which is included in the VM price. This adds roughly 40% to the cost of equivalent Windows VMs.')">
+                <span class="option-label">B</span> Linux has no OS licence fee — Windows includes a paid Microsoft licence cost
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Linux VMs use the same amount of storage as Windows VMs — storage cost is not the differentiator.')">
+                <span class="option-label">C</span> Linux VMs use less storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft does not offer a discount based on OS popularity — the cost difference is due to the Windows licence fee.')">
+                <span class="option-label">D</span> Microsoft offers a discount because Linux is less popular
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> When using the Azure CLI to create a Linux VM with --generate-ssh-keys, where is the private key saved?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The private key is never stored in Azure — it is a security risk to store private keys in the cloud. The public key goes to Azure; the private key stays local.')">
+                <span class="option-label">A</span> In Azure Key Vault
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The --generate-ssh-keys flag saves the private key at ~/.ssh/id_rsa on your local machine (or C:\\Users\\YourName\\.ssh\\id_rsa on Windows). The public key is installed on the VM automatically.')">
+                <span class="option-label">B</span> On your local machine at ~/.ssh/id_rsa
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The private key is never stored on the VM — that would be a major security risk. Only the public key is on the VM.')">
+                <span class="option-label">C</span> On the VM at /home/azureuser/.ssh/id_rsa
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The private key is not stored in the resource group — it is saved to your local machine\'s SSH directory.')">
+                <span class="option-label">D</span> In the Azure Resource Group
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which Linux distribution is recommended as the default choice for most Azure workloads?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Ubuntu Server 22.04 LTS is the most popular Linux distribution on Azure. It has excellent Azure integration, the largest community, the most documentation, and free OS support — making it the best default choice for most workloads.')">
+                <span class="option-label">A</span> Ubuntu Server 22.04 LTS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While RHEL is popular in enterprises, it requires a paid licence and is overkill for most workloads. Ubuntu is a better default unless you have specific RHEL requirements.')">
+                <span class="option-label">B</span> Red Hat Enterprise Linux (RHEL)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SUSE Linux Enterprise is primarily used for SAP HANA workloads — it is a specialised choice, not a general default.')">
+                <span class="option-label">C</span> SUSE Linux Enterprise
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While Debian is very stable, it has a smaller Azure community and less documentation than Ubuntu. Ubuntu is derived from Debian but is better supported on Azure.')">
+                <span class="option-label">D</span> Debian
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="create-windows-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Windows VM</span>
+            </a>
+            <a class="related-card" href="connect-ssh.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Connect to VM via SSH</span>
+            </a>
+            <a class="related-card" href="vm-sizes.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Series &amp; Sizes</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="create-windows-vm.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Create a Windows VM</span>
+          </a>
+          <a class="nav-card next" href="connect-ssh.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Connect to VM via SSH</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
