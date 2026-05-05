@@ -1060,5 +1060,24 @@
     }
   </script>
 
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      setTimeout(function() {
+        var path = window.location.pathname;
+        document.querySelectorAll(".sb-item.active").forEach(function(el) {
+          el.classList.remove("active");
+        });
+        if (path.endsWith("certifications.html")) {
+          document.querySelectorAll(".sb-item").forEach(function(el) {
+            if (el.textContent.trim() === "Certifications") el.classList.add("active");
+          });
+        } else if (path.endsWith("practice.html")) {
+          document.querySelectorAll(".sb-item").forEach(function(el) {
+            if (el.textContent.trim() === "Practice Questions") el.classList.add("active");
+          });
+        }
+      }, 100);
+    });
+  </script>
 </body>
 </html>
