@@ -513,29 +513,21 @@
   </script>
 
   <script>
-    (function fixActiveNav() {
+    document.addEventListener('DOMContentLoaded', function() {
       var path = window.location.pathname;
-      var orig = window.renderSidebar;
-      if (typeof orig !== 'function') {
-        document.addEventListener('DOMContentLoaded', function() { fixActiveNav(); });
-        return;
-      }
-      window.renderSidebar = function() {
-        orig();
-        document.querySelectorAll('.sb-item.active').forEach(function(el) {
-          el.classList.remove('active');
+      document.querySelectorAll('.sb-item.active').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      if (path.endsWith('certifications.html')) {
+        document.querySelectorAll('.sb-item').forEach(function(el) {
+          if (el.textContent.trim() === 'Certifications') el.classList.add('active');
         });
-        if (path.endsWith('certifications.html')) {
-          document.querySelectorAll('.sb-item').forEach(function(el) {
-            if (el.textContent.trim() === 'Certifications') el.classList.add('active');
-          });
-        } else if (path.endsWith('practice.html')) {
-          document.querySelectorAll('.sb-item').forEach(function(el) {
-            if (el.textContent.trim() === 'Practice Questions') el.classList.add('active');
-          });
-        }
-      };
-    })();
+      } else if (path.endsWith('practice.html')) {
+        document.querySelectorAll('.sb-item').forEach(function(el) {
+          if (el.textContent.trim() === 'Practice Questions') el.classList.add('active');
+        });
+      }
+    });
   </script>
 </body>
 </html>
