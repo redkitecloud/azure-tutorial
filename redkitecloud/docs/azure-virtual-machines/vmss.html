@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure VM Scale Sets | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure VM Scale Sets — auto-scaling, scaling policies, orchestration modes, and designing elastic applications." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">VM Scale Sets</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure VM Scale Sets</h1>
+
+        <p class="page-intro">
+          What happens when your web app suddenly gets 10x the normal traffic? With individual VMs, you'd have to manually create more VMs, configure them, add them to the load balancer, and hope you do it fast enough. VM Scale Sets (VMSS) automate all of this — they automatically add or remove VMs based on real-time demand. This is how modern elastic applications handle variable load.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What VM Scale Sets are · Orchestration modes (Uniform vs Flexible) · Auto-scaling policies — metric-based, schedule-based, predictive · Scale-in and scale-out · Scaling limits · Zone-spanning scale sets · Creating a scale set · Real-world scaling scenarios
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-vmss">What Are VM Scale Sets?</a></li>
+            <li><a href="#orchestration-modes">Orchestration Modes</a></li>
+            <li><a href="#scaling-policies">Scaling Policies</a></li>
+            <li><a href="#scale-in-out">Scale-Out vs Scale-In</a></li>
+            <li><a href="#scaling-limits">Scaling Limits</a></li>
+            <li><a href="#zone-spanning">Zone-Spanning Scale Sets</a></li>
+            <li><a href="#creating">Creating a VM Scale Set</a></li>
+            <li><a href="#real-world">Real-World Scaling Scenarios</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-vmss">What Are VM Scale Sets?</h2>
+          <p>A VM Scale Set is a group of identical VMs managed together as a single unit. You define the VM configuration once (image, size, OS, software), and the Scale Set creates and manages multiple copies. The number of copies scales automatically based on rules you define.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Key Benefit</strong>
+              Instead of manually managing 10 individual VMs, you manage one Scale Set. Azure handles creating, deleting, updating, and load balancing the VMs automatically. When CPU hits 80%, Azure adds more VMs. When it drops to 20%, Azure removes them and you stop paying.
+            </div>
+          </div>
+
+          <h3>What Scale Sets Give You</h3>
+          <ul>
+            <li><strong>Elasticity</strong> — Scale from 1 to 1,000 VMs automatically</li>
+            <li><strong>High Availability</strong> — Automatically spreads VMs across fault domains and Availability Zones</li>
+            <li><strong>Consistent Configuration</strong> — All VMs are identical — same image, same software, same config</li>
+            <li><strong>Integrated Load Balancing</strong> — Works natively with Azure Load Balancer and Application Gateway</li>
+            <li><strong>Rolling Updates</strong> — Update VMs one at a time without downtime</li>
+          </ul>
+
+          <h2 id="orchestration-modes">Orchestration Modes</h2>
+          <p>Azure VMSS offers two orchestration modes:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Uniform Mode</th><th>Flexible Mode</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>VM identity</td><td>All VMs are identical instances</td><td>Each VM is a full standalone VM</td></tr>
+                <tr><td>Management</td><td>Managed as a group</td><td>Can manage individual VMs independently</td></tr>
+                <tr><td>Max instances</td><td>1,000</td><td>1,000</td></tr>
+                <tr><td>Mixed VM sizes</td><td>No — all same size</td><td>Yes — different sizes allowed</td></tr>
+                <tr><td>Best for</td><td>Stateless web tiers, microservices</td><td>Stateful workloads, mixed workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Which to Use?</strong>
+              For most web and application tiers — use <strong>Flexible mode</strong>. It's the newer, more powerful option. Uniform mode is the original mode, still used for large homogeneous workloads.
+            </div>
+          </div>
+
+          <h2 id="scaling-policies">Scaling Policies</h2>
+          <p>There are three ways to configure when and how your Scale Set scales:</p>
+
+          <h3>1. Metric-Based Scaling (Most Common)</h3>
+          <p>Scale based on real-time metrics — CPU usage, memory, queue length, custom metrics.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Rule Example</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>CPU &gt; 75% for 5 minutes</td><td>Add 2 VMs (scale out)</td></tr>
+                <tr><td>CPU &lt; 25% for 10 minutes</td><td>Remove 1 VM (scale in)</td></tr>
+                <tr><td>Queue length &gt; 100 messages</td><td>Add 3 VMs</td></tr>
+                <tr><td>Memory &gt; 80%</td><td>Add 1 VM</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>2. Schedule-Based Scaling</h3>
+          <p>Scale based on a fixed schedule — useful for predictable patterns.</p>
+          <ul>
+            <li>Scale to 20 VMs every weekday at 8 AM (business hours peak)</li>
+            <li>Scale down to 2 VMs every weekday at 8 PM (after hours)</li>
+            <li>Scale to 50 VMs on the first day of each month (batch processing day)</li>
+          </ul>
+
+          <h3>3. Predictive Scaling</h3>
+          <p>Uses machine learning to predict future load based on historical patterns and pre-scales before the demand arrives — rather than reacting after CPU already spikes. Available on Flexible mode scale sets.</p>
+
+          <h2 id="scale-in-out">Scale-Out vs Scale-In</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Action</th><th>Meaning</th><th>When</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Scale Out</strong></td><td>Add more VMs (horizontal scaling)</td><td>Load increases</td></tr>
+                <tr><td><strong>Scale In</strong></td><td>Remove VMs (horizontal scaling)</td><td>Load decreases</td></tr>
+                <tr><td><strong>Scale Up</strong></td><td>Increase VM size (vertical scaling)</td><td>Need more power per VM</td></tr>
+                <tr><td><strong>Scale Down</strong></td><td>Decrease VM size (vertical scaling)</td><td>Over-provisioned</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Scale Sets Do Horizontal Scaling</strong>
+              VM Scale Sets handle scale-out and scale-in (adding/removing VMs). Vertical scaling (changing VM size) is not automated — it requires manual resizing and a VM restart.
+            </div>
+          </div>
+
+          <h3>Scale-In Policy</h3>
+          <p>When scaling in, Azure needs to decide which VMs to remove. The default policy removes the VM with the highest instance ID first. You can configure:</p>
+          <ul>
+            <li><strong>Default</strong> — Remove highest instance ID first</li>
+            <li><strong>OldestVM</strong> — Remove the oldest VM first (good for keeping fresh instances)</li>
+            <li><strong>NewestVM</strong> — Remove the newest VM first</li>
+          </ul>
+
+          <h2 id="scaling-limits">Scaling Limits</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Setting</th><th>Description</th><th>Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Minimum instances</td><td>Always keep at least this many VMs running</td><td>2 (never scale below 2)</td></tr>
+                <tr><td>Maximum instances</td><td>Never exceed this many VMs</td><td>50 (cap at 50 to control costs)</td></tr>
+                <tr><td>Default instances</td><td>Start with this many if no metric data</td><td>3</td></tr>
+                <tr><td>Cooldown period</td><td>Wait this long between scaling actions</td><td>5 minutes (avoid rapid flapping)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Always Set a Maximum!</strong>
+              Without a maximum instance limit, a misconfigured scaling rule could spin up hundreds of VMs and generate a massive unexpected bill. Always set a sensible maximum based on your budget and expected load.
+            </div>
+          </div>
+
+          <h2 id="zone-spanning">Zone-Spanning Scale Sets</h2>
+          <p>VM Scale Sets can span multiple Availability Zones — giving you both elasticity and zone-level high availability in one service. Azure automatically distributes VM instances across zones as it scales out.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a zone-spanning Scale Set</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az vmss create \
+  --resource-group myResourceGroup \
+  --name myScaleSet \
+  --image Ubuntu2204 \
+  --vm-sku Standard_B2s \
+  --instance-count 3 \
+  --zones 1 2 3 \
+  --admin-username azureuser \
+  --generate-ssh-keys \
+  --orchestration-mode Flexible \
+  --load-balancer myLoadBalancer</code></pre>
+          </div>
+
+          <h2 id="creating">Creating a VM Scale Set</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Scale Set with auto-scaling</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create the Scale Set
+az vmss create \
+  --resource-group myResourceGroup \
+  --name myScaleSet \
+  --image Ubuntu2204 \
+  --vm-sku Standard_B2s \
+  --instance-count 2 \
+  --admin-username azureuser \
+  --generate-ssh-keys
+
+# Add auto-scaling: scale out when CPU > 70%
+az monitor autoscale create \
+  --resource-group myResourceGroup \
+  --resource myScaleSet \
+  --resource-type Microsoft.Compute/virtualMachineScaleSets \
+  --name autoscale-vmss \
+  --min-count 2 \
+  --max-count 10 \
+  --count 2
+
+# Add scale-out rule
+az monitor autoscale rule create \
+  --resource-group myResourceGroup \
+  --autoscale-name autoscale-vmss \
+  --condition "Percentage CPU > 70 avg 5m" \
+  --scale out 2
+
+# Add scale-in rule
+az monitor autoscale rule create \
+  --resource-group myResourceGroup \
+  --autoscale-name autoscale-vmss \
+  --condition "Percentage CPU < 25 avg 10m" \
+  --scale in 1</code></pre>
+          </div>
+
+          <h2 id="real-world">Real-World Scaling Scenarios</h2>
+
+          <h3>E-Commerce Sale Event</h3>
+          <p>An online store normally runs 5 VMs but expects 20x traffic during a sale. Configure:</p>
+          <ul>
+            <li>Schedule: Scale to 30 VMs 30 minutes before the sale starts</li>
+            <li>Metric: If CPU exceeds 80%, add 5 more VMs (up to max 100)</li>
+            <li>Schedule: Scale back to 5 VMs 2 hours after the sale ends</li>
+          </ul>
+
+          <h3>Business Hours Application</h3>
+          <p>An internal HR application used only during office hours:</p>
+          <ul>
+            <li>Schedule: Scale to 10 VMs at 8 AM weekdays</li>
+            <li>Schedule: Scale to 2 VMs at 7 PM weekdays</li>
+            <li>Schedule: Scale to 2 VMs all day Saturday and Sunday</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the difference between scale-out (more VMs) and scale-up (bigger VMs). Know that Scale Sets support metric-based, schedule-based, and predictive scaling. Know that zone-spanning Scale Sets provide both elasticity and high availability.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the primary purpose of Azure VM Scale Sets?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scale Sets are for running multiple identical VMs that scale dynamically — not for running different types of workloads on a single VM.')">
+                <span class="option-label">A</span> To run multiple different workloads on a single VM
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VM Scale Sets automatically create and delete identical VMs based on demand — scaling out when load increases and scaling in when load decreases. This provides elasticity without manual VM management.')">
+                <span class="option-label">B</span> To automatically scale the number of identical VMs based on demand
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scale Sets handle horizontal scaling (adding/removing VMs) — not vertical scaling (changing VM size). Vertical scaling requires manual resizing.')">
+                <span class="option-label">C</span> To automatically resize VMs to larger sizes when load increases
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scale Sets are for dynamic scaling — not for creating static backups of VMs.')">
+                <span class="option-label">D</span> To create automatic backups of virtual machines
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is "scale-out" in the context of VM Scale Sets?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Increasing VM size is called "scale-up" (vertical scaling) — not scale-out.')">
+                <span class="option-label">A</span> Increasing the size (vCPU/RAM) of existing VMs
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Scale-out means adding more VM instances horizontally — going from 3 VMs to 6 VMs to handle increased load. Scale-in is the reverse — removing VMs when load decreases.')">
+                <span class="option-label">B</span> Adding more VM instances to handle increased load
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Removing VMs when load decreases is called "scale-in" — the opposite of scale-out.')">
+                <span class="option-label">C</span> Removing VM instances when load decreases
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Moving VMs to a different region is a migration operation — not auto-scaling.')">
+                <span class="option-label">D</span> Moving VMs to a different Azure region
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Why should you always configure a maximum instance count on a VM Scale Set?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A maximum count does not improve VM performance — it limits the number of VMs for cost control.')">
+                <span class="option-label">A</span> To improve VM performance
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Without a maximum instance limit, a misconfigured scaling rule or unexpected traffic spike could spin up hundreds or thousands of VMs, generating a massive unexpected bill. Always set a maximum based on your budget and expected peak load.')">
+                <span class="option-label">B</span> To prevent runaway scaling that could generate unexpected huge costs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure does not require a maximum count for load balancer integration — the load balancer works regardless of instance count.')">
+                <span class="option-label">C</span> Because Azure Load Balancer requires it
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zone spanning works independently of the maximum instance count setting.')">
+                <span class="option-label">D</span> To enable Availability Zone spanning
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> An application has predictable high traffic every weekday between 9 AM and 6 PM. Which scaling policy is most appropriate?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Metric-based scaling reacts to real-time metrics — it will scale out AFTER CPU rises, not before. For predictable patterns, schedule-based scaling is more efficient.')">
+                <span class="option-label">A</span> Metric-based scaling on CPU utilisation
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Schedule-based scaling is ideal for predictable traffic patterns. You can scale to the required number of VMs at 9 AM every weekday and scale back down at 6 PM — pre-empting the load rather than reacting to it.')">
+                <span class="option-label">B</span> Schedule-based scaling to scale up at 9 AM and down at 6 PM weekdays
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Manual scaling defeats the purpose of Scale Sets — you\'d have to manually change the instance count twice a day.')">
+                <span class="option-label">C</span> Manual scaling by updating the instance count twice a day
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Predictive scaling uses ML to predict load — it works for patterns it has learned, but schedule-based is simpler and more reliable for a known fixed schedule.')">
+                <span class="option-label">D</span> Predictive scaling based on historical data
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the maximum number of VM instances a Scale Set can contain?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum is 1,000 instances — not 100.')">
+                <span class="option-label">A</span> 100
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum is 1,000 instances — not 500.')">
+                <span class="option-label">B</span> 500
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A VM Scale Set can contain up to 1,000 VM instances. This applies to both Uniform and Flexible orchestration modes.')">
+                <span class="option-label">C</span> 1,000
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While Scale Sets are highly scalable, the current maximum is 1,000 instances — not unlimited.')">
+                <span class="option-label">D</span> Unlimited
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="availability-sets.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Availability Sets &amp; Zones</span>
+            </a>
+            <a class="related-card" href="spot-vms.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Spot VMs</span>
+            </a>
+            <a class="related-card" href="vm-pricing.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Pricing &amp; Cost Tips</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="availability-sets.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Availability Sets &amp; Zones</span>
+          </a>
+          <a class="nav-card next" href="spot-vms.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Spot VMs</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

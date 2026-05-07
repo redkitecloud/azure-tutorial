@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure VM Auto-Shutdown | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="How to configure Azure VM auto-shutdown to save costs — portal setup, CLI commands, notifications, and best practices for dev/test environments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">VM Auto-Shutdown</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 8 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure VM Auto-Shutdown</h1>
+
+        <p class="page-intro">
+          One of the easiest and most effective ways to reduce Azure VM costs is auto-shutdown. For dev, test, and learning VMs that don't need to run 24/7, auto-shutdown automatically deallocates the VM at a set time each day — stopping compute billing overnight. It's a simple feature that can cut your VM costs by 50–70% without any code changes.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What auto-shutdown does and doesn't do · Setting up auto-shutdown in the portal · Email notifications before shutdown · CLI configuration · Auto-start (scheduled start) · Cost savings calculation · Best practices for dev/test environments
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-it-does">What Auto-Shutdown Does</a></li>
+            <li><a href="#portal-setup">Setting Up via Azure Portal</a></li>
+            <li><a href="#notifications">Shutdown Notifications</a></li>
+            <li><a href="#cli-setup">Setting Up via CLI</a></li>
+            <li><a href="#auto-start">Auto-Start (Scheduled Start)</a></li>
+            <li><a href="#cost-savings">Cost Savings Calculation</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-it-does">What Auto-Shutdown Does</h2>
+          <p>Auto-shutdown <strong>deallocates</strong> (not deletes) your VM at a scheduled time each day. Deallocating means:</p>
+          <ul>
+            <li>✅ Compute billing stops — you no longer pay for CPU/RAM</li>
+            <li>✅ The VM, its OS disk, and data disks are preserved</li>
+            <li>✅ The VM can be manually started again any time</li>
+            <li>⚠️ Storage billing continues — you still pay for the disk(s)</li>
+            <li>⚠️ Public IP may change if dynamic — use static IP if you need the same IP after restart</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Deallocate vs Stop vs Delete</strong>
+              <strong>Stop (OS shutdown)</strong> — The OS shuts down but the VM is still allocated on hardware. You still pay for compute!<br/>
+              <strong>Deallocate</strong> — The VM is removed from hardware. Compute billing stops. This is what auto-shutdown does.<br/>
+              <strong>Delete</strong> — VM and resources are permanently removed.
+            </div>
+          </div>
+
+          <h2 id="portal-setup">Setting Up via Azure Portal</h2>
+          <ol>
+            <li>Go to your VM in the Azure Portal</li>
+            <li>In the left menu, scroll to <strong>Operations</strong> → click <strong>Auto-shutdown</strong></li>
+            <li>Toggle <strong>Enabled</strong> to On</li>
+            <li>Set the <strong>Scheduled shutdown time</strong> — e.g., 8:00 PM</li>
+            <li>Set the <strong>Time zone</strong> — select your local timezone (e.g., India Standard Time)</li>
+            <li>Optionally configure <strong>Notification</strong> — see next section</li>
+            <li>Click <strong>Save</strong></li>
+          </ol>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Set It at VM Creation</strong>
+              You can also enable auto-shutdown during VM creation — on the <strong>Management</strong> tab. This ensures you never forget to configure it on new dev/test VMs.
+            </div>
+          </div>
+
+          <h2 id="notifications">Shutdown Notifications</h2>
+          <p>Auto-shutdown can send you an email or webhook notification 30 minutes before shutdown. This gives you time to save your work or delay the shutdown if you're still using the VM.</p>
+
+          <h3>Email Notification</h3>
+          <p>In the auto-shutdown settings, under <strong>Notification</strong>:</p>
+          <ul>
+            <li>Enable <strong>Send notification before auto-shutdown</strong></li>
+            <li>Enter your email address</li>
+            <li>Azure sends a warning email 30 minutes before shutdown</li>
+          </ul>
+
+          <h3>Webhook Notification</h3>
+          <p>For automated systems, you can provide a webhook URL. Azure sends an HTTP POST to this URL before shutdown — useful for triggering automated save operations or alerting Slack/Teams channels.</p>
+
+          <h2 id="cli-setup">Setting Up via CLI</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Enable auto-shutdown at 8 PM IST daily</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Get the VM resource ID
+VM_ID=$(az vm show \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --query id \
+  --output tsv)
+
+# Enable auto-shutdown at 20:00 (8 PM) in IST timezone
+# Note: time is in UTC format for CLI — IST is UTC+5:30, so 8 PM IST = 14:30 UTC
+az rest \
+  --method put \
+  --uri "https://management.azure.com/subscriptions/{sub-id}/resourceGroups/myResourceGroup/providers/microsoft.devtestlab/schedules/shutdown-computevm-myVM?api-version=2018-09-15" \
+  --body '{
+    "location": "centralindia",
+    "properties": {
+      "status": "Enabled",
+      "taskType": "ComputeVmShutdownTask",
+      "dailyRecurrence": {"time": "1430"},
+      "timeZoneId": "India Standard Time",
+      "targetResourceId": "'$VM_ID'"
+    }
+  }'</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Easier via Portal</strong>
+              The CLI method for auto-shutdown uses the DevTest Labs API which is verbose. For day-to-day use, configuring auto-shutdown through the portal is much simpler.
+            </div>
+          </div>
+
+          <h2 id="auto-start">Auto-Start (Scheduled Start)</h2>
+          <p>Azure doesn't have a built-in "auto-start" equivalent to auto-shutdown. However, you can achieve scheduled starts using:</p>
+
+          <h3>Option 1 — Azure Automation Runbook</h3>
+          <p>Create an Azure Automation account with a PowerShell runbook that starts the VM. Schedule it to run at your desired start time.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Runbook to start a VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">Connect-AzAccount -Identity  # Use managed identity
+Start-AzVM \
+  -ResourceGroupName "myResourceGroup" \
+  -Name "myVM"</code></pre>
+          </div>
+
+          <h3>Option 2 — Azure Function (Timer Trigger)</h3>
+          <p>Create an Azure Function with a timer trigger that calls the Azure REST API to start the VM at a specific time. Functions are free for the first 1 million executions per month.</p>
+
+          <h2 id="cost-savings">Cost Savings Calculation</h2>
+          <p>Let's calculate real savings for a typical dev VM:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Running Hours/Month</th><th>Cost (B2s VM)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>No auto-shutdown (24/7)</td><td>730 hours</td><td>~₹2,200</td></tr>
+                <tr><td>Auto-shutdown at 8 PM, start 8 AM (12 hrs/day)</td><td>365 hours</td><td>~₹1,100</td></tr>
+                <tr><td>Auto-shutdown at 6 PM, start 9 AM (9 hrs/day)</td><td>270 hours</td><td>~₹810</td></tr>
+                <tr><td>Auto-shutdown at 5 PM, start 9 AM (8 hrs/day)</td><td>240 hours</td><td>~₹720</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Just by adding auto-shutdown at 6 PM and starting at 9 AM on workdays, you save roughly <strong>₹1,390/month</strong> on a single B2s VM — over <strong>₹16,000/year</strong>. For a team with 10 dev VMs, that's ₹1.6 lakh/year in savings.</p>
+
+          <h2 id="best-practices">Best Practices</h2>
+          <ul>
+            <li><strong>Enable on all dev/test VMs by default</strong> — Make it a team policy, not optional</li>
+            <li><strong>Set up email notifications</strong> — 30-minute warning prevents losing unsaved work</li>
+            <li><strong>Use static public IPs for dev VMs</strong> — Dynamic IPs change after deallocation, which breaks SSH config and scripts</li>
+            <li><strong>Never enable auto-shutdown on production VMs</strong> — Obvious, but worth stating</li>
+            <li><strong>Configure during VM creation</strong> — Easier than remembering to add it after</li>
+            <li><strong>Pair with Azure Policy</strong> — Enforce auto-shutdown on all VMs in dev/test resource groups automatically</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that auto-shutdown deallocates the VM (compute billing stops but disk billing continues), that it sends a 30-minute notification before shutdown, and that it's configured per VM under Operations → Auto-shutdown in the portal.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What does Azure VM auto-shutdown actually do to the VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-shutdown permanently deletes the VM — this would destroy all data and configuration. Auto-shutdown safely deallocates the VM, preserving everything.')">
+                <span class="option-label">A</span> Permanently deletes the VM and all its data
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. An OS-level shutdown stops the OS but the VM remains allocated on hardware — you still pay for compute. Auto-shutdown deallocates the VM, which stops compute billing.')">
+                <span class="option-label">B</span> Shuts down the OS but keeps the VM allocated on hardware
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Auto-shutdown deallocates the VM — the OS shuts down and the VM is removed from hardware, stopping compute billing. The VM\'s disks and configuration are preserved. You can restart it at any time.')">
+                <span class="option-label">C</span> Deallocates the VM — stops compute billing while preserving disks and config
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-shutdown does not pause the VM — it fully deallocates it. There is no "pause" state for Azure VMs.')">
+                <span class="option-label">D</span> Pauses the VM in a suspended state
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> How far in advance does Azure send a notification before auto-shutdown?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The notification is sent 30 minutes before shutdown — not 5 minutes.')">
+                <span class="option-label">A</span> 5 minutes
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure sends the auto-shutdown notification 30 minutes before the scheduled shutdown time. This gives you enough time to save work or cancel the shutdown if you\'re still using the VM.')">
+                <span class="option-label">B</span> 30 minutes
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The notification is 30 minutes in advance — not 1 hour.')">
+                <span class="option-label">C</span> 1 hour
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The notification is 30 minutes in advance — not 24 hours.')">
+                <span class="option-label">D</span> 24 hours
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> After a VM is auto-shutdown (deallocated), which charges continue?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Compute (CPU/RAM) billing stops when a VM is deallocated — that is the whole point of auto-shutdown.')">
+                <span class="option-label">A</span> Compute charges (CPU and RAM)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a VM is deallocated, compute billing stops but storage billing continues. The OS disk and any data disks continue to incur storage charges until they are deleted.')">
+                <span class="option-label">B</span> Storage charges (OS disk and data disks)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Network charges (data transfer) only occur when data is being transferred — a deallocated VM is not transferring any data.')">
+                <span class="option-label">C</span> Network charges (data transfer)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. No charges of any kind continue after deallocation is not correct — storage charges continue for the disks.')">
+                <span class="option-label">D</span> No charges of any kind
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Where in the Azure Portal do you configure auto-shutdown for a VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Monitoring section contains metrics and alerts — not auto-shutdown settings.')">
+                <span class="option-label">A</span> Monitoring → Alerts
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Auto-shutdown is found under Operations → Auto-shutdown in the VM\'s left navigation menu in the Azure Portal. You can also configure it during VM creation on the Management tab.')">
+                <span class="option-label">B</span> Operations → Auto-shutdown
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Settings → Configuration contains VM configuration options like extensions — not the auto-shutdown schedule.')">
+                <span class="option-label">C</span> Settings → Configuration
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Automation → Runbooks is for Azure Automation — not for the built-in auto-shutdown feature.')">
+                <span class="option-label">D</span> Automation → Runbooks
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A developer's VM runs 8 hours per day (9 AM to 5 PM) instead of 24 hours. How much does this save compared to running 24/7?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 8 hours out of 24 is one-third of the day — so you save two-thirds (about 67%), not 25%.')">
+                <span class="option-label">A</span> 25%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Running 8 hours saves more than 50% — 8 hours is one-third of 24 hours, so you save two-thirds.')">
+                <span class="option-label">B</span> 50%
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Running 8 hours per day instead of 24 saves approximately 67% on compute costs (8/24 = 33% of time running, saving 67%). A B2s VM at ₹2,200/month running 24/7 would cost only about ₹730/month at 8 hours/day.')">
+                <span class="option-label">C</span> ~67%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While 90% savings would require running only about 2.4 hours per day — 8 hours per day saves approximately 67%.')">
+                <span class="option-label">D</span> 90%
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="spot-vms.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Spot VMs</span>
+            </a>
+            <a class="related-card" href="vm-pricing.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Pricing &amp; Cost Tips</span>
+            </a>
+            <a class="related-card" href="overview.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure VMs Overview</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="spot-vms.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Spot VMs</span>
+          </a>
+          <a class="nav-card next" href="vm-pricing.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">VM Pricing &amp; Cost Tips</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure VM Disks Explained | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Everything about Azure VM disks — OS disks, data disks, temp disks, disk types, IOPS, throughput, and how to choose the right disk for your workload." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">VM Disks Explained</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure VM Disks Explained</h1>
+
+        <p class="page-intro">
+          Every Azure VM has at least one disk — and most production VMs have several. Choosing the wrong disk type can leave you with a slow, unresponsive application or an unnecessarily expensive bill. This page covers every type of disk Azure offers, how to measure disk performance, and exactly which disk to use for each scenario.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          OS disks vs data disks vs temp disks · All four disk types (Ultra, Premium SSD, Standard SSD, Standard HDD) · IOPS and throughput explained · How many disks can a VM have · Adding and detaching disks · Disk caching · Disk encryption · Choosing the right disk
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#disk-types-by-role">Disk Types by Role</a></li>
+            <li><a href="#storage-types">Disk Storage Types</a></li>
+            <li><a href="#iops-throughput">IOPS and Throughput Explained</a></li>
+            <li><a href="#disk-limits">Disk Limits per VM</a></li>
+            <li><a href="#disk-caching">Disk Caching</a></li>
+            <li><a href="#disk-encryption">Disk Encryption</a></li>
+            <li><a href="#adding-disks">Adding and Detaching Disks</a></li>
+            <li><a href="#choosing">Choosing the Right Disk</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="disk-types-by-role">Disk Types by Role</h2>
+          <p>Every Azure VM can have three categories of disks:</p>
+
+          <h3>OS Disk</h3>
+          <p>Every VM has exactly one OS disk. This is where the operating system is installed — Windows or Linux. It's created from the image you selected when creating the VM.</p>
+          <ul>
+            <li>Registered as drive <strong>C:</strong> on Windows, <strong>/dev/sda</strong> on Linux</li>
+            <li>Default size: 127 GB (Windows) or 30 GB (Linux)</li>
+            <li>Billed even when the VM is deallocated</li>
+            <li>Can be resized, but requires deallocating the VM first</li>
+          </ul>
+
+          <h3>Data Disks</h3>
+          <p>Optional additional disks for storing application data, databases, logs, etc. Best practice is to keep application data separate from the OS disk.</p>
+          <ul>
+            <li>Registered as drive <strong>D:</strong>, <strong>E:</strong> etc on Windows, <strong>/dev/sdc</strong>, <strong>/dev/sdd</strong> etc on Linux</li>
+            <li>Can have multiple data disks per VM (limit depends on VM size)</li>
+            <li>Can be detached and reattached to different VMs</li>
+            <li>Can be up to 32 TB per disk</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Why Separate Data from OS?</strong>
+              Keeping your application data on a separate data disk means you can: resize or replace the OS disk without touching your data; snapshot just the data disk for backups; detach the data disk and move it to another VM; use a higher-performance disk tier for data without upgrading the OS disk.
+            </div>
+          </div>
+
+          <h3>Temporary Disk</h3>
+          <p>A local disk that comes with most VM sizes — it's physically on the host machine, not network-attached. This makes it much faster than managed disks, but it's <strong>ephemeral</strong> — data is lost when the VM is deallocated, restarted, or resized.</p>
+          <ul>
+            <li>Drive <strong>D:</strong> on Windows, <strong>/dev/sdb</strong> on Linux (mounted at <strong>/mnt</strong>)</li>
+            <li>Used for temporary data, swap files, scratch space</li>
+            <li><strong>Never store persistent data here</strong> — it will be lost</li>
+            <li>Not all VM sizes include a temp disk (look for "d" in the VM name, e.g., D4ds_v5)</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Common Mistake</strong>
+              Many beginners accidentally use the temp disk (D: on Windows) for important data, then lose everything when the VM is restarted. The temp disk is for temporary data only. Persistent data must go on OS disk or data disks.
+            </div>
+          </div>
+
+          <h2 id="storage-types">Disk Storage Types</h2>
+          <p>Azure offers four disk storage tiers, from highest performance to lowest cost:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Disk Type</th><th>Max IOPS</th><th>Max Throughput</th><th>Use Case</th><th>Cost</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Ultra Disk</strong></td><td>Up to 160,000</td><td>Up to 4,000 MB/s</td><td>Highest-performance databases, SAP HANA</td><td>Highest</td></tr>
+                <tr><td><strong>Premium SSD v2</strong></td><td>Up to 80,000</td><td>Up to 1,200 MB/s</td><td>Production databases, I/O intensive apps</td><td>High</td></tr>
+                <tr><td><strong>Premium SSD</strong></td><td>Up to 20,000</td><td>Up to 900 MB/s</td><td>Production workloads, required for 99.9% SLA</td><td>Medium-High</td></tr>
+                <tr><td><strong>Standard SSD</strong></td><td>Up to 6,000</td><td>Up to 750 MB/s</td><td>Dev/test, light production, web servers</td><td>Medium</td></tr>
+                <tr><td><strong>Standard HDD</strong></td><td>Up to 2,000</td><td>Up to 500 MB/s</td><td>Backups, archives, infrequent access</td><td>Lowest</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>SLA Requirement</strong>
+              A single VM gets Microsoft's 99.9% uptime SLA only if ALL disks (OS and data) use Premium SSD or better. Standard SSD or HDD = no SLA on single VMs.
+            </div>
+          </div>
+
+          <h2 id="iops-throughput">IOPS and Throughput Explained</h2>
+          <p>Disk performance is measured by two metrics — understanding them helps you choose the right disk:</p>
+
+          <h3>IOPS (Input/Output Operations Per Second)</h3>
+          <p>How many read/write operations the disk can handle per second. Matters most for workloads with many small, random reads and writes — like databases (SQL Server, PostgreSQL, MySQL).</p>
+          <p>Example: A database doing many small transaction reads/writes needs high IOPS. An application reading one large file sequentially needs high throughput, not necessarily high IOPS.</p>
+
+          <h3>Throughput (MB/s)</h3>
+          <p>How much data the disk can transfer per second. Matters most for workloads moving large sequential data — like video processing, backups, data warehousing, or big file copies.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Simple Rule</strong>
+              Database workload → prioritise IOPS → Premium SSD or Ultra Disk<br/>
+              Video / bulk data workload → prioritise throughput → Premium SSD v2 or Ultra Disk<br/>
+              Dev/test or web server → Standard SSD is usually sufficient
+            </div>
+          </div>
+
+          <h2 id="disk-limits">Disk Limits per VM</h2>
+          <p>The number of data disks you can attach to a VM depends on the VM size. Here are examples:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>VM Size</th><th>Max Data Disks</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Standard_B2s</td><td>4</td></tr>
+                <tr><td>Standard_D4s_v5</td><td>8</td></tr>
+                <tr><td>Standard_D8s_v5</td><td>16</td></tr>
+                <tr><td>Standard_D16s_v5</td><td>32</td></tr>
+                <tr><td>Standard_D32s_v5</td><td>32</td></tr>
+                <tr><td>Standard_E32s_v5</td><td>32</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="disk-caching">Disk Caching</h2>
+          <p>Azure allows you to configure caching on managed disks to improve performance. The cache stores frequently accessed data in the VM host's local memory:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Cache Setting</th><th>Behaviour</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Read/Write</strong></td><td>Caches both reads and writes</td><td>OS disk (default for OS disk)</td></tr>
+                <tr><td><strong>Read-only</strong></td><td>Caches reads, writes go directly to disk</td><td>Data disks with lots of read operations</td></tr>
+                <tr><td><strong>None</strong></td><td>No caching</td><td>Write-heavy workloads, databases with their own caching</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Database Disks</strong>
+              For database data files, use <strong>None</strong> or <strong>Read-only</strong> caching. For database log files (sequential writes), use <strong>None</strong>. Databases have their own caching — double-caching can cause inconsistencies.
+            </div>
+          </div>
+
+          <h2 id="disk-encryption">Disk Encryption</h2>
+          <p>Azure provides multiple levels of disk encryption:</p>
+          <ul>
+            <li><strong>Azure Storage Service Encryption (SSE)</strong> — All managed disks are encrypted at rest by default using AES-256. This happens automatically with no configuration needed.</li>
+            <li><strong>Azure Disk Encryption (ADE)</strong> — Encrypts the OS and data disks inside the VM using BitLocker (Windows) or DM-Crypt (Linux). Keys stored in Azure Key Vault.</li>
+            <li><strong>Customer-Managed Keys (CMK)</strong> — Use your own encryption keys stored in Azure Key Vault instead of Microsoft-managed keys.</li>
+          </ul>
+
+          <h2 id="adding-disks">Adding and Detaching Disks</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Add a data disk to a VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Add a new 128 GB Premium SSD data disk
+az vm disk attach \
+  --resource-group myResourceGroup \
+  --vm-name myVM \
+  --name myDataDisk \
+  --new \
+  --size-gb 128 \
+  --sku Premium_LRS</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Detach a data disk from a VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az vm disk detach \
+  --resource-group myResourceGroup \
+  --vm-name myVM \
+  --name myDataDisk</code></pre>
+          </div>
+
+          <h2 id="choosing">Choosing the Right Disk</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Recommended Disk</th><th>Why</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Production SQL Server database</td><td>Premium SSD</td><td>High IOPS, low latency, required for SLA</td></tr>
+                <tr><td>OS disk for production VM</td><td>Premium SSD</td><td>Required for 99.9% SLA</td></tr>
+                <tr><td>Dev/test environment</td><td>Standard SSD</td><td>Good balance of cost and performance</td></tr>
+                <tr><td>Backup/archive storage</td><td>Standard HDD</td><td>Lowest cost, performance not critical</td></tr>
+                <tr><td>SAP HANA or highest-perf DB</td><td>Ultra Disk</td><td>Extreme IOPS and throughput</td></tr>
+                <tr><td>Log files (sequential writes)</td><td>Premium SSD</td><td>Consistent performance for write-heavy logs</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Key facts: Premium SSD is required for single-VM 99.9% SLA · Temp disk data is lost on deallocation · Data disks can be detached and moved between VMs · All managed disks are encrypted at rest by default.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A developer stores important application data on the temporary disk (D: drive) of a Windows VM. The VM is then deallocated overnight. What happens to the data?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The temporary disk is ephemeral — data stored on it is permanently lost when the VM is deallocated, restarted, or resized. Azure does not back it up automatically.')">
+                <span class="option-label">A</span> The data is automatically backed up to Azure Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The temp disk data is NOT preserved when a VM is deallocated — it is completely lost. This is why temp disks should only be used for truly temporary data.')">
+                <span class="option-label">B</span> The data is preserved and available when the VM starts again
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The temporary disk is ephemeral — its data is permanently lost when the VM is deallocated, restarted, or resized. It should only be used for temporary files, page files, or swap space. Never store persistent data on the temp disk.')">
+                <span class="option-label">C</span> The data is permanently lost — temporary disk data is ephemeral
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure does not automatically move temp disk data to an OS disk — they are completely separate storage devices.')">
+                <span class="option-label">D</span> The data is moved to the OS disk automatically
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which disk type is required for a single VM to qualify for Microsoft's 99.9% uptime SLA?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard HDD is the lowest tier — a VM with Standard HDD has no uptime SLA at all.')">
+                <span class="option-label">A</span> Standard HDD
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard SSD does not qualify for the 99.9% single-VM SLA — Premium SSD is the minimum required.')">
+                <span class="option-label">B</span> Standard SSD
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! All OS and data disks must use Premium SSD or better (Premium SSD v2, Ultra Disk) for a single VM to qualify for Microsoft\'s 99.9% uptime SLA.')">
+                <span class="option-label">C</span> Premium SSD
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While Ultra Disk qualifies, it is not required — Premium SSD is the minimum needed for the 99.9% SLA and is much more cost-effective.')">
+                <span class="option-label">D</span> Ultra Disk only
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What metric matters most when choosing a disk for a high-transaction database workload?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Database workloads involve many small, random reads and writes. IOPS (Input/Output Operations Per Second) is the key metric — a high-transaction database needs high IOPS to handle the volume of small operations efficiently.')">
+                <span class="option-label">A</span> IOPS (Input/Output Operations Per Second)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Throughput (MB/s) matters most for sequential large-data workloads like video processing or backups — not for high-transaction databases with many small random operations.')">
+                <span class="option-label">B</span> Throughput (MB/s)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disk size (GB) is about capacity — not performance. A small high-IOPS disk can outperform a large low-IOPS disk for database workloads.')">
+                <span class="option-label">C</span> Disk size (GB)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The number of disks is about capacity scaling — the primary performance metric for database workloads is IOPS per disk.')">
+                <span class="option-label">D</span> Number of disks attached
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Are Azure managed disks encrypted at rest by default?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! All Azure managed disks are automatically encrypted at rest using AES-256 bit encryption through Azure Storage Service Encryption (SSE). This happens by default with no configuration required.')">
+                <span class="option-label">A</span> Yes — all managed disks are encrypted at rest by default using AES-256
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure encrypts all managed disks at rest by default — you do not need to enable encryption manually.')">
+                <span class="option-label">B</span> No — encryption must be manually enabled for each disk
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption is not limited to Premium SSD — all managed disk tiers are encrypted at rest by default.')">
+                <span class="option-label">C</span> Only Premium SSD disks are encrypted by default
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption is not just for production — all managed disks in all environments are encrypted at rest by default.')">
+                <span class="option-label">D</span> Only in production environments, not dev/test
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What happens to a data disk when it is detached from a VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Detaching a data disk does not delete it — the disk and all its data remain intact as an unattached managed disk.')">
+                <span class="option-label">A</span> The disk and all its data are permanently deleted
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Detaching a data disk does not automatically create a snapshot — the disk simply becomes unattached.')">
+                <span class="option-label">B</span> The disk data is archived and a snapshot is created
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a data disk is detached, it becomes an unattached managed disk. All data on it is preserved. You can then attach it to a different VM, resize it, or delete it manually.')">
+                <span class="option-label">C</span> The disk becomes unattached but all data is preserved — it can be reattached to another VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Detached disks are not automatically moved to cold storage — they remain as standard managed disks and continue to incur storage charges.')">
+                <span class="option-label">D</span> The disk is automatically moved to cold storage to reduce cost
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="managed-disks.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Managed Disks</span>
+            </a>
+            <a class="related-card" href="create-windows-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Windows VM</span>
+            </a>
+            <a class="related-card" href="vm-sizes.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Series &amp; Sizes</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="connect-rdp.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Connect to VM via RDP</span>
+          </a>
+          <a class="nav-card next" href="managed-disks.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Managed Disks</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

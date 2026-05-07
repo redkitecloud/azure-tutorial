@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Managed Disks | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Deep dive into Azure Managed Disks — what they are, how they differ from unmanaged disks, snapshots, disk sharing, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Managed Disks</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Managed Disks</h1>
+
+        <p class="page-intro">
+          When you create a VM in Azure today, the disks attached to it are Managed Disks — Microsoft's recommended, fully managed storage solution for VMs. You don't manage the underlying storage account, replication, or placement. Azure handles all of that. This page covers what managed disks are, why they're better than the old way, and all the powerful features they offer.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What managed disks are · Managed vs unmanaged disks · Redundancy options (LRS, ZRS) · Disk snapshots · Disk images · Shared disks · Disk bursting · Incremental snapshots · Managing disks with CLI
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-managed">What Are Managed Disks?</a></li>
+            <li><a href="#managed-vs-unmanaged">Managed vs Unmanaged Disks</a></li>
+            <li><a href="#redundancy">Disk Redundancy Options</a></li>
+            <li><a href="#snapshots">Disk Snapshots</a></li>
+            <li><a href="#images">Custom Images from Disks</a></li>
+            <li><a href="#shared-disks">Shared Disks</a></li>
+            <li><a href="#disk-bursting">Disk Bursting</a></li>
+            <li><a href="#managing">Managing Disks with CLI</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-managed">What Are Managed Disks?</h2>
+          <p>Azure Managed Disks are block-level storage volumes managed by Azure and used with Azure Virtual Machines. They're like virtual hard drives — you choose the size and type, and Azure handles everything else: where it's physically stored, how it's replicated, and how it recovers from failures.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Block Storage vs Object Storage</strong>
+              Managed Disks are block storage — they appear as a raw disk to the VM's operating system, which then formats them and creates a file system. This is different from Azure Blob Storage (object storage), which stores files and is accessed via API.
+            </div>
+          </div>
+
+          <h2 id="managed-vs-unmanaged">Managed vs Unmanaged Disks</h2>
+          <p>Before managed disks existed (pre-2017), Azure used <strong>unmanaged disks</strong> — VHD files stored in customer-managed Storage Accounts. This created many problems:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Unmanaged Disks (Old)</th><th>Managed Disks (Current)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Storage management</td><td>You manage the Storage Account</td><td>Azure manages everything</td></tr>
+                <tr><td>Storage Account limits</td><td>Max 40 disks per Storage Account</td><td>No such limit</td></tr>
+                <tr><td>Availability Set support</td><td>Manual placement required</td><td>Automatic placement across fault domains</td></tr>
+                <tr><td>Snapshots</td><td>Complex, manual process</td><td>One-click, incremental</td></tr>
+                <tr><td>RBAC</td><td>At Storage Account level only</td><td>Per-disk RBAC</td></tr>
+                <tr><td>Recommended?</td><td>No — legacy only</td><td>Yes — always use managed disks</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Always Use Managed Disks</strong>
+              Unmanaged disks are considered legacy. All new VMs use managed disks by default. If you see old tutorials using Storage Accounts for VM disks, ignore that approach — always use managed disks.
+            </div>
+          </div>
+
+          <h2 id="redundancy">Disk Redundancy Options</h2>
+          <p>Managed disks support different replication options to protect against hardware failures:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Option</th><th>Full Name</th><th>Copies</th><th>Protection</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>LRS</strong></td><td>Locally Redundant Storage</td><td>3 copies in one data centre</td><td>Hardware failures in one location</td></tr>
+                <tr><td><strong>ZRS</strong></td><td>Zone-Redundant Storage</td><td>3 copies across 3 AZs</td><td>Data centre (zone) failures</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>ZRS for Managed Disks</strong>
+              ZRS managed disks replicate synchronously across 3 Availability Zones. If an entire data centre (zone) fails, your disk is still available from the other two zones. ZRS is more expensive than LRS but provides zone-level resilience without needing to manage replication yourself.
+            </div>
+          </div>
+
+          <h2 id="snapshots">Disk Snapshots</h2>
+          <p>A snapshot is a point-in-time, read-only copy of a managed disk. Use snapshots to back up disks before making risky changes, or to create copies of disks for testing.</p>
+
+          <h3>Incremental Snapshots</h3>
+          <p>Azure supports <strong>incremental snapshots</strong> — each snapshot only stores the changes since the last snapshot, not a full copy of the disk. This dramatically reduces storage costs for large disks.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a disk snapshot</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Get the disk ID first
+DISK_ID=$(az vm show \
+  --resource-group myResourceGroup \
+  --name myVM \
+  --query "storageProfile.osDisk.managedDisk.id" \
+  --output tsv)
+
+# Create an incremental snapshot
+az snapshot create \
+  --resource-group myResourceGroup \
+  --name myVM-snapshot-$(date +%Y%m%d) \
+  --source "$DISK_ID" \
+  --incremental true \
+  --location centralindia</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a new disk from a snapshot</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az disk create \
+  --resource-group myResourceGroup \
+  --name myRestoredDisk \
+  --source myVM-snapshot-20260507 \
+  --sku Premium_LRS</code></pre>
+          </div>
+
+          <h3>Snapshot Best Practices</h3>
+          <ul>
+            <li>Take a snapshot before any major change — OS upgrades, software installs, configuration changes</li>
+            <li>Use incremental snapshots to minimise cost</li>
+            <li>Snapshots are billed per GB of changed data</li>
+            <li>Delete old snapshots you no longer need — they continue billing</li>
+          </ul>
+
+          <h2 id="images">Custom Images from Disks</h2>
+          <p>You can create a <strong>custom VM image</strong> from a managed disk — useful for deploying multiple identical VMs (a "golden image" approach).</p>
+
+          <p>The process:</p>
+          <ol>
+            <li>Set up a VM exactly as you want it — install software, configure settings</li>
+            <li>Run <code>sysprep</code> (Windows) or <code>waagent -deprovision</code> (Linux) to generalise the VM</li>
+            <li>Deallocate and generalise the VM in Azure</li>
+            <li>Capture the image</li>
+            <li>Deploy new VMs from this image</li>
+          </ol>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Capture a VM image</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Deallocate and generalise the VM
+az vm deallocate --resource-group myRG --name myVM
+az vm generalize --resource-group myRG --name myVM
+
+# Create the image
+az image create \
+  --resource-group myRG \
+  --name myGoldenImage \
+  --source myVM \
+  --os-type Linux</code></pre>
+          </div>
+
+          <h2 id="shared-disks">Shared Disks</h2>
+          <p>Azure Shared Disks allow a single managed disk to be attached to multiple VMs simultaneously. This is designed for clustered applications like SQL Server Failover Cluster Instances or SAP ASCS.</p>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Not For General Use</strong>
+              Shared disks require a cluster-aware application to manage concurrent access. Without proper clustering software (Windows Server Failover Clustering, Pacemaker on Linux), multiple VMs writing to the same disk simultaneously will cause data corruption.
+            </div>
+          </div>
+
+          <h2 id="disk-bursting">Disk Bursting</h2>
+          <p>Premium SSD managed disks support <strong>on-demand bursting</strong> — temporarily exceeding the disk's provisioned IOPS and throughput limits to handle spikes. This is similar to how B-series VMs handle CPU bursts.</p>
+          <ul>
+            <li>Available for Premium SSD disks up to 512 GB</li>
+            <li>Can burst up to 3,500 IOPS and 170 MB/s</li>
+            <li>Useful for workloads with occasional spikes (boot storms, batch jobs)</li>
+            <li>No extra configuration needed — enabled automatically</li>
+          </ul>
+
+          <h2 id="managing">Managing Disks with CLI</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Common disk management commands</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># List all managed disks in a resource group
+az disk list \
+  --resource-group myResourceGroup \
+  --output table
+
+# Create a standalone managed disk
+az disk create \
+  --resource-group myResourceGroup \
+  --name myDataDisk \
+  --size-gb 256 \
+  --sku Premium_LRS \
+  --location centralindia
+
+# Resize a disk (VM must be deallocated first)
+az disk update \
+  --resource-group myResourceGroup \
+  --name myDataDisk \
+  --size-gb 512
+
+# Delete a disk
+az disk delete \
+  --resource-group myResourceGroup \
+  --name myDataDisk \
+  --yes</code></pre>
+          </div>
+
+          <h2 id="best-practices">Best Practices</h2>
+          <ul>
+            <li><strong>Always use managed disks</strong> — Never use unmanaged (Storage Account) disks for new workloads</li>
+            <li><strong>Take snapshots before changes</strong> — Snapshot OS disks before major updates or software installs</li>
+            <li><strong>Separate OS and data</strong> — Keep application data on dedicated data disks</li>
+            <li><strong>Use incremental snapshots</strong> — Significantly cheaper than full snapshots for large disks</li>
+            <li><strong>Delete orphaned disks</strong> — After deleting a VM, check for leftover disks in the portal and delete them</li>
+            <li><strong>Use ZRS for critical disks</strong> — Zone-redundant storage for production workloads needing higher availability</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Key managed disk facts: always encrypted at rest by default · support incremental snapshots · can be shared across VMs (with clustering software) · LRS replicates within one data centre, ZRS across 3 zones · all new VMs use managed disks by default.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the key advantage of Azure Managed Disks over unmanaged disks?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Managed disks are not necessarily cheaper than unmanaged disks — the pricing is comparable. The key advantages are simplified management and better integration with Azure features.')">
+                <span class="option-label">A</span> Managed disks are always cheaper than unmanaged disks
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! With managed disks, you don\'t need to manage the underlying Storage Account, worry about storage limits (40 disks per account), or handle replication manually. Azure handles all storage management, placement, and replication automatically.')">
+                <span class="option-label">B</span> Azure manages the underlying storage — no Storage Account management, no disk limits
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Managed disks do not automatically back up data — you must create snapshots manually or configure Azure Backup.')">
+                <span class="option-label">C</span> Managed disks automatically back up all data daily
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Managed disks are not faster than unmanaged disks of the same type — performance is determined by the disk tier (Premium SSD, etc.), not whether it\'s managed.')">
+                <span class="option-label">D</span> Managed disks are faster than unmanaged disks
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is an incremental snapshot?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A full snapshot copies the entire disk regardless of changes. An incremental snapshot only stores changes since the last snapshot — much more cost-efficient.')">
+                <span class="option-label">A</span> A full copy of the entire disk taken automatically every hour
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! An incremental snapshot only stores the data that has changed since the last snapshot. For a 1 TB disk where only 10 GB changed, an incremental snapshot stores only 10 GB — dramatically reducing storage costs compared to a full snapshot.')">
+                <span class="option-label">B</span> A snapshot that only stores the changes since the last snapshot, reducing storage costs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Incremental snapshots are stored in Azure Storage, not locally on the VM.')">
+                <span class="option-label">C</span> A snapshot stored locally on the VM for faster restore
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Incremental snapshots work on any size disk — there is no size restriction.')">
+                <span class="option-label">D</span> A snapshot only available for disks smaller than 128 GB
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What redundancy option replicates managed disk data across three Availability Zones?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. LRS (Locally Redundant Storage) replicates data three times within a single data centre — not across Availability Zones.')">
+                <span class="option-label">A</span> LRS (Locally Redundant Storage)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ZRS (Zone-Redundant Storage) replicates managed disk data synchronously across three Availability Zones within a region. If an entire data centre fails, the disk remains accessible from the other two zones.')">
+                <span class="option-label">B</span> ZRS (Zone-Redundant Storage)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GRS (Geo-Redundant Storage) is used for Azure Blob Storage — not for managed disks. Managed disks only support LRS and ZRS.')">
+                <span class="option-label">C</span> GRS (Geo-Redundant Storage)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RA-GRS is a Blob Storage option — not available for managed disks.')">
+                <span class="option-label">D</span> RA-GRS (Read-Access Geo-Redundant Storage)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A company wants to deploy 100 identical VMs all pre-configured with the same software and settings. What is the most efficient approach?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating and configuring 100 VMs individually would take an enormous amount of time and introduces risk of configuration inconsistency.')">
+                <span class="option-label">A</span> Create and manually configure each VM one by one
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Create a "golden image" by setting up one VM perfectly, running sysprep/waagent to generalise it, capturing it as a custom image, then deploying all 100 VMs from that image. All VMs will be identical and the process takes minutes.')">
+                <span class="option-label">B</span> Create a custom image from a configured VM and deploy all 100 VMs from that image
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using a snapshot to deploy new VMs requires additional steps and is less efficient than using a captured custom image designed specifically for this purpose.')">
+                <span class="option-label">C</span> Take a snapshot of one VM and restore it 99 more times
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Copying the OS disk would not cleanly reset the machine identity (SIDs, hostnames, etc.) — you need to generalise the VM first using sysprep/waagent before capturing an image.')">
+                <span class="option-label">D</span> Copy the OS disk 99 times and attach to new VMs
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Can an Azure managed disk be attached to multiple VMs simultaneously?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard managed disks cannot be shared — only disks with the Shared Disk feature enabled can be attached to multiple VMs.')">
+                <span class="option-label">A</span> Yes — any managed disk can be attached to multiple VMs at the same time
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Shared Disks is a specific feature that must be enabled on the disk. It\'s designed for clustered applications (SQL Server FCI, SAP ASCS). Without clustering software managing concurrent access, attaching a disk to multiple VMs simultaneously would cause data corruption.')">
+                <span class="option-label">B</span> Only with the Shared Disk feature enabled and clustering software managing concurrent access
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Managed disks can be shared — but only with the Shared Disk feature explicitly enabled and with proper clustering software.')">
+                <span class="option-label">C</span> No — managed disks can never be shared between VMs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disk sharing is not limited to VMs in the same region — but it does require the Shared Disk feature and clustering software.')">
+                <span class="option-label">D</span> Only if both VMs are in different regions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vm-disks.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Disks Explained</span>
+            </a>
+            <a class="related-card" href="bastion.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Bastion</span>
+            </a>
+            <a class="related-card" href="availability-sets.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Availability Sets &amp; Zones</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vm-disks.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">VM Disks Explained</span>
+          </a>
+          <a class="nav-card next" href="bastion.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Bastion</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
