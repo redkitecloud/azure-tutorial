@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Spot VMs | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Spot VMs — up to 90% discount on unused capacity, eviction policies, when to use Spot VMs, and how to handle interruptions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Spot VMs</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Spot VMs</h1>
+
+        <p class="page-intro">
+          Azure Spot VMs let you use Microsoft's unused data centre capacity at up to 90% discount compared to pay-as-you-go prices. The catch is that Azure can reclaim (evict) your Spot VM with just 30 seconds notice when it needs the capacity back. That sounds risky — but for the right workloads, Spot VMs are transformative for cost savings.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          How Spot VMs work · Eviction policies · Eviction types (Deallocate vs Delete) · Maximum price setting · When to use Spot VMs · When NOT to use Spot VMs · Handling eviction gracefully · Spot VMs in Scale Sets · Cost savings in practice
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#how-spot-works">How Spot VMs Work</a></li>
+            <li><a href="#eviction-policies">Eviction Policies</a></li>
+            <li><a href="#eviction-types">Eviction Types</a></li>
+            <li><a href="#max-price">Maximum Price Setting</a></li>
+            <li><a href="#when-to-use">When to Use Spot VMs</a></li>
+            <li><a href="#when-not-to-use">When NOT to Use Spot VMs</a></li>
+            <li><a href="#handling-eviction">Handling Eviction Gracefully</a></li>
+            <li><a href="#spot-in-vmss">Spot VMs in Scale Sets</a></li>
+            <li><a href="#creating">Creating a Spot VM</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="how-spot-works">How Spot VMs Work</h2>
+          <p>Azure's data centres are never 100% utilised. At any given time, some physical servers have spare capacity. Azure sells this spare capacity at a steep discount as <strong>Spot instances</strong>. When Azure needs that capacity back for regular customers, your Spot VM gets evicted.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Spot Pricing is Dynamic</strong>
+              Spot prices fluctuate based on supply and demand. When a region has lots of spare capacity, Spot prices are very low. When capacity is tight, prices rise. You can check current Spot prices in the Azure Portal under Virtual Machines → Spot pricing history.
+            </div>
+          </div>
+
+          <h3>Typical Spot Savings</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>VM Size</th><th>Pay-As-You-Go</th><th>Typical Spot Price</th><th>Savings</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Standard_D4s_v5</td><td>~₹13,000/month</td><td>~₹1,300–3,900/month</td><td>70–90%</td></tr>
+                <tr><td>Standard_E8s_v5</td><td>~₹26,000/month</td><td>~₹2,600–7,800/month</td><td>70–90%</td></tr>
+                <tr><td>Standard_F8s_v2</td><td>~₹16,000/month</td><td>~₹1,600–4,800/month</td><td>70–90%</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="eviction-policies">Eviction Policies</h2>
+          <p>There are two eviction policies that determine when your Spot VM can be evicted:</p>
+
+          <h3>Capacity Only (Default)</h3>
+          <p>Your VM is only evicted when Azure needs the capacity back. The Spot price you pay is whatever the current market rate is — it fluctuates, but you pay whatever it is at the time.</p>
+
+          <h3>Price or Capacity</h3>
+          <p>Your VM is evicted if either: (1) Azure needs the capacity, OR (2) the current Spot price exceeds your maximum price. You set a maximum price you're willing to pay per hour — if Spot prices rise above that, your VM is evicted.</p>
+
+          <h2 id="eviction-types">Eviction Types</h2>
+          <p>When a Spot VM is evicted, what actually happens depends on your eviction type setting:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Eviction Type</th><th>What Happens</th><th>Disk Preserved?</th><th>Can Restart?</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Deallocate</strong></td><td>VM is stopped and deallocated</td><td>Yes</td><td>Yes — when capacity available</td></tr>
+                <tr><td><strong>Delete</strong></td><td>VM and disk are permanently deleted</td><td>No</td><td>No — must create new VM</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Which to Choose?</strong>
+              Use <strong>Deallocate</strong> if you want to preserve the VM's state and restart it when capacity returns. Use <strong>Delete</strong> for truly stateless workloads — it's cleaner and avoids orphaned disk charges.
+            </div>
+          </div>
+
+          <h2 id="max-price">Maximum Price Setting</h2>
+          <p>You can optionally set a maximum hourly price you're willing to pay for a Spot VM. If the Spot price rises above this, the VM is evicted.</p>
+          <ul>
+            <li>Setting max price to <strong>-1</strong> (recommended) means "never evict based on price — only evict if Azure needs capacity." You'll always pay the current market Spot price, whatever it is.</li>
+            <li>Setting a specific price (e.g., ₹5/hour) means you get evicted if price exceeds that. Good for strict budget control.</li>
+          </ul>
+
+          <h2 id="when-to-use">When to Use Spot VMs</h2>
+          <p>Spot VMs are perfect for any workload that can tolerate interruption and restart from where it left off (or start fresh):</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Workload</th><th>Why Spot Works</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Batch data processing</td><td>Process data in chunks — restart failed chunks if evicted</td></tr>
+                <tr><td>CI/CD build agents</td><td>Build fails → just re-trigger the pipeline on a new agent</td></tr>
+                <tr><td>Video/image rendering</td><td>Rendering jobs can be saved and resumed</td></tr>
+                <tr><td>Machine learning training</td><td>ML frameworks support checkpoint saves — resume from last checkpoint</td></tr>
+                <tr><td>Dev/test environments</td><td>Occasional interruptions acceptable for non-production</td></tr>
+                <tr><td>Web crawlers / scrapers</td><td>Stateless — just restart and continue</td></tr>
+                <tr><td>HPC simulations</td><td>Checkpointing allows continuation after interruption</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="when-not-to-use">When NOT to Use Spot VMs</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Workload</th><th>Why Spot Fails</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Production web servers</td><td>Eviction causes user-facing downtime</td></tr>
+                <tr><td>Databases</td><td>Eviction can cause data corruption or loss</td></tr>
+                <tr><td>Primary application servers</td><td>Eviction breaks the application for users</td></tr>
+                <tr><td>Anything with SLA commitments</td><td>No SLA on Spot VMs — eviction can happen anytime</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>No SLA on Spot VMs</strong>
+              Microsoft provides NO uptime SLA for Spot VMs. They can be evicted at any time with 30 seconds notice. Never use Spot for any workload where interruption would cause user impact or data loss.
+            </div>
+          </div>
+
+          <h2 id="handling-eviction">Handling Eviction Gracefully</h2>
+          <p>Azure gives you a 30-second eviction notice via the <strong>Azure Scheduled Events</strong> service. Your application can poll this endpoint and react — save progress, drain connections, write checkpoints.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Check for eviction notice from inside the VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Poll the Azure metadata service for scheduled events
+# Run this in a loop inside your application
+curl -H "Metadata:true" \
+  "http://169.254.169.254/metadata/scheduledevents?api-version=2020-07-01"
+
+# If you see "Preempt" in the response, eviction is imminent
+# Save your work immediately!</code></pre>
+          </div>
+
+          <h2 id="spot-in-vmss">Spot VMs in Scale Sets</h2>
+          <p>VM Scale Sets support a mix of regular and Spot VMs — called <strong>Mixed Instance Policy</strong>. You can configure Scale Sets to use Spot VMs for most instances (cheap) and a few regular VMs as a baseline (always available). This gives you massive cost savings with some baseline availability.</p>
+
+          <h2 id="creating">Creating a Spot VM</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Spot VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az vm create \
+  --resource-group myResourceGroup \
+  --name mySpotVM \
+  --image Ubuntu2204 \
+  --size Standard_D4s_v5 \
+  --priority Spot \
+  --eviction-policy Deallocate \
+  --max-price -1 \
+  --admin-username azureuser \
+  --generate-ssh-keys \
+  --location centralindia</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Spot VMs offer up to 90% discount, can be evicted with 30 seconds notice, have no SLA, support Deallocate or Delete eviction types, and are best for fault-tolerant batch workloads. The exam loves testing what Spot VMs are NOT suitable for.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> How much notice does Azure give before evicting a Spot VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure gives only 30 seconds notice — not 5 minutes. This is why Spot VMs require applications to be designed for interruption.')">
+                <span class="option-label">A</span> 5 minutes
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure gives 30 seconds notice before evicting a Spot VM via the Azure Scheduled Events service. This is enough time to save state or finish a current unit of work, but not much more.')">
+                <span class="option-label">B</span> 30 seconds
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure provides 30 seconds notice — not 2 minutes.')">
+                <span class="option-label">C</span> 2 minutes
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure does not provide 24 hours notice for Spot VM eviction. That would make Spot VMs nearly as reliable as regular VMs, which defeats the purpose.')">
+                <span class="option-label">D</span> 24 hours
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which of the following workloads is MOST suitable for Azure Spot VMs?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A production e-commerce website needs continuous availability — a Spot VM eviction would cause immediate user-facing downtime and lost sales.')">
+                <span class="option-label">A</span> A production e-commerce website
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A primary SQL Server database cannot tolerate sudden eviction — it could cause data corruption or loss.')">
+                <span class="option-label">B</span> A primary SQL Server database
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Overnight batch data processing is ideal for Spot VMs. The jobs run overnight when Spot capacity is typically abundant. If evicted, the job can be restarted and continue from a checkpoint. The savings can be 70-90% vs pay-as-you-go.')">
+                <span class="option-label">C</span> Overnight batch data processing jobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A customer-facing API requires continuous availability and consistent response times — Spot VM eviction would cause API downtime for customers.')">
+                <span class="option-label">D</span> A customer-facing REST API
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What happens to the OS disk when a Spot VM is evicted with the "Delete" eviction type?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. With the Delete eviction type, the OS disk is permanently deleted along with the VM — it is not preserved.')">
+                <span class="option-label">A</span> The OS disk is preserved as an unattached managed disk
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. With Delete eviction type, the disk is permanently deleted — it is not moved to cold storage.')">
+                <span class="option-label">B</span> The OS disk is automatically moved to cold storage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! With the Delete eviction type, both the VM and its OS disk are permanently deleted when evicted. This is ideal for truly stateless workloads — it avoids orphaned disk charges and keeps the environment clean.')">
+                <span class="option-label">C</span> The OS disk is permanently deleted along with the VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure does not automatically snapshot disks on Spot VM eviction — this would need to be explicitly configured.')">
+                <span class="option-label">D</span> The OS disk is automatically snapshotted before deletion
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What does setting max-price to -1 mean when creating a Spot VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Setting -1 does not mean the VM is free — you still pay the current Spot market price. -1 means "don\'t evict based on price".')">
+                <span class="option-label">A</span> The VM is free — no charges apply
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Setting max-price to -1 means "evict only when Azure needs capacity — never evict based on price." You pay the current market Spot price regardless of what it is. This is the recommended setting to avoid unexpected evictions due to price fluctuations.')">
+                <span class="option-label">B</span> Never evict based on price — only evict when Azure needs capacity
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. -1 does not mean pay-as-you-go pricing — it means the price ceiling is removed and you\'ll pay whatever the current Spot price is.')">
+                <span class="option-label">C</span> Use pay-as-you-go pricing instead of Spot pricing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. -1 does not set the price to ₹1 per hour — it removes the price-based eviction ceiling entirely.')">
+                <span class="option-label">D</span> Cap the hourly price at ₹1
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What SLA does Microsoft provide for Azure Spot VMs?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Spot VMs do not receive the 99.9% SLA — that is for single VMs with Premium SSD on regular pay-as-you-go pricing.')">
+                <span class="option-label">A</span> 99.9%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Spot VMs have no uptime SLA at all — not even 99%.')">
+                <span class="option-label">B</span> 99%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no SLA for Spot VMs — not even 95%.')">
+                <span class="option-label">C</span> 95%
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft provides NO uptime SLA for Spot VMs. They can be evicted at any time — there is no availability guarantee. This is the trade-off for the massive cost savings.')">
+                <span class="option-label">D</span> No SLA — Spot VMs can be evicted at any time
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vmss.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Scale Sets</span>
+            </a>
+            <a class="related-card" href="vm-pricing.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Pricing &amp; Cost Tips</span>
+            </a>
+            <a class="related-card" href="overview.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure VMs Overview</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vmss.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">VM Scale Sets</span>
+          </a>
+          <a class="nav-card next" href="vm-autoshutdown.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">VM Auto-shutdown</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure VM Pricing & Cost Tips | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure VM pricing — all pricing models, cost components, real pricing examples, and actionable tips to reduce your VM bill." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">VM Pricing &amp; Cost Tips</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure VM Pricing &amp; Cost Tips</h1>
+
+        <p class="page-intro">
+          Azure VMs can be surprisingly affordable — or surprisingly expensive — depending on how you manage them. Understanding every cost component and every available discount is essential for running cost-efficient Azure environments. This page covers everything: what you pay for, how pricing models compare, real-world cost examples, and the most effective ways to cut your VM bill.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Every VM cost component · All pricing models compared · Real pricing examples for common VM sizes · Azure Hybrid Benefit · Reserved Instances calculator · Right-sizing with Azure Advisor · The 10 most effective cost-cutting tips · Using the Azure Pricing Calculator
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#cost-components">VM Cost Components</a></li>
+            <li><a href="#pricing-models">Pricing Models Compared</a></li>
+            <li><a href="#real-prices">Real Pricing Examples</a></li>
+            <li><a href="#hybrid-benefit">Azure Hybrid Benefit</a></li>
+            <li><a href="#reserved-instances">Reserved Instances — Deep Dive</a></li>
+            <li><a href="#right-sizing">Right-Sizing with Azure Advisor</a></li>
+            <li><a href="#cost-tips">Top 10 Cost-Cutting Tips</a></li>
+            <li><a href="#pricing-calculator">Using the Pricing Calculator</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="cost-components">VM Cost Components</h2>
+          <p>Many people think VM cost = compute cost. In reality, a VM has several cost components:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Component</th><th>Billed When</th><th>Typical Cost</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Compute (vCPU + RAM)</td><td>Only when VM is running</td><td>Dominant cost — varies by size</td></tr>
+                <tr><td>OS Disk (Premium SSD)</td><td>Always — even when deallocated</td><td>~₹800–2,000/month per disk</td></tr>
+                <tr><td>Data Disks</td><td>Always — even when deallocated</td><td>Depends on size and tier</td></tr>
+                <tr><td>Public IP Address</td><td>Always when allocated — even when VM is stopped</td><td>~₹250/month (Standard SKU)</td></tr>
+                <tr><td>Outbound Network</td><td>Per GB transferred out to internet</td><td>First 15 GB free, then ~₹6/GB</td></tr>
+                <tr><td>Windows Licence</td><td>Only when VM is running (PAYG)</td><td>~40–50% premium over Linux</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Costs That Persist After Stopping a VM</strong>
+              Disks and Public IPs continue billing even when the VM is deallocated. For a stopped dev VM, you might still pay ₹1,000–1,500/month in disk and IP charges. Delete unused VMs completely to stop all charges.
+            </div>
+          </div>
+
+          <h2 id="pricing-models">Pricing Models Compared</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Model</th><th>Cost vs PAYG</th><th>Commitment</th><th>Flexibility</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Pay-As-You-Go</td><td>Baseline (100%)</td><td>None</td><td>Full</td><td>Variable/unknown workloads</td></tr>
+                <tr><td>1-year Reserved</td><td>~60% of PAYG</td><td>1 year</td><td>Can exchange</td><td>Stable workloads, 1-year certainty</td></tr>
+                <tr><td>3-year Reserved</td><td>~28% of PAYG</td><td>3 years</td><td>Can exchange</td><td>Long-running stable workloads</td></tr>
+                <tr><td>Spot</td><td>~10–30% of PAYG</td><td>None</td><td>None — evictable</td><td>Fault-tolerant batch jobs</td></tr>
+                <tr><td>Dev/Test pricing</td><td>~40–55% of PAYG</td><td>None</td><td>Full</td><td>Visual Studio subscribers, dev/test only</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="real-prices">Real Pricing Examples</h2>
+          <p>Approximate monthly costs for common VM sizes in Central India (pay-as-you-go, Linux):</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>VM Size</th><th>vCPUs</th><th>RAM</th><th>PAYG/Month</th><th>1yr Reserved</th><th>3yr Reserved</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>B1s</td><td>1</td><td>1 GB</td><td>~₹550</td><td>~₹330</td><td>~₹165</td></tr>
+                <tr><td>B2s</td><td>2</td><td>4 GB</td><td>~₹2,200</td><td>~₹1,320</td><td>~₹660</td></tr>
+                <tr><td>B4ms</td><td>4</td><td>16 GB</td><td>~₹8,800</td><td>~₹5,280</td><td>~₹2,640</td></tr>
+                <tr><td>D4s_v5</td><td>4</td><td>16 GB</td><td>~₹13,000</td><td>~₹7,800</td><td>~₹3,900</td></tr>
+                <tr><td>D8s_v5</td><td>8</td><td>32 GB</td><td>~₹26,000</td><td>~₹15,600</td><td>~₹7,800</td></tr>
+                <tr><td>E8s_v5</td><td>8</td><td>64 GB</td><td>~₹35,000</td><td>~₹21,000</td><td>~₹10,500</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Prices Are Approximate</strong>
+              VM prices change periodically. Always use the <a href="https://azure.microsoft.com/pricing/calculator" target="_blank">Azure Pricing Calculator</a> for current, accurate pricing before making purchasing decisions.
+            </div>
+          </div>
+
+          <h2 id="hybrid-benefit">Azure Hybrid Benefit</h2>
+          <p>If your organisation has existing Windows Server or SQL Server licences with <strong>Software Assurance</strong>, you can reuse them on Azure VMs — instead of paying for a new licence in the VM price.</p>
+
+          <h3>Windows Server Hybrid Benefit</h3>
+          <ul>
+            <li>Each 2-core Windows Server licence covers 1 Azure vCore</li>
+            <li>Saves approximately 40–49% on Windows VM compute cost</li>
+            <li>Available for Windows Server 2008 R2 and above</li>
+          </ul>
+
+          <h3>SQL Server Hybrid Benefit</h3>
+          <ul>
+            <li>Reuse existing SQL Server licences on Azure SQL VMs</li>
+            <li>Can save up to 55% on SQL Server VM costs</li>
+            <li>Available for SQL Server 2008 and above</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Enable Hybrid Benefit on an existing Windows VM</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az vm update \
+  --resource-group myResourceGroup \
+  --name myWindowsVM \
+  --license-type Windows_Server</code></pre>
+          </div>
+
+          <h2 id="reserved-instances">Reserved Instances — Deep Dive</h2>
+          <p>Reserved Instances (RIs) are the single biggest lever for reducing stable VM costs. Here's everything you need to know:</p>
+
+          <h3>How They Work</h3>
+          <p>You commit to using a specific VM size in a specific region for 1 or 3 years. In return, Azure gives you a discount. The VM keeps running as normal — nothing changes technically. You just pay less.</p>
+
+          <h3>Flexibility</h3>
+          <ul>
+            <li><strong>Instance size flexibility</strong> — By default, a reservation can apply to VMs of different sizes within the same series (e.g., a D4s_v5 reservation can cover a D8s_v5 VM)</li>
+            <li><strong>Exchange</strong> — You can exchange a reservation for a different size or region (one-time, with restrictions)</li>
+            <li><strong>Cancellation</strong> — Can be cancelled with a penalty (12% early termination fee)</li>
+          </ul>
+
+          <h3>When to Reserve</h3>
+          <ul>
+            <li>Production VMs running 24/7 for at least 1 year</li>
+            <li>Database servers, application servers, or any stable baseline infrastructure</li>
+            <li>When you're confident about the VM size (right-size first, then reserve)</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Right-Size Before Reserving</strong>
+              Don't reserve a VM that's over-provisioned. Use Azure Advisor to analyse actual usage first. Reserving a D8s when you only need a D4s wastes money even with the reservation discount.
+            </div>
+          </div>
+
+          <h2 id="right-sizing">Right-Sizing with Azure Advisor</h2>
+          <p>Azure Advisor continuously monitors your VM usage and recommends cost optimisations. It identifies VMs using less than 5% CPU consistently — candidates for downsizing.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure Portal</span>
+              <span class="code-label">Find right-sizing recommendations</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">Portal → Search "Advisor" → Cost tab → "Right-size or shutdown underutilized virtual machines"</code></pre>
+          </div>
+
+          <p>Advisor shows you exactly which VMs are over-provisioned, what size to downsize to, and how much you'll save per month.</p>
+
+          <h2 id="cost-tips">Top 10 Cost-Cutting Tips</h2>
+
+          <h3>1. Enable Auto-Shutdown on Dev/Test VMs</h3>
+          <p>Save 50–70% on dev VM costs by shutting them down outside working hours.</p>
+
+          <h3>2. Delete VMs You're Not Using — Don't Just Stop Them</h3>
+          <p>A stopped (OS-level) VM still charges for compute. Deallocate it or delete it completely.</p>
+
+          <h3>3. Delete Orphaned Disks and Public IPs</h3>
+          <p>After deleting a VM, check for leftover disks and public IPs that are still billing.</p>
+
+          <h3>4. Use Reserved Instances for Stable Workloads</h3>
+          <p>Save 40–72% on VMs that run continuously. The most impactful single change.</p>
+
+          <h3>5. Use Spot VMs for Batch Jobs</h3>
+          <p>Up to 90% savings for fault-tolerant, interruptible workloads.</p>
+
+          <h3>6. Right-Size with Azure Advisor</h3>
+          <p>Many teams over-provision. Advisor finds unused capacity and recommends smaller sizes.</p>
+
+          <h3>7. Use Linux Instead of Windows Where Possible</h3>
+          <p>Linux VMs are ~40% cheaper — no OS licence fee.</p>
+
+          <h3>8. Use Azure Hybrid Benefit</h3>
+          <p>If you have existing Windows/SQL licences with Software Assurance, activate Hybrid Benefit.</p>
+
+          <h3>9. Choose the Right Region</h3>
+          <p>VM prices vary by region. East US is often 10–20% cheaper than some other regions for the same size.</p>
+
+          <h3>10. Set Budget Alerts</h3>
+          <p>Configure Azure Cost Management budgets to alert you at 80% and 100% of monthly budget — so surprises never happen.</p>
+
+          <h2 id="pricing-calculator">Using the Pricing Calculator</h2>
+          <p>Always estimate costs before deploying. The Azure Pricing Calculator at <strong>azure.microsoft.com/pricing/calculator</strong> lets you configure VMs and see exact monthly costs.</p>
+
+          <p>For a VM estimate, configure:</p>
+          <ul>
+            <li>Region — Central India</li>
+            <li>Operating System — Linux or Windows</li>
+            <li>Tier — Standard</li>
+            <li>VM Size — select your target size</li>
+            <li>Pricing Option — Pay as you go / 1-year reserved / 3-year reserved</li>
+            <li>Hours — how many hours per month (730 = 24/7, 240 = 8 hrs/day weekdays)</li>
+            <li>Managed OS Disk — add your disk type and size</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know all four pricing models (PAYG, Reserved 1yr, Reserved 3yr, Spot), know that Hybrid Benefit applies to Windows/SQL licences with Software Assurance, and know that Azure Advisor provides right-sizing recommendations. The exam may ask you to identify the cheapest option for a given scenario.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company stops (deallocates) a VM at night to save costs. Which charges continue while the VM is deallocated?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Compute (CPU/RAM) billing stops when a VM is deallocated — that is the purpose of deallocating it.')">
+                <span class="option-label">A</span> Compute charges for CPU and RAM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Network transfer charges only occur when data is being sent — a deallocated VM transfers no data.')">
+                <span class="option-label">B</span> Network transfer charges
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a VM is deallocated, compute billing stops. However, storage (OS disk, data disks) and the Public IP address (if Standard SKU and allocated) continue to incur charges. To stop all charges, you must delete the VM and its associated resources.')">
+                <span class="option-label">C</span> Storage (disks) and Public IP address charges
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. No charges at all is incorrect — storage and public IP charges continue even for deallocated VMs.')">
+                <span class="option-label">D</span> No charges at all — everything stops
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company has a stable production VM that has been running 24/7 for 2 years and will continue for at least another 2 years. Which pricing model gives the best cost savings?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Pay-as-you-go is the most expensive option for stable 24/7 workloads — it is best for variable or unknown workloads.')">
+                <span class="option-label">A</span> Pay-as-you-go
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A 3-year Reserved Instance provides up to 72% savings compared to pay-as-you-go. For a VM that has been stable for 2 years and will continue for 2+ more, a 3-year reservation is the most cost-effective choice.')">
+                <span class="option-label">B</span> 3-year Reserved Instance
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Spot VMs can be evicted at any time — completely unsuitable for a stable production workload that needs continuous availability.')">
+                <span class="option-label">C</span> Spot pricing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While a 1-year reservation saves ~40%, a 3-year reservation saves ~72% for a workload that will run for 2+ more years.')">
+                <span class="option-label">D</span> 1-year Reserved Instance
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is Azure Hybrid Benefit?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Hybrid Benefit is not about combining pricing models — it specifically applies to reusing existing on-premises Windows/SQL Server licences on Azure.')">
+                <span class="option-label">A</span> A discount for using both Reserved Instances and Spot VMs together
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Hybrid Benefit allows organisations with existing Windows Server or SQL Server licences (with Software Assurance) to reuse those licences on Azure VMs — instead of paying for a new OS licence in the VM price. This saves up to 49% on Windows VMs.')">
+                <span class="option-label">B</span> A benefit allowing reuse of existing Windows/SQL Server licences on Azure VMs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Hybrid Benefit is about licence reuse — not about combining public and private cloud resources.')">
+                <span class="option-label">C</span> A discount for using both on-premises and Azure resources together
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Hybrid Benefit requires existing licences with Software Assurance — it is not available to all customers by default.')">
+                <span class="option-label">D</span> A free benefit automatically applied to all Azure customers
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Azure Advisor identifies a VM that has been using less than 5% CPU for the past 30 days. What is Azure Advisor's recommendation?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Advisor would not recommend moving to a different region just because CPU is low — that is a major disruptive change.')">
+                <span class="option-label">A</span> Move the VM to a cheaper region
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When Azure Advisor detects consistently low CPU usage (typically under 5%), it recommends right-sizing — either downsizing to a smaller VM size to save money, or shutting down the VM if it\'s no longer needed.')">
+                <span class="option-label">B</span> Right-size or shut down the underutilised VM to save costs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Advisor would not recommend upgrading to a larger VM when CPU usage is consistently low — that would increase cost, not reduce it.')">
+                <span class="option-label">C</span> Upgrade to a larger VM size for better performance
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Converting to a Reserved Instance on an over-provisioned VM would lock in unnecessary cost — right-size first, then consider reserving.')">
+                <span class="option-label">D</span> Convert to a Reserved Instance immediately
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which of the following is NOT a component of Azure VM cost?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Compute (vCPU and RAM) is the primary VM cost component — billed per second while the VM is running.')">
+                <span class="option-label">A</span> Compute (vCPU and RAM)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The OS disk is a real cost component — billed even when the VM is deallocated.')">
+                <span class="option-label">B</span> OS disk storage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure does not charge for inbound data transfer to Azure — it is free. You are charged for outbound data (from Azure to the internet) beyond the free 15 GB/month tier, and for cross-region transfers. But inbound is always free.')">
+                <span class="option-label">C</span> Inbound network data transfer
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public IP addresses are charged separately — a Standard SKU Public IP costs approximately ₹250/month and is billed even when the VM is deallocated.')">
+                <span class="option-label">D</span> Public IP address
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vm-autoshutdown.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Auto-Shutdown</span>
+            </a>
+            <a class="related-card" href="spot-vms.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Spot VMs</span>
+            </a>
+            <a class="related-card" href="overview.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure VMs Overview</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vm-autoshutdown.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">VM Auto-Shutdown</span>
+          </a>
+          <a class="nav-card next" href="../../index.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Back to All Modules</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

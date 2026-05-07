@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect to Azure VM via RDP | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to connecting to Azure Windows VMs via RDP — from Windows, Mac, and Linux. Configuration, troubleshooting, and security best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Connect to VM via RDP</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Connect to Azure VM via RDP</h1>
+
+        <p class="page-intro">
+          RDP (Remote Desktop Protocol) is the standard way to connect to Windows VMs in Azure. It gives you a full graphical desktop session — exactly like sitting in front of a Windows computer, but running in Azure's data centre. This page covers connecting from any platform, security hardening, and using Azure Bastion as a safer alternative.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          How RDP works · Connecting from Windows, Mac, and Linux · Downloading the RDP file from Azure Portal · Security risks of open port 3389 · Restricting RDP access to your IP · Using Azure Bastion for RDP · Troubleshooting common connection issues
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#how-rdp-works">How RDP Works</a></li>
+            <li><a href="#before-connecting">Before You Connect</a></li>
+            <li><a href="#connect-windows">Connect from Windows</a></li>
+            <li><a href="#connect-mac">Connect from Mac</a></li>
+            <li><a href="#connect-linux">Connect from Linux</a></li>
+            <li><a href="#rdp-file">Using the RDP File from Azure Portal</a></li>
+            <li><a href="#security">Security — Hardening RDP Access</a></li>
+            <li><a href="#bastion-rdp">Azure Bastion for RDP</a></li>
+            <li><a href="#troubleshooting">Troubleshooting RDP Issues</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="how-rdp-works">How RDP Works</h2>
+          <p>RDP is a Microsoft protocol that transmits a live graphical desktop session over the network. When you connect via RDP:</p>
+          <ol>
+            <li>Your RDP client connects to port <strong>3389</strong> on the VM's public IP</li>
+            <li>The connection is encrypted using TLS</li>
+            <li>You authenticate with the VM's administrator username and password</li>
+            <li>The Windows desktop renders on your screen — input goes to the VM, display comes back to you</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>RDP vs SSH</strong>
+              RDP provides a full graphical desktop — Windows Explorer, Task Manager, all GUI apps. SSH provides a text-only terminal. RDP is used for Windows VMs. SSH is used for Linux VMs (though Linux VMs can also be configured with a desktop and VNC, this is uncommon on Azure).
+            </div>
+          </div>
+
+          <h2 id="before-connecting">Before You Connect</h2>
+          <ul>
+            <li>VM is running (not deallocated)</li>
+            <li>Port 3389 is open in the VM's Network Security Group</li>
+            <li>You have the VM's public IP address</li>
+            <li>You have the administrator username and password</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Get VM public IP</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm show \
+  --resource-group myResourceGroup \
+  --name myWindowsVM \
+  --show-details \
+  --query publicIps \
+  --output tsv</code></pre>
+          </div>
+
+          <h2 id="connect-windows">Connect from Windows</h2>
+          <p>Windows has Remote Desktop Connection built in — no installation needed.</p>
+
+          <h3>Method 1 — Run Dialog (Fastest)</h3>
+          <ol>
+            <li>Press <strong>Win + R</strong></li>
+            <li>Type <code>mstsc</code> and press Enter</li>
+            <li>In the "Computer" field, enter the VM's public IP address</li>
+            <li>Click <strong>Connect</strong></li>
+            <li>Enter your administrator username and password</li>
+            <li>Click <strong>Yes</strong> on the certificate warning</li>
+          </ol>
+
+          <h3>Method 2 — Command Line</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell / CMD</span>
+              <span class="code-label">Launch RDP from command line</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Open RDP to a specific IP
+mstsc /v:4.188.23.45
+
+# Open RDP in full screen
+mstsc /v:4.188.23.45 /f
+
+# Open RDP with specific screen resolution
+mstsc /v:4.188.23.45 /w:1920 /h:1080</code></pre>
+          </div>
+
+          <h2 id="connect-mac">Connect from Mac</h2>
+          <p>Download <strong>Microsoft Remote Desktop</strong> from the Mac App Store — it's free and maintained by Microsoft.</p>
+          <ol>
+            <li>Open the App Store and search for <strong>Microsoft Remote Desktop</strong></li>
+            <li>Install and open it</li>
+            <li>Click <strong>Add PC</strong></li>
+            <li>Enter the VM's public IP in "PC Name"</li>
+            <li>Under "User account", click the dropdown → Add User Account</li>
+            <li>Enter your administrator username and password</li>
+            <li>Click <strong>Add</strong>, then double-click the PC to connect</li>
+          </ol>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Mac Tip</strong>
+              You can also use the RDP file downloaded from the Azure Portal directly on Mac — Microsoft Remote Desktop will open it automatically.
+            </div>
+          </div>
+
+          <h2 id="connect-linux">Connect from Linux</h2>
+          <p>Linux doesn't have a built-in RDP client, but several open-source options are available:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Install Remmina RDP client on Ubuntu</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Install Remmina (popular Linux RDP client)
+sudo apt update
+sudo apt install -y remmina remmina-plugin-rdp
+
+# Or use FreeRDP (command-line RDP client)
+sudo apt install -y freerdp2-x11
+
+# Connect via FreeRDP
+xfreerdp /v:4.188.23.45 /u:azureuser /p:YourPassword /f</code></pre>
+          </div>
+
+          <h2 id="rdp-file">Using the RDP File from Azure Portal</h2>
+          <p>The easiest way to connect — the Azure Portal generates a pre-configured .rdp file:</p>
+          <ol>
+            <li>Go to your VM in the Azure Portal</li>
+            <li>Click <strong>Connect</strong> in the top menu</li>
+            <li>Select <strong>RDP</strong></li>
+            <li>Verify the IP address and port (3389)</li>
+            <li>Click <strong>Download RDP File</strong></li>
+            <li>Open the downloaded file — your RDP client launches automatically</li>
+            <li>Enter your administrator credentials when prompted</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Certificate Warning</strong>
+              You'll see a warning that the remote computer's identity can't be verified. This is normal for Azure VMs — the VM uses a self-signed certificate. Click <strong>Yes</strong> (or <strong>Connect Anyway</strong> on Mac) to proceed. This is safe for VMs you created yourself.
+            </div>
+          </div>
+
+          <h2 id="security">Security — Hardening RDP Access</h2>
+          <p>Port 3389 open to the internet is a significant security risk. Automated bots constantly scan the internet for open RDP ports and attempt to brute-force credentials. Here's how to harden your setup:</p>
+
+          <h3>Option 1 — Restrict NSG to Your IP Only</h3>
+          <p>The simplest hardening — change the NSG rule so only your specific IP can reach port 3389.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Restrict RDP to your IP address only</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># First find your public IP
+curl https://api.ipify.org
+
+# Update the NSG rule to allow only your IP
+az network nsg rule update \
+  --resource-group myResourceGroup \
+  --nsg-name myVM-nsg \
+  --name RDP \
+  --source-address-prefixes 103.45.67.89  # Replace with your IP</code></pre>
+          </div>
+
+          <h3>Option 2 — Use Azure Bastion (Best Practice)</h3>
+          <p>Azure Bastion eliminates the need to open port 3389 entirely. Covered in detail in the next section.</p>
+
+          <h3>Option 3 — Just-in-Time (JIT) VM Access</h3>
+          <p>Microsoft Defender for Cloud's JIT feature keeps port 3389 closed by default. When you need to connect, you request access through the portal — it opens port 3389 for your IP for a limited time (e.g., 3 hours), then closes it automatically.</p>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Never Leave RDP Open to 0.0.0.0/0</strong>
+              An RDP port open to the entire internet will receive thousands of brute-force login attempts per day. Always restrict to your IP, use Bastion, or use JIT. This is one of the most common causes of Azure VM compromises.
+            </div>
+          </div>
+
+          <h2 id="bastion-rdp">Azure Bastion for RDP</h2>
+          <p>Azure Bastion provides RDP access through your browser — no open port 3389, no public IP required on the VM.</p>
+
+          <ol>
+            <li>Deploy Azure Bastion to your VNet (one-time setup)</li>
+            <li>In the Azure Portal, go to your VM → <strong>Connect</strong> → <strong>Bastion</strong></li>
+            <li>Enter the administrator username and password</li>
+            <li>Click <strong>Connect</strong> — an RDP session opens directly in your browser tab</li>
+          </ol>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Direct RDP</th><th>Azure Bastion</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Port 3389 open to internet</td><td>Yes</td><td>No</td></tr>
+                <tr><td>Requires public IP on VM</td><td>Yes</td><td>No</td></tr>
+                <tr><td>Connection via</td><td>RDP client app</td><td>Browser</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>~₹5,000–6,000/month</td></tr>
+                <tr><td>Security level</td><td>Depends on NSG</td><td>High — no internet exposure</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="troubleshooting">Troubleshooting RDP Issues</h2>
+
+          <h3>Can't connect — Connection refused or timeout</h3>
+          <ul>
+            <li>Is the VM running? Check in the portal — it may be deallocated</li>
+            <li>Is port 3389 open in the NSG? Check inbound rules</li>
+            <li>Is the NSG rule restricted to a specific IP that no longer matches yours? (ISPs sometimes change your IP)</li>
+            <li>Is the public IP correct? Dynamic IPs can change when a VM is deallocated and restarted</li>
+          </ul>
+
+          <h3>Wrong credentials — Login failed</h3>
+          <ul>
+            <li>Double-check your username — common mistake is typing "admin" (which Azure blocks)</li>
+            <li>If you forgot the password, reset it in the portal: VM → <strong>Reset password</strong> under Support + Troubleshooting</li>
+          </ul>
+
+          <h3>Certificate error / Remote desktop can't connect</h3>
+          <ul>
+            <li>This is normal — accept the self-signed certificate warning</li>
+            <li>If the error persists, the VM's RDP service may need restarting — use the Azure Serial Console</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Reset VM administrator password</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az vm user update \
+  --resource-group myResourceGroup \
+  --name myWindowsVM \
+  --username azureuser \
+  --password "NewSecureP@ssword123!"</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that RDP uses port 3389, that you need NSG inbound rule for port 3389 to connect, that Azure Bastion provides browser-based RDP without port 3389, and that JIT VM Access can restrict access to specific time windows.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which port does RDP use by default?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 22 is SSH — used for connecting to Linux VMs via terminal, not Windows VMs via remote desktop.')">
+                <span class="option-label">A</span> Port 22
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 443 is HTTPS — used for secure web traffic, not remote desktop connections.')">
+                <span class="option-label">B</span> Port 443
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! RDP (Remote Desktop Protocol) uses port 3389 by default. You must allow inbound TCP port 3389 in the VM\'s Network Security Group to connect via RDP.')">
+                <span class="option-label">C</span> Port 3389
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 8080 is an alternate HTTP port — not used for RDP.')">
+                <span class="option-label">D</span> Port 8080
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A security administrator wants to connect to a Windows VM via RDP without opening port 3389 to the internet. What is the best solution?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Changing the RDP port from 3389 to a custom port (security through obscurity) still exposes the port to the internet — attackers scan all ports, not just 3389.')">
+                <span class="option-label">A</span> Change the RDP port from 3389 to a custom port
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Bastion provides browser-based RDP access through the Azure Portal over HTTPS. The VM doesn\'t need a public IP or open port 3389 — Bastion connects to it privately through the VNet.')">
+                <span class="option-label">B</span> Use Azure Bastion for browser-based RDP without exposing port 3389
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disabling the NSG entirely would remove ALL security controls — a severe security risk.')">
+                <span class="option-label">C</span> Remove the Network Security Group from the VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Opening port 3389 to all internet traffic (0.0.0.0/0) is exactly the problem we\'re trying to avoid — it exposes the VM to brute-force attacks.')">
+                <span class="option-label">D</span> Open port 3389 to all internet traffic for easy access
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> An administrator forgot the password for a Windows VM in Azure. What is the correct way to recover access?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting and recreating the VM would destroy all data and configuration — this is completely unnecessary.')">
+                <span class="option-label">A</span> Delete the VM and create a new one
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. You cannot connect to a VM without credentials in the first place — this is circular.')">
+                <span class="option-label">B</span> Connect via RDP and change the password from inside the VM
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Azure Portal allows password resets for VMs via VM → Reset password under Support + Troubleshooting. You can also use the Azure CLI with az vm user update to set a new password without needing to access the VM.')">
+                <span class="option-label">C</span> Use the Azure Portal Reset password feature or Azure CLI to set a new password
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft support cannot reset VM credentials — this is the customer\'s responsibility. Azure provides self-service tools for password resets.')">
+                <span class="option-label">D</span> Contact Microsoft support to reset the password
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What built-in Windows command opens the Remote Desktop Connection client?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "rdp" is not a valid Windows command.')">
+                <span class="option-label">A</span> rdp
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "remote" is not the command for Remote Desktop Connection.')">
+                <span class="option-label">B</span> remote
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! "mstsc" (Microsoft Terminal Services Client) opens the Remote Desktop Connection application on Windows. You can run it from Win+R, Command Prompt, or PowerShell.')">
+                <span class="option-label">C</span> mstsc
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "winrdp" is not a valid Windows command.')">
+                <span class="option-label">D</span> winrdp
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is Microsoft Defender for Cloud's Just-in-Time (JIT) VM Access used for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT is a security feature that controls port access, not a backup solution.')">
+                <span class="option-label">A</span> To create automatic VM backups just before a connection
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! JIT VM Access keeps management ports like RDP (3389) and SSH (22) closed by default. When access is needed, you request it through the portal — the port opens for your specific IP for a limited time window (e.g., 3 hours), then automatically closes again.')">
+                <span class="option-label">B</span> To keep port 3389 closed by default and open it temporarily only when needed
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT is about port access control, not VM performance optimisation.')">
+                <span class="option-label">C</span> To optimise VM performance during peak hours
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT controls port access — it does not automatically scale VMs based on load.')">
+                <span class="option-label">D</span> To automatically scale the VM when high load is detected
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="connect-ssh.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Connect to VM via SSH</span>
+            </a>
+            <a class="related-card" href="bastion.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Bastion</span>
+            </a>
+            <a class="related-card" href="create-windows-vm.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Create a Windows VM</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="connect-ssh.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Connect to VM via SSH</span>
+          </a>
+          <a class="nav-card next" href="vm-disks.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">VM Disks Explained</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

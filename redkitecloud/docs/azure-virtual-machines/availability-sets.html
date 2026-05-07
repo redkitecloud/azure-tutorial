@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Availability Sets & Zones | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Understand Azure Availability Sets and Availability Zones for VMs — fault domains, update domains, SLA levels, and how to design for high availability." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Availability Sets &amp; Zones</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Availability Sets &amp; Availability Zones</h1>
+
+        <p class="page-intro">
+          A single VM is a single point of failure — one hardware failure or one maintenance event and your application goes down. Azure provides two mechanisms to protect against this: Availability Sets and Availability Zones. Understanding both — and knowing when to use which — is one of the most important skills for the AZ-104 exam and for real-world Azure architecture.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Why single VMs are risky · Fault domains vs update domains · How Availability Sets work · How Availability Zones differ · SLA comparison · When to use Sets vs Zones · Designing a highly available application · Creating VMs with availability options
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#the-problem">The Problem — Single Points of Failure</a></li>
+            <li><a href="#availability-sets">Availability Sets</a></li>
+            <li><a href="#fault-domains">Fault Domains</a></li>
+            <li><a href="#update-domains">Update Domains</a></li>
+            <li><a href="#availability-zones">Availability Zones for VMs</a></li>
+            <li><a href="#sets-vs-zones">Availability Sets vs Availability Zones</a></li>
+            <li><a href="#sla-comparison">SLA Comparison</a></li>
+            <li><a href="#designing-ha">Designing a Highly Available Application</a></li>
+            <li><a href="#creating">Creating VMs with Availability Options</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="the-problem">The Problem — Single Points of Failure</h2>
+          <p>Imagine you have a web application running on a single Azure VM. Two things can take it down:</p>
+          <ul>
+            <li><strong>Unplanned downtime</strong> — The physical host server fails (power supply, hardware fault, network issue)</li>
+            <li><strong>Planned maintenance</strong> — Azure needs to update the host server's firmware or hypervisor and reboots it</li>
+          </ul>
+          <p>In both cases, your application is unavailable until the VM restarts. For production workloads, this is unacceptable. The solution is to run multiple VMs and ensure they don't all fail at the same time — which is what Availability Sets and Zones enable.</p>
+
+          <h2 id="availability-sets">Availability Sets</h2>
+          <p>An <strong>Availability Set</strong> is a logical grouping that tells Azure to spread VMs across multiple physical fault domains and update domains within a single data centre. When you add VMs to an Availability Set, Azure ensures no two VMs in the same set are on the same physical hardware.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Key Point</strong>
+              Availability Sets protect against failures WITHIN a single data centre. They do NOT protect against an entire data centre failure. For data centre-level protection, use Availability Zones instead.
+            </div>
+          </div>
+
+          <h3>How to Create an Availability Set</h3>
+          <p>An Availability Set must be created BEFORE the VMs that go into it. You cannot add an existing VM to an Availability Set after creation — you must create the VM with the Availability Set selected.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create an Availability Set</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create the Availability Set first
+az vm availability-set create \
+  --resource-group myResourceGroup \
+  --name myAvailabilitySet \
+  --location centralindia \
+  --platform-fault-domain-count 2 \
+  --platform-update-domain-count 5
+
+# Create VMs inside the Availability Set
+az vm create \
+  --resource-group myResourceGroup \
+  --name myVM1 \
+  --availability-set myAvailabilitySet \
+  --image Ubuntu2204 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys</code></pre>
+          </div>
+
+          <h2 id="fault-domains">Fault Domains</h2>
+          <p>A <strong>fault domain</strong> is a group of VMs that share a common power source and network switch. If that power supply or switch fails, all VMs in that fault domain go down together.</p>
+          <p>Azure Availability Sets spread VMs across <strong>2 or 3 fault domains</strong> (depending on the region). This means if one power supply fails, only some of your VMs are affected — others remain running.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Real-World Analogy</strong>
+              Imagine a server room with 3 power circuits (A, B, C). Fault domain 1 uses circuit A. Fault domain 2 uses circuit B. If circuit A trips a breaker, only FD1 VMs go down — FD2 VMs keep running. That's fault domain protection.
+            </div>
+          </div>
+
+          <h2 id="update-domains">Update Domains</h2>
+          <p>An <strong>update domain</strong> is a group of VMs that Azure updates (reboots for host maintenance) at the same time. Azure spreads VMs across <strong>5 update domains by default</strong> (up to 20).</p>
+          <p>When Azure needs to perform planned maintenance, it updates one update domain at a time, waiting 30 minutes between each. This ensures your application stays available while Azure maintains the underlying hardware.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Fault Domain</th><th>Update Domain</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Protects against</td><td>Hardware failures (power, network)</td><td>Planned maintenance reboots</td></tr>
+                <tr><td>Number in Availability Set</td><td>2–3</td><td>Up to 20 (default 5)</td></tr>
+                <tr><td>When it matters</td><td>Unexpected hardware failure</td><td>Azure maintenance window</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="availability-zones">Availability Zones for VMs</h2>
+          <p>While Availability Sets protect within a single data centre, <strong>Availability Zones</strong> spread VMs across physically separate data centres (zones) within a region.</p>
+          <p>Each zone has its own independent power, cooling, and networking. A failure in one zone (even a complete data centre fire or flood) does not affect the other zones.</p>
+
+          <h3>Deploying VMs Across Zones</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Deploy VMs across 3 Availability Zones</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># VM in Zone 1
+az vm create \
+  --resource-group myResourceGroup \
+  --name myVM-zone1 \
+  --zone 1 \
+  --image Ubuntu2204 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys
+
+# VM in Zone 2
+az vm create \
+  --resource-group myResourceGroup \
+  --name myVM-zone2 \
+  --zone 2 \
+  --image Ubuntu2204 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys
+
+# VM in Zone 3
+az vm create \
+  --resource-group myResourceGroup \
+  --name myVM-zone3 \
+  --zone 3 \
+  --image Ubuntu2204 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys</code></pre>
+          </div>
+
+          <h2 id="sets-vs-zones">Availability Sets vs Availability Zones</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Availability Set</th><th>Availability Zone</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Protection scope</td><td>Within one data centre</td><td>Across separate data centres</td></tr>
+                <tr><td>Protects against</td><td>Hardware failures, planned maintenance</td><td>Data centre failures</td></tr>
+                <tr><td>SLA</td><td>99.95%</td><td>99.99%</td></tr>
+                <tr><td>Cost impact</td><td>Free to create (pay for VMs)</td><td>Pay for VMs in each zone</td></tr>
+                <tr><td>Network latency between VMs</td><td>Very low (same DC)</td><td>Low (&lt;2ms between zones)</td></tr>
+                <tr><td>Available everywhere?</td><td>Yes — all regions</td><td>Only in AZ-supported regions</td></tr>
+                <tr><td>Recommended for new workloads?</td><td>Legacy — use zones instead</td><td>Yes — modern approach</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Availability Sets Are Legacy</strong>
+              Availability Sets were the original high availability mechanism. They only protect within a single data centre. For any new workload in a region that supports Availability Zones (like Central India), always use Availability Zones instead — better SLA, better protection.
+            </div>
+          </div>
+
+          <h2 id="sla-comparison">SLA Comparison</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Deployment</th><th>SLA</th><th>Max Annual Downtime</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Single VM (Standard HDD)</td><td>No SLA</td><td>No guarantee</td></tr>
+                <tr><td>Single VM (Premium SSD)</td><td>99.9%</td><td>~8.7 hours</td></tr>
+                <tr><td>VMs in Availability Set</td><td>99.95%</td><td>~4.4 hours</td></tr>
+                <tr><td>VMs across 2+ Availability Zones</td><td>99.99%</td><td>~52 minutes</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="designing-ha">Designing a Highly Available Application</h2>
+          <p>Here's a practical high availability design for a web application using Availability Zones:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Layer</th><th>Zone 1</th><th>Zone 2</th><th>Zone 3</th><th>Front-end</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Web tier</td><td>VM-web-1</td><td>VM-web-2</td><td>VM-web-3</td><td>Zone-redundant Load Balancer</td></tr>
+                <tr><td>App tier</td><td>VM-app-1</td><td>VM-app-2</td><td>VM-app-3</td><td>Internal Load Balancer</td></tr>
+                <tr><td>Database</td><td>SQL Primary</td><td>SQL Secondary</td><td>SQL Secondary</td><td>SQL Always On</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>With this design, if Zone 2 completely fails, Zone 1 and Zone 3 continue serving all traffic. The Load Balancer detects the zone failure and routes around it automatically. Users see no downtime.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              This is one of the most tested topics on AZ-104. Know: fault domains (hardware failure protection), update domains (maintenance protection), Availability Sets (within one DC, 99.95%), Availability Zones (across DCs, 99.99%), and that you cannot move an existing VM into an Availability Set.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What does a fault domain in an Availability Set protect against?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Fault domains protect against hardware failures like power and network failures. Protection against planned maintenance reboots is handled by update domains.')">
+                <span class="option-label">A</span> Planned maintenance reboots by Azure
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A fault domain is a group of VMs sharing a common power source and network switch. Azure spreads VMs across fault domains so if one power supply or network switch fails, only some VMs are affected — others in different fault domains remain running.')">
+                <span class="option-label">B</span> Hardware failures — power supply and network switch failures
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Fault domains are within a single data centre — they do not protect against an entire data centre failure. Availability Zones provide that protection.')">
+                <span class="option-label">C</span> An entire data centre going offline
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Fault domains protect against physical hardware failures within a data centre — not natural disasters at a regional scale.')">
+                <span class="option-label">D</span> Natural disasters at the regional level
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What SLA does Microsoft provide for VMs deployed across two or more Availability Zones?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 99.9% is the SLA for a single VM with Premium SSD — not for zone-redundant deployments.')">
+                <span class="option-label">A</span> 99.9%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 99.95% is the SLA for VMs in an Availability Set — not across Availability Zones.')">
+                <span class="option-label">B</span> 99.95%
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VMs deployed across two or more Availability Zones are backed by a 99.99% SLA — approximately 52 minutes of maximum allowed downtime per year. This is the highest VM SLA Microsoft offers.')">
+                <span class="option-label">C</span> 99.99%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. No cloud provider guarantees 100% uptime — there is always some small risk of downtime.')">
+                <span class="option-label">D</span> 100%
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A production application needs maximum high availability within the Azure Central India region. Which deployment option should be used?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single VM in a single zone is a single point of failure — any zone failure takes the application down.')">
+                <span class="option-label">A</span> A single VM in one Availability Zone
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Sets only protect within one data centre (99.95% SLA) — Availability Zones provide higher protection across separate data centres (99.99% SLA).')">
+                <span class="option-label">B</span> Multiple VMs in an Availability Set
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deploying VMs across all three Availability Zones in Central India provides the highest SLA (99.99%) and protects against data centre-level failures. Central India supports 3 AZs — deploying across all three is the recommended approach for maximum availability.')">
+                <span class="option-label">C</span> Multiple VMs spread across all three Availability Zones
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deploying to a different region provides disaster recovery, not high availability within Central India. The question asks about HA within the region.')">
+                <span class="option-label">D</span> Deploy to a different Azure region entirely
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Can you add an existing running VM to an Availability Set?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. You cannot add an existing VM to an Availability Set — the VM must be created with the Availability Set selected from the start.')">
+                <span class="option-label">A</span> Yes — you can add any running VM to an Availability Set at any time
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Even deallocating a VM does not allow you to add it to an Availability Set — you must delete and recreate the VM with the Availability Set configured during creation.')">
+                <span class="option-label">B</span> Yes — but only if the VM is first deallocated
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! You cannot add an existing VM to an Availability Set after it has been created. The Availability Set must be specified during VM creation. To put an existing VM into an Availability Set, you must delete and recreate it with the Availability Set selected.')">
+                <span class="option-label">C</span> No — VMs must be created with the Availability Set specified at creation time
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Sets are not limited to Windows VMs — both Windows and Linux VMs can be placed in Availability Sets, but only during creation.')">
+                <span class="option-label">D</span> Only for Windows VMs — not Linux VMs
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the default number of update domains in an Azure Availability Set?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default is 5 update domains, not 2.')">
+                <span class="option-label">A</span> 2
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default is 5 update domains, not 3.')">
+                <span class="option-label">B</span> 3
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The default number of update domains in an Availability Set is 5, with a maximum of 20. Update domains ensure that during planned maintenance, Azure only reboots one domain at a time — so VMs in other domains stay running.')">
+                <span class="option-label">C</span> 5
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default is 5, not 20. 20 is the maximum allowed — you must explicitly configure more than 5 if needed.')">
+                <span class="option-label">D</span> 20
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vmss.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">VM Scale Sets</span>
+            </a>
+            <a class="related-card" href="overview.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure VMs Overview</span>
+            </a>
+            <a class="related-card" href="bastion.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Azure Bastion</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="bastion.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Bastion</span>
+          </a>
+          <a class="nav-card next" href="vmss.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">VM Scale Sets</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

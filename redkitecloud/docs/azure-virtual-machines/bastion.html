@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Bastion | Azure Virtual Machines | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Bastion — secure browser-based RDP and SSH access to VMs without exposing ports 22 or 3389 to the internet." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Virtual Machines</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Bastion</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Virtual Machines</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Bastion</h1>
+
+        <p class="page-intro">
+          Every time you open port 22 (SSH) or port 3389 (RDP) to the internet, bots start scanning and brute-forcing within minutes. Azure Bastion eliminates this risk entirely. It's a fully managed service that lets you connect to VMs directly from the Azure Portal browser — with no public IP on the VM and no open management ports. It's the secure, professional way to access VMs in production.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Azure Bastion is and why it exists · How Bastion works architecturally · Bastion SKUs — Basic vs Standard vs Premium · Deploying Azure Bastion · Connecting to VMs via Bastion · Bastion vs direct SSH/RDP · Cost considerations · Best practices
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-bastion">What is Azure Bastion?</a></li>
+            <li><a href="#how-it-works">How Bastion Works</a></li>
+            <li><a href="#bastion-skus">Bastion SKUs</a></li>
+            <li><a href="#deploying">Deploying Azure Bastion</a></li>
+            <li><a href="#connecting">Connecting to VMs via Bastion</a></li>
+            <li><a href="#bastion-vs-direct">Bastion vs Direct SSH/RDP</a></li>
+            <li><a href="#cost">Cost Considerations</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-bastion">What is Azure Bastion?</h2>
+          <p>Azure Bastion is a fully managed PaaS service that provides secure, seamless RDP and SSH connectivity to your VMs directly from the Azure Portal — over TLS (HTTPS, port 443). Your VMs don't need public IP addresses, and you don't need to open SSH (22) or RDP (3389) ports to the internet.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>The Name "Bastion"</strong>
+              A bastion host is a security concept — a dedicated, hardened server that acts as the single entry point into a private network. Azure Bastion is Microsoft's managed implementation of this concept, built into your VNet and managed entirely by Microsoft.
+            </div>
+          </div>
+
+          <h2 id="how-it-works">How Bastion Works</h2>
+          <p>Here's the connection flow when you use Azure Bastion:</p>
+          <ol>
+            <li>You open the Azure Portal in your browser (HTTPS, port 443)</li>
+            <li>You navigate to your VM and click Connect → Bastion</li>
+            <li>Your browser connects to the Bastion host — which lives inside your VNet in a dedicated subnet called <strong>AzureBastionSubnet</strong></li>
+            <li>Bastion connects to your VM using its <strong>private IP address</strong> over the VNet — SSH port 22 or RDP port 3389, but only on the internal network</li>
+            <li>The terminal or desktop session streams back to your browser over the already-open HTTPS connection</li>
+          </ol>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Key Security Insight</strong>
+              Ports 22 and 3389 are NEVER exposed to the internet. They're only used internally between Bastion and your VM, on the private VNet. The internet only ever sees port 443 (HTTPS) going to the Bastion service — not to your VM.
+            </div>
+          </div>
+
+          <h2 id="bastion-skus">Bastion SKUs</h2>
+          <p>Azure Bastion comes in three tiers:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>SKU</th><th>Key Features</th><th>Approx Cost/Month</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Developer</strong></td>
+                  <td>Single VM at a time, no dedicated subnet needed, no public IP required</td>
+                  <td>Free (preview)</td>
+                </tr>
+                <tr>
+                  <td><strong>Basic</strong></td>
+                  <td>RDP/SSH from browser, shareable links not supported, 2 instances</td>
+                  <td>~₹5,000/month</td>
+                </tr>
+                <tr>
+                  <td><strong>Standard</strong></td>
+                  <td>All Basic features + file upload/download, native client support, shareable links, scaling up to 50 instances</td>
+                  <td>~₹9,000–12,000/month</td>
+                </tr>
+                <tr>
+                  <td><strong>Premium</strong></td>
+                  <td>All Standard features + session recording, private-only Bastion, IP-based connection</td>
+                  <td>~₹18,000+/month</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>For Learning — Use Developer SKU</strong>
+              The Developer SKU is free and requires no AzureBastionSubnet or dedicated public IP. It's perfect for learning and testing. For production, use Standard or Premium depending on your needs.
+            </div>
+          </div>
+
+          <h2 id="deploying">Deploying Azure Bastion</h2>
+
+          <h3>Requirements</h3>
+          <ul>
+            <li>A Virtual Network with an <strong>AzureBastionSubnet</strong> subnet (minimum /26 size)</li>
+            <li>A Standard SKU Public IP address assigned to Bastion</li>
+            <li>The subnet must be named exactly <strong>AzureBastionSubnet</strong> — no other name is accepted</li>
+          </ul>
+
+          <h3>Via Azure Portal</h3>
+          <ol>
+            <li>Search for <strong>Bastions</strong> in the portal</li>
+            <li>Click <strong>+ Create</strong></li>
+            <li>Select your subscription, resource group, and region</li>
+            <li>Give it a name (e.g., <code>bastion-prod</code>)</li>
+            <li>Select your VNet — Azure will create the AzureBastionSubnet automatically if it doesn't exist</li>
+            <li>Create or select a Public IP for Bastion</li>
+            <li>Select the SKU (Basic for getting started)</li>
+            <li>Click <strong>Review + Create</strong> → <strong>Create</strong></li>
+          </ol>
+          <p>Deployment takes about 5–10 minutes.</p>
+
+          <h3>Via Azure CLI</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Deploy Azure Bastion</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create the AzureBastionSubnet in your VNet
+az network vnet subnet create \
+  --resource-group myResourceGroup \
+  --vnet-name myVNet \
+  --name AzureBastionSubnet \
+  --address-prefixes 10.0.1.0/26
+
+# Create a public IP for Bastion
+az network public-ip create \
+  --resource-group myResourceGroup \
+  --name bastion-pip \
+  --sku Standard \
+  --location centralindia
+
+# Create the Bastion host
+az network bastion create \
+  --resource-group myResourceGroup \
+  --name bastion-prod \
+  --public-ip-address bastion-pip \
+  --vnet-name myVNet \
+  --location centralindia \
+  --sku Basic</code></pre>
+          </div>
+
+          <h2 id="connecting">Connecting to VMs via Bastion</h2>
+          <p>Once Bastion is deployed:</p>
+          <ol>
+            <li>Go to your VM in the Azure Portal</li>
+            <li>Click <strong>Connect</strong> in the top menu</li>
+            <li>Select <strong>Bastion</strong></li>
+            <li>Enter your credentials (username + password, or username + SSH key)</li>
+            <li>Click <strong>Connect</strong></li>
+            <li>A new browser tab opens with your SSH terminal or RDP desktop</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>No Client Installation Required</strong>
+              The terminal or RDP session runs entirely in your browser. No SSH client, no RDP client, no VPN. Works from any device with a modern browser — including tablets and Chromebooks.
+            </div>
+          </div>
+
+          <h3>Native Client Support (Standard SKU)</h3>
+          <p>The Standard SKU also supports connecting via your local SSH or RDP client (not just the browser). This is useful if you prefer a full-featured client with copy-paste, multiple tabs, etc.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Connect via SSH through Bastion (Standard SKU)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az network bastion ssh \
+  --name bastion-prod \
+  --resource-group myResourceGroup \
+  --target-resource-id /subscriptions/.../virtualMachines/myVM \
+  --auth-type ssh-key \
+  --username azureuser \
+  --ssh-key ~/.ssh/id_rsa</code></pre>
+          </div>
+
+          <h2 id="bastion-vs-direct">Bastion vs Direct SSH/RDP</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Factor</th><th>Direct SSH/RDP</th><th>Azure Bastion</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>VM needs public IP?</td><td>Yes</td><td>No</td></tr>
+                <tr><td>Ports 22/3389 exposed?</td><td>Yes — to internet</td><td>No — internal only</td></tr>
+                <tr><td>Client required?</td><td>SSH/RDP client app</td><td>Just a browser</td></tr>
+                <tr><td>Works on any device?</td><td>Needs client app</td><td>Yes — any browser</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>~₹5,000–18,000/month</td></tr>
+                <tr><td>Security</td><td>Depends on NSG/JIT</td><td>High — no internet exposure</td></tr>
+                <tr><td>Best for</td><td>Dev/test, learning</td><td>Production environments</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="cost">Cost Considerations</h2>
+          <p>Azure Bastion is charged per deployment hour plus per outbound data. Key points:</p>
+          <ul>
+            <li>You pay for Bastion even when no one is connected — it's always-on infrastructure</li>
+            <li>One Bastion host covers all VMs in the same VNet (and peered VNets)</li>
+            <li>For a large team accessing many VMs, one Bastion host is far cheaper than giving each VM a public IP</li>
+            <li>For a single dev VM you use occasionally, direct SSH with an IP-restricted NSG may be more cost-effective</li>
+          </ul>
+
+          <h2 id="best-practices">Best Practices</h2>
+          <ul>
+            <li><strong>Use Bastion for all production VMs</strong> — Never expose port 22 or 3389 on production systems</li>
+            <li><strong>One Bastion per VNet</strong> — A single Bastion host covers all VMs in the VNet</li>
+            <li><strong>Remove public IPs from VMs behind Bastion</strong> — If you're using Bastion, VMs don't need public IPs at all</li>
+            <li><strong>Use Standard SKU for teams</strong> — File transfer and native client support are essential for real teams</li>
+            <li><strong>Developer SKU for learning</strong> — Free, no infrastructure setup required</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Bastion requires a subnet named exactly "AzureBastionSubnet" (/26 minimum), that it provides browser-based SSH/RDP over HTTPS without exposing ports 22 or 3389, and that VMs behind Bastion don't need public IPs.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the required subnet name when deploying Azure Bastion?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "BastionSubnet" is close but wrong — the required name is "AzureBastionSubnet" (with "Azure" prefix). Any other name will cause deployment to fail.')">
+                <span class="option-label">A</span> BastionSubnet
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Bastion requires a subnet named exactly "AzureBastionSubnet" — no other name is accepted. The subnet must also be at least /26 in size (64 IP addresses). This is a common exam question.')">
+                <span class="option-label">B</span> AzureBastionSubnet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "GatewaySubnet" is the required name for Azure VPN Gateway — not for Bastion.')">
+                <span class="option-label">C</span> GatewaySubnet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Any custom name like "bastion-subnet" will fail — it must be exactly "AzureBastionSubnet".')">
+                <span class="option-label">D</span> Any name of your choice
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> How does Azure Bastion connect to a VM once deployed?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This would still expose ports 22/3389 to the internet — exactly what Bastion is designed to avoid.')">
+                <span class="option-label">A</span> Via the VM\'s public IP address over the internet
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Bastion connects to VMs using their private IP addresses over the VNet. The VM\'s management ports (22/3389) are only accessible internally — never exposed to the internet. Your browser connects to Bastion over HTTPS (443), and Bastion connects to the VM privately.')">
+                <span class="option-label">B</span> Via the VM\'s private IP address over the VNet — management ports stay internal
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Bastion does not use VPN tunnels — it uses the existing VNet connectivity between Bastion and the VM.')">
+                <span class="option-label">C</span> Via a dedicated VPN tunnel between Bastion and the VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Bastion does not use port 443 to connect to VMs — it uses SSH (22) or RDP (3389) internally. Port 443 is only used for the browser-to-Bastion connection.')">
+                <span class="option-label">D</span> Via HTTPS (port 443) to the VM directly
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Does a VM need a public IP address when using Azure Bastion?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When using Azure Bastion, the VM does NOT need a public IP address. Bastion connects to the VM via its private IP within the VNet. This is one of Bastion\'s key security benefits — your VMs can be completely hidden from the internet.')">
+                <span class="option-label">A</span> No — Bastion connects using the VM\'s private IP; no public IP needed
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VMs accessed via Bastion do not need a public IP. The whole point of Bastion is to remove the need for public IPs on VMs.')">
+                <span class="option-label">B</span> Yes — Bastion still requires a public IP on each VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no such distinction — VMs accessed via Bastion never need a public IP regardless of OS.')">
+                <span class="option-label">C</span> Only for Linux VMs — Windows VMs still need a public IP
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VM public IPs are completely optional when using Bastion — they are not needed for the first connection or any subsequent connection.')">
+                <span class="option-label">D</span> Only for the first connection — can be removed afterwards
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which Azure Bastion SKU supports file upload and download during sessions?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Basic SKU does not support file upload/download — only the Standard SKU and above include this feature.')">
+                <span class="option-label">A</span> Basic
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Standard SKU includes file upload and download support, native client connectivity, shareable links, and the ability to scale up to 50 instances. The Basic SKU only provides basic browser-based SSH/RDP.')">
+                <span class="option-label">B</span> Standard
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Developer SKU is a free, limited tier for testing — it does not include file transfer capabilities.')">
+                <span class="option-label">C</span> Developer
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Free" SKU for Bastion with file transfer — the Developer SKU is free but does not include this feature.')">
+                <span class="option-label">D</span> Free
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A team deploys one Azure Bastion host in a VNet. How many VMs in that VNet can use the Bastion host?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. One Bastion host is not limited to one VM — it can serve all VMs in the VNet.')">
+                <span class="option-label">A</span> Only 1 VM
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no 10 VM limit — a single Bastion host can serve all VMs in the VNet regardless of count.')">
+                <span class="option-label">B</span> Up to 10 VMs
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A single Azure Bastion host serves ALL VMs in the same VNet — and even VMs in peered VNets (with Standard SKU). You only need one Bastion host per VNet, not one per VM. This makes Bastion cost-effective for large environments.')">
+                <span class="option-label">C</span> All VMs in the VNet — one Bastion host covers the entire VNet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Basic SKU supports 2 instances for scaling but this refers to Bastion\'s own scaling, not a limit on VMs it can serve. All VMs in the VNet can use Bastion.')">
+                <span class="option-label">D</span> Only VMs in the AzureBastionSubnet
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="connect-ssh.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Connect to VM via SSH</span>
+            </a>
+            <a class="related-card" href="connect-rdp.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Connect to VM via RDP</span>
+            </a>
+            <a class="related-card" href="availability-sets.html">
+              <span class="related-card-label">Azure Virtual Machines</span>
+              <span class="related-card-title">Availability Sets &amp; Zones</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="managed-disks.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Managed Disks</span>
+          </a>
+          <a class="nav-card next" href="availability-sets.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Availability Sets &amp; Zones</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
