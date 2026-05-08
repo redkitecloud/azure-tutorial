@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Blob Storage | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Blob Storage — blob types, containers, access levels, uploading files, CLI commands, and real-world use cases." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Blob Storage</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Blob Storage</h1>
+
+        <p class="page-intro">
+          Blob Storage is Azure's object storage service — the most widely used storage type in Azure. "Blob" stands for Binary Large Object. It can store any type of unstructured data: images, videos, PDFs, log files, backups, static websites, machine learning datasets — anything. If you need to store a file in the cloud and access it via URL, Blob Storage is the answer.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What blobs are · The three blob types (block, append, page) · Containers and access levels · Blob URLs and how to access them · Uploading and downloading blobs via CLI · Static website hosting · Soft delete and versioning · Real-world use cases
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-blob">What is Blob Storage?</a></li>
+            <li><a href="#blob-types">The Three Blob Types</a></li>
+            <li><a href="#containers">Containers</a></li>
+            <li><a href="#access-levels">Container Access Levels</a></li>
+            <li><a href="#blob-urls">Blob URLs</a></li>
+            <li><a href="#uploading">Uploading and Downloading Blobs</a></li>
+            <li><a href="#static-website">Static Website Hosting</a></li>
+            <li><a href="#soft-delete">Soft Delete and Versioning</a></li>
+            <li><a href="#use-cases">Real-World Use Cases</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-blob">What is Blob Storage?</h2>
+          <p>Azure Blob Storage is an object storage service — it stores files as objects (blobs) in containers. Unlike a file system (which organises files in folders), Blob Storage is flat — there are no real folders, just containers with blobs inside. You can simulate folder structure using "/" in blob names (e.g., <code>images/2026/photo.jpg</code>), but these are just naming conventions.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Hierarchy</strong>
+              Storage Account → Container → Blob<br/>
+              Example: <code>mystorageaccount</code> → <code>images</code> → <code>logo.png</code><br/>
+              URL: <code>https://mystorageaccount.blob.core.windows.net/images/logo.png</code>
+            </div>
+          </div>
+
+          <h2 id="blob-types">The Three Blob Types</h2>
+          <p>Azure Blob Storage supports three types of blobs — each optimised for different use cases:</p>
+
+          <h3>Block Blobs</h3>
+          <p>The most common type. Used for storing text and binary data — documents, images, videos, backups. Block blobs are made up of blocks of data that can be managed individually. Maximum size: <strong>190.7 TB</strong>.</p>
+
+          <h3>Append Blobs</h3>
+          <p>Optimised for append operations — adding data to the end of the blob. Perfect for logging, where you continuously write new log entries. You cannot modify existing content — only append. Maximum size: <strong>195 GB</strong>.</p>
+
+          <h3>Page Blobs</h3>
+          <p>Optimised for random read/write operations. Historically used for Azure VM disks (VHD files). Maximum size: <strong>8 TB</strong>. For new workloads, use Managed Disks instead of page blobs.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Type</th><th>Optimised For</th><th>Max Size</th><th>Use Case</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Block Blob</td><td>Large data storage and retrieval</td><td>190.7 TB</td><td>Files, images, videos, backups</td></tr>
+                <tr><td>Append Blob</td><td>Append-only operations</td><td>195 GB</td><td>Log files, audit trails</td></tr>
+                <tr><td>Page Blob</td><td>Random read/write</td><td>8 TB</td><td>Legacy VM disks (use Managed Disks)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="containers">Containers</h2>
+          <p>Blobs are organised into <strong>containers</strong> — similar to folders or buckets. Every blob must be in a container. A storage account can have unlimited containers.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a container</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a container
+az storage container create \
+  --name images \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# List containers
+az storage container list \
+  --account-name mystorageaccount2026 \
+  --output table \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h3>Container Naming Rules</h3>
+          <ul>
+            <li>3–63 characters</li>
+            <li>Lowercase letters, numbers, and hyphens only</li>
+            <li>Must start with a letter or number</li>
+            <li>Cannot have consecutive hyphens</li>
+          </ul>
+
+          <h2 id="access-levels">Container Access Levels</h2>
+          <p>Every container has an access level that controls who can read blobs without authentication:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Access Level</th><th>Who Can Read</th><th>Use For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Private</strong> (default)</td><td>Only authorised users with credentials</td><td>Sensitive data, private files</td></tr>
+                <tr><td><strong>Blob</strong></td><td>Anyone with the blob URL</td><td>Public files — images, documents</td></tr>
+                <tr><td><strong>Container</strong></td><td>Anyone can list and read all blobs</td><td>Public datasets, open repositories</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Default to Private</strong>
+              Always use Private access unless there is a specific reason for public access. Public blob access has been disabled by default on new storage accounts since 2021 — you must explicitly enable it at the account level before setting container access to Blob or Container.
+            </div>
+          </div>
+
+          <h2 id="blob-urls">Blob URLs</h2>
+          <p>Every blob has a unique URL. The format is:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Format</span>
+              <span class="code-label">Blob URL structure</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">https://[storageaccount].blob.core.windows.net/[container]/[blobname]
+
+# Example:
+https://mystorageaccount2026.blob.core.windows.net/images/logo.png
+https://mystorageaccount2026.blob.core.windows.net/backups/db-backup-2026-05-07.bak</code></pre>
+          </div>
+
+          <p>If the container is public (Blob access level), anyone can access the blob via this URL directly in a browser. If private, you need authentication credentials or a SAS token.</p>
+
+          <h2 id="uploading">Uploading and Downloading Blobs</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Upload and download blobs</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Upload a file
+az storage blob upload \
+  --account-name mystorageaccount2026 \
+  --container-name images \
+  --name logo.png \
+  --file ./logo.png \
+  --auth-mode login
+
+# Upload entire folder
+az storage blob upload-batch \
+  --account-name mystorageaccount2026 \
+  --destination images \
+  --source ./my-images/ \
+  --auth-mode login
+
+# Download a blob
+az storage blob download \
+  --account-name mystorageaccount2026 \
+  --container-name images \
+  --name logo.png \
+  --file ./downloaded-logo.png \
+  --auth-mode login
+
+# List blobs in a container
+az storage blob list \
+  --account-name mystorageaccount2026 \
+  --container-name images \
+  --output table \
+  --auth-mode login
+
+# Delete a blob
+az storage blob delete \
+  --account-name mystorageaccount2026 \
+  --container-name images \
+  --name logo.png \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="static-website">Static Website Hosting</h2>
+          <p>Blob Storage can host static websites directly — HTML, CSS, JavaScript, images — with no server required. Perfect for React, Vue, or any static site.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Enable static website hosting</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Enable static website
+az storage blob service-properties update \
+  --account-name mystorageaccount2026 \
+  --static-website \
+  --index-document index.html \
+  --404-document 404.html \
+  --auth-mode login
+
+# Upload your website files
+az storage blob upload-batch \
+  --account-name mystorageaccount2026 \
+  --destination '$web' \
+  --source ./dist/ \
+  --auth-mode login</code></pre>
+          </div>
+
+          <p>Your site is then accessible at: <code>https://[accountname].z13.web.core.windows.net</code></p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>RedKiteCloud uses this!</strong>
+              This very website is hosted using Azure Static Web Apps — which is built on top of Azure Blob Storage for static content. It's one of the most common and cost-effective ways to host a website.
+            </div>
+          </div>
+
+          <h2 id="soft-delete">Soft Delete and Versioning</h2>
+          <p>Two features that protect against accidental deletion or modification:</p>
+
+          <h3>Blob Soft Delete</h3>
+          <p>When enabled, deleted blobs are retained for a configurable retention period (1–365 days) before being permanently removed. You can restore accidentally deleted blobs within this window.</p>
+
+          <h3>Blob Versioning</h3>
+          <p>Automatically saves previous versions of a blob every time it's modified. You can restore any previous version. Ideal for important documents that are updated frequently.</p>
+
+          <h2 id="use-cases">Real-World Use Cases</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Use Case</th><th>Blob Type</th><th>Access Level</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Website images and assets</td><td>Block Blob</td><td>Blob (public)</td></tr>
+                <tr><td>Application log files</td><td>Append Blob</td><td>Private</td></tr>
+                <tr><td>VM backup files</td><td>Block Blob</td><td>Private</td></tr>
+                <tr><td>Machine learning training data</td><td>Block Blob</td><td>Private</td></tr>
+                <tr><td>Static website files</td><td>Block Blob</td><td>Via $web container</td></tr>
+                <tr><td>User-uploaded documents</td><td>Block Blob</td><td>Private + SAS tokens</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the three blob types and their use cases. Know the three container access levels. Know that blob public access must be enabled at the account level before containers can be made public. Know that soft delete provides a recovery window for accidentally deleted blobs.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which blob type is optimised for append-only operations like logging?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Block blobs are for general-purpose file storage — they support full read, write, and update operations, not specifically append-only.')">
+                <span class="option-label">A</span> Block Blob
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Append Blobs are specifically designed for append-only operations. You can only add data to the end — you cannot modify existing content. This makes them ideal for log files and audit trails.')">
+                <span class="option-label">B</span> Append Blob
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Page blobs are optimised for random read/write access — historically used for VM disk storage.')">
+                <span class="option-label">C</span> Page Blob
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Archive Blob" type — Archive is an access tier for Block Blobs, not a separate blob type.')">
+                <span class="option-label">D</span> Archive Blob
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the default container access level for new containers?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! New containers are Private by default — only authenticated users with the proper credentials can access the blobs. This is the most secure default.')">
+                <span class="option-label">A</span> Private — only authenticated users can access blobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob (public) access is not the default — containers are Private by default. Public access must be explicitly enabled.')">
+                <span class="option-label">B</span> Blob — anyone with the URL can read blobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Container (public listing) is not the default — containers are Private by default.')">
+                <span class="option-label">C</span> Container — anyone can list and read all blobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Read-only" access level for containers in Azure Blob Storage.')">
+                <span class="option-label">D</span> Read-only — anyone can read but not write
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the correct URL format to access a blob?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The blob URL format is: https://[storageaccount].blob.core.windows.net/[container]/[blobname]. This is the standard endpoint for Azure Blob Storage.')">
+                <span class="option-label">A</span> https://[storageaccount].blob.core.windows.net/[container]/[blobname]
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The subdomain is "blob" not "storage" — the correct format uses [account].blob.core.windows.net.')">
+                <span class="option-label">B</span> https://[storageaccount].storage.core.windows.net/[container]/[blobname]
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The domain is core.windows.net — not azure.com.')">
+                <span class="option-label">C</span> https://[storageaccount].blob.azure.com/[container]/[blobname]
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The container and blob name are in the URL path — not as query parameters.')">
+                <span class="option-label">D</span> https://blob.core.windows.net/[storageaccount]/[container]/[blobname]
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What does enabling Blob Soft Delete protect against?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Soft Delete does not protect against storage account deletion — it only applies to individual blobs within a container.')">
+                <span class="option-label">A</span> Accidental deletion of the entire storage account
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Blob Soft Delete retains deleted blobs for a configurable period (1–365 days) before permanent removal. If a blob is accidentally deleted, you can restore it within the retention window.')">
+                <span class="option-label">B</span> Accidental deletion of individual blobs — allows recovery within the retention period
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Soft Delete does not protect against data corruption — it only helps recover deleted blobs.')">
+                <span class="option-label">C</span> Data corruption in blobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Soft Delete protects individual blobs from deletion — it does not protect against container deletion (that requires Container Soft Delete, a separate feature).')">
+                <span class="option-label">D</span> Accidental deletion of containers
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which blob type is used for Azure VM disks in legacy configurations?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Block blobs are for general file storage — they are not used for VM disks.')">
+                <span class="option-label">A</span> Block Blob
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Append blobs are for log files and append-only workloads — not VM disks.')">
+                <span class="option-label">B</span> Append Blob
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Page blobs were historically used for Azure VM disks (VHD files) because they support random read/write operations needed by a disk. However, for new workloads, Azure Managed Disks are the recommended approach.')">
+                <span class="option-label">C</span> Page Blob
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Disk Blob" type — VM disks historically used Page Blobs, and modern VMs use Managed Disks.')">
+                <span class="option-label">D</span> Disk Blob
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="blob-access-tiers.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Blob Access Tiers</span>
+            </a>
+            <a class="related-card" href="sas-tokens.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Shared Access Signatures</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="storage-overview.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Storage Overview</span>
+          </a>
+          <a class="nav-card next" href="blob-access-tiers.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Blob Access Tiers</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

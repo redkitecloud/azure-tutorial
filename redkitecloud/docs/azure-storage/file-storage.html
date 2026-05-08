@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure File Storage | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure File Storage — managed file shares via SMB and NFS, mounting on Windows and Linux, Azure File Sync, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure File Storage</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure File Storage</h1>
+
+        <p class="page-intro">
+          Azure File Storage provides fully managed file shares in the cloud — accessible via the industry-standard SMB (Server Message Block) and NFS (Network File System) protocols. Think of it as a network drive in the cloud that multiple VMs and on-premises servers can mount simultaneously, just like a traditional file server — but without the hardware to manage.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Azure File Storage is · SMB vs NFS protocols · Creating file shares · Mounting on Windows VMs · Mounting on Linux VMs · Azure File Sync — extending to on-premises · Performance tiers · Snapshots and backup · When to use File Storage vs Blob Storage
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-files">What is Azure File Storage?</a></li>
+            <li><a href="#smb-vs-nfs">SMB vs NFS</a></li>
+            <li><a href="#creating">Creating a File Share</a></li>
+            <li><a href="#mount-windows">Mounting on Windows</a></li>
+            <li><a href="#mount-linux">Mounting on Linux</a></li>
+            <li><a href="#file-sync">Azure File Sync</a></li>
+            <li><a href="#performance">Performance Tiers</a></li>
+            <li><a href="#snapshots">Share Snapshots</a></li>
+            <li><a href="#files-vs-blob">File Storage vs Blob Storage</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-files">What is Azure File Storage?</h2>
+          <p>Azure File Storage provides cloud file shares that can be accessed and mounted by multiple machines simultaneously — just like a traditional on-premises file server, but fully managed in Azure. No hardware to provision, no OS to patch, no storage to manage.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Replacing On-Premises File Servers</strong>
+              Many organisations still run Windows file servers for shared storage. Azure File Storage can replace these — with the same SMB access that Windows machines already understand — while eliminating the hardware, maintenance, and DR overhead.
+            </div>
+          </div>
+
+          <h3>Key Features</h3>
+          <ul>
+            <li>Fully managed — no file servers to maintain</li>
+            <li>Accessible via SMB 3.x and NFS 4.1 protocols</li>
+            <li>Multiple machines can mount the same share simultaneously</li>
+            <li>Accessible from Azure VMs, on-premises servers, and Windows/Mac/Linux machines</li>
+            <li>Up to 100 TB per file share</li>
+            <li>Integrated backup via Azure Backup</li>
+          </ul>
+
+          <h2 id="smb-vs-nfs">SMB vs NFS</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>SMB (Server Message Block)</th><th>NFS (Network File System)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Best for</td><td>Windows workloads</td><td>Linux workloads</td></tr>
+                <tr><td>Supported OS</td><td>Windows, Linux, macOS</td><td>Linux only</td></tr>
+                <tr><td>Authentication</td><td>Azure AD, storage account key</td><td>Network-based (VNet)</td></tr>
+                <tr><td>Internet access</td><td>Yes (over TLS)</td><td>No — VNet only</td></tr>
+                <tr><td>Storage tier</td><td>Standard and Premium</td><td>Premium only</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="creating">Creating a File Share</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a file share</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create a file share (100 GB quota)
+az storage share create \
+  --name myfileshare \
+  --account-name mystorageaccount2026 \
+  --quota 100 \
+  --auth-mode login
+
+# List file shares
+az storage share list \
+  --account-name mystorageaccount2026 \
+  --output table \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="mount-windows">Mounting on Windows</h2>
+          <p>The Azure Portal provides a ready-to-use PowerShell script for mounting the file share on Windows. Here's how:</p>
+          <ol>
+            <li>Go to your Storage Account → File shares → select your share</li>
+            <li>Click <strong>Connect</strong></li>
+            <li>Select <strong>Windows</strong></li>
+            <li>Choose a drive letter (e.g., Z:)</li>
+            <li>Copy and run the provided PowerShell script on your Windows machine</li>
+          </ol>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">PowerShell</span>
+              <span class="code-label">Mount Azure File Share on Windows (example)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># The Portal generates this script automatically
+$connectTestResult = Test-NetConnection -ComputerName mystorageaccount2026.file.core.windows.net -Port 445
+if ($connectTestResult.TcpTestSucceeded) {
+    # Mount the share
+    cmd.exe /C "cmdkey /add:`"mystorageaccount2026.file.core.windows.net`" /user:`"localhost\mystorageaccount2026`" /pass:`"[storage-account-key]`""
+    New-PSDrive -Name Z -PSProvider FileSystem -Root "\\mystorageaccount2026.file.core.windows.net\myfileshare" -Persist
+} else {
+    Write-Error "Unable to reach storage account — check port 445 is open"
+}</code></pre>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Port 445 Must Be Open</strong>
+              SMB uses port 445. Many ISPs and corporate firewalls block outbound port 445. If you can't mount the share from on-premises, port 445 is likely blocked. For on-premises connectivity, use Azure VPN Gateway or ExpressRoute.
+            </div>
+          </div>
+
+          <h2 id="mount-linux">Mounting on Linux</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Bash</span>
+              <span class="code-label">Mount Azure File Share on Linux (Ubuntu)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Install CIFS utilities (for SMB)
+sudo apt-get install cifs-utils -y
+
+# Create mount point
+sudo mkdir /mnt/myfileshare
+
+# Mount the share
+sudo mount -t cifs \
+  //mystorageaccount2026.file.core.windows.net/myfileshare \
+  /mnt/myfileshare \
+  -o vers=3.0,username=mystorageaccount2026,password=[storage-account-key],dir_mode=0777,file_mode=0777
+
+# Make it persistent (add to /etc/fstab)
+echo "//mystorageaccount2026.file.core.windows.net/myfileshare /mnt/myfileshare cifs nofail,vers=3.0,username=mystorageaccount2026,password=[key],dir_mode=0777,file_mode=0777 0 0" | sudo tee -a /etc/fstab</code></pre>
+          </div>
+
+          <h2 id="file-sync">Azure File Sync</h2>
+          <p>Azure File Sync transforms your Windows Server into a cache for an Azure file share. It replicates files between on-premises Windows Server and Azure Files — giving you fast local access with cloud-based centralised storage.</p>
+
+          <h3>How It Works</h3>
+          <ol>
+            <li>Install the Azure File Sync agent on your Windows Server</li>
+            <li>Register the server with a Storage Sync Service in Azure</li>
+            <li>Create a sync group linking a server endpoint (on-premises folder) to a cloud endpoint (Azure file share)</li>
+            <li>Files are synchronised bidirectionally</li>
+            <li>With <strong>cloud tiering</strong> enabled: rarely accessed files are replaced with pointers on the local server, while the full file stays in Azure. When accessed, it's transparently downloaded.</li>
+          </ol>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Use Case</strong>
+              A company has branch offices in Chennai, Mumbai, and Delhi, all needing access to the same shared files. Instead of a VPN to a central file server, each office runs Azure File Sync — users get fast local access, and all changes sync to the Azure file share automatically.
+            </div>
+          </div>
+
+          <h2 id="performance">Performance Tiers</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tier</th><th>Storage</th><th>IOPS</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Standard (Transaction Optimised)</strong></td><td>HDD-backed</td><td>Up to 1,000</td><td>General file sharing, moderate workloads</td></tr>
+                <tr><td><strong>Standard (Hot)</strong></td><td>HDD-backed</td><td>Up to 1,000</td><td>Frequently accessed shares</td></tr>
+                <tr><td><strong>Standard (Cool)</strong></td><td>HDD-backed</td><td>Up to 1,000</td><td>Infrequently accessed archives</td></tr>
+                <tr><td><strong>Premium</strong></td><td>SSD-backed</td><td>Up to 100,000+</td><td>Databases, high-performance applications</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="snapshots">Share Snapshots</h2>
+          <p>Azure File shares support point-in-time snapshots — read-only copies of the entire file share at a specific moment. Useful for:</p>
+          <ul>
+            <li>Recovering accidentally deleted or modified files</li>
+            <li>Backing up before major changes</li>
+            <li>Compliance and audit requirements</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a share snapshot</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create a snapshot
+az storage share snapshot \
+  --name myfileshare \
+  --account-name mystorageaccount2026 \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="files-vs-blob">File Storage vs Blob Storage</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Factor</th><th>File Storage</th><th>Blob Storage</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Access protocol</td><td>SMB, NFS (mountable)</td><td>HTTP/REST API</td></tr>
+                <tr><td>Mount as drive?</td><td>Yes — like a network drive</td><td>No</td></tr>
+                <tr><td>Best for</td><td>Shared files between VMs/servers</td><td>Storing files accessed via URL/API</td></tr>
+                <tr><td>Max file size</td><td>4 TB per file</td><td>190.7 TB (block blob)</td></tr>
+                <tr><td>Access tiers</td><td>Standard Hot/Cool, Premium</td><td>Hot, Cool, Cold, Archive</td></tr>
+                <tr><td>Use case</td><td>Replacing file servers, shared config</td><td>Web assets, backups, data lakes</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that File Storage uses SMB (Windows) and NFS (Linux) protocols, that SMB uses port 445, that Azure File Sync allows on-premises Windows Server to cache Azure file shares, and that File Storage can be mounted as a network drive. Key difference from Blob: File Storage is mountable; Blob is not.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which protocol does Azure File Storage use for Windows-based file sharing?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure File Storage supports SMB (Server Message Block) protocol for Windows workloads. SMB is the standard Windows file sharing protocol — the same one used by on-premises Windows file servers. NFS is also supported for Linux workloads.')">
+                <span class="option-label">A</span> SMB (Server Message Block)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FTP is a file transfer protocol — not the protocol used by Azure File Storage for mounting network drives.')">
+                <span class="option-label">B</span> FTP
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. HTTP/REST is the protocol used by Azure Blob Storage — not by Azure File Storage for network drive mounting.')">
+                <span class="option-label">C</span> HTTP/REST
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSH (SFTP) is a secure file transfer protocol — not the protocol for mounting Azure File shares as network drives.')">
+                <span class="option-label">D</span> SSH (SFTP)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What port does SMB use, and why does this matter for Azure File Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 22 is SSH — used for secure remote terminal access, not SMB file sharing.')">
+                <span class="option-label">A</span> Port 22 — often blocked by home routers
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SMB uses port 445. Many ISPs and corporate firewalls block outbound port 445 as a security measure. If port 445 is blocked, you cannot mount Azure file shares from that network — you need a VPN or ExpressRoute for on-premises connectivity.')">
+                <span class="option-label">B</span> Port 445 — often blocked by ISPs and corporate firewalls
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 443 is HTTPS — used for secure web traffic. SMB uses port 445.')">
+                <span class="option-label">C</span> Port 443 — requires certificate installation
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Port 3389 is RDP — used for Windows remote desktop access, not SMB file sharing.')">
+                <span class="option-label">D</span> Port 3389 — requires firewall exceptions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is Azure File Sync used for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure File Sync is not for syncing Blob Storage — it specifically syncs Azure File shares with Windows Server endpoints.')">
+                <span class="option-label">A</span> Syncing Azure Blob Storage with on-premises object storage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure File Sync synchronises Windows Server folders with Azure file shares. It turns your Windows Server into a high-performance local cache for an Azure file share — with cloud tiering to automatically move infrequently accessed files to Azure while keeping frequently accessed files local.')">
+                <span class="option-label">B</span> Caching Azure file shares on Windows Server for fast local access while syncing to Azure
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure File Sync works with Windows Server specifically — it does not sync Linux servers with Azure file shares.')">
+                <span class="option-label">C</span> Replicating Linux servers to Azure file shares
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure File Sync is not an Azure DevOps tool — it is specifically for file share synchronisation between Windows Server and Azure Files.')">
+                <span class="option-label">D</span> Synchronising code repositories with Azure DevOps
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the key difference between Azure File Storage and Azure Blob Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both File Storage and Blob Storage can store large files — this is not the key difference.')">
+                <span class="option-label">A</span> File Storage stores larger files than Blob Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob Storage is generally cheaper than File Storage for equivalent data — not more expensive.')">
+                <span class="option-label">B</span> Blob Storage is more expensive than File Storage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure File Storage can be mounted as a network drive using SMB or NFS protocols — VMs and servers can access it like a local file system. Azure Blob Storage is accessed via HTTP/REST API and cannot be mounted as a network drive.')">
+                <span class="option-label">C</span> File Storage can be mounted as a network drive (SMB/NFS); Blob Storage cannot
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both File Storage and Blob Storage support redundancy options including geo-replication — this is not the key differentiator.')">
+                <span class="option-label">D</span> Only File Storage supports geo-replication
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> How many machines can mount the same Azure file share simultaneously?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure file shares support multiple simultaneous connections — not just one.')">
+                <span class="option-label">A</span> Only 1 machine at a time
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The limit is much higher than 10 machines — Azure file shares support thousands of simultaneous connections.')">
+                <span class="option-label">B</span> Up to 10 machines
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Multiple machines can mount the same Azure file share simultaneously — from Azure VMs, on-premises servers, and developer workstations. This is one of the key benefits over Blob Storage for shared file access scenarios.')">
+                <span class="option-label">C</span> Multiple machines simultaneously — from Azure VMs, on-premises servers, and workstations
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure file shares can be mounted by multiple machines simultaneously, not just VMs in the same VNet.')">
+                <span class="option-label">D</span> Only VMs within the same VNet
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="queue-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Queue Storage</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="lifecycle-management.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Blob Lifecycle Management</span>
+          </a>
+          <a class="nav-card next" href="queue-storage.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Queue Storage</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blob Access Tiers | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Understand Azure Blob Storage access tiers — Hot, Cool, Cold, and Archive — how to choose the right tier and how to move data between tiers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Blob Access Tiers</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Blob Access Tiers</h1>
+
+        <p class="page-intro">
+          Not all data is accessed equally. A photo you just uploaded gets viewed constantly. A three-year-old compliance report might never be touched again. Azure Blob Storage's access tiers let you optimise storage costs by matching the tier to the access frequency — paying less for data you rarely need, and paying more (but getting fast access) for data you use every day.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          The four access tiers — Hot, Cool, Cold, and Archive · Cost trade-offs between tiers · Minimum retention periods and early deletion fees · How to set the tier at account and blob level · Changing tiers via CLI · Rehydrating from Archive · Lifecycle management overview
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-tiers">What Are Access Tiers?</a></li>
+            <li><a href="#hot">Hot Tier</a></li>
+            <li><a href="#cool">Cool Tier</a></li>
+            <li><a href="#cold">Cold Tier</a></li>
+            <li><a href="#archive">Archive Tier</a></li>
+            <li><a href="#comparison">Side-by-Side Comparison</a></li>
+            <li><a href="#setting-tiers">Setting Access Tiers</a></li>
+            <li><a href="#rehydration">Rehydrating from Archive</a></li>
+            <li><a href="#choosing">Choosing the Right Tier</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-tiers">What Are Access Tiers?</h2>
+          <p>Azure Blob Storage access tiers are a way to balance storage cost against access cost. The pattern is consistent across all tiers:</p>
+          <ul>
+            <li><strong>Lower storage cost</strong> = Higher access cost + longer retrieval time</li>
+            <li><strong>Higher storage cost</strong> = Lower access cost + instant retrieval</li>
+          </ul>
+          <p>Choose based on how often your data is accessed. Move infrequently accessed data to cheaper tiers to save significantly on storage costs.</p>
+
+          <h2 id="hot">Hot Tier</h2>
+          <p>The Hot tier is optimised for data that is accessed frequently. It has the highest storage cost but the lowest access cost and instant retrieval.</p>
+          <ul>
+            <li><strong>Access frequency:</strong> Data accessed regularly or daily</li>
+            <li><strong>Retrieval:</strong> Immediate</li>
+            <li><strong>Minimum retention:</strong> None</li>
+            <li><strong>Best for:</strong> Active website assets, application data being read/written regularly, recently uploaded files</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Default Tier</strong>
+              Hot is the default tier for new blobs unless you specify otherwise. The storage account also has a default access tier (Hot or Cool) that applies to all new blobs unless overridden at the blob level.
+            </div>
+          </div>
+
+          <h2 id="cool">Cool Tier</h2>
+          <p>The Cool tier is optimised for data that is infrequently accessed and stored for at least 30 days. Storage cost is lower than Hot, but access and retrieval costs are higher.</p>
+          <ul>
+            <li><strong>Access frequency:</strong> Accessed less than once a month</li>
+            <li><strong>Retrieval:</strong> Immediate (same as Hot)</li>
+            <li><strong>Minimum retention:</strong> 30 days (early deletion fee applies)</li>
+            <li><strong>Best for:</strong> Short-term backups, older application data, disaster recovery copies used rarely</li>
+          </ul>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Early Deletion Fee</strong>
+              If you delete or move a blob from Cool tier within 30 days of setting it to Cool, you're charged for the remaining days. Always factor in the minimum retention period when planning tier transitions.
+            </div>
+          </div>
+
+          <h2 id="cold">Cold Tier</h2>
+          <p>The Cold tier (introduced in 2023) sits between Cool and Archive. It offers lower storage costs than Cool but higher access costs, with a 90-day minimum retention period.</p>
+          <ul>
+            <li><strong>Access frequency:</strong> Rarely accessed — a few times per year</li>
+            <li><strong>Retrieval:</strong> Immediate (milliseconds)</li>
+            <li><strong>Minimum retention:</strong> 90 days</li>
+            <li><strong>Best for:</strong> Long-term backups, compliance archives that occasionally need access, older data that must be retrievable quickly</li>
+          </ul>
+
+          <h2 id="archive">Archive Tier</h2>
+          <p>The Archive tier is the cheapest storage option — designed for data that is rarely (if ever) accessed and can tolerate several hours of retrieval time. Data in Archive is stored offline.</p>
+          <ul>
+            <li><strong>Access frequency:</strong> Almost never — regulatory or compliance archives</li>
+            <li><strong>Retrieval:</strong> Hours (must be "rehydrated" before access)</li>
+            <li><strong>Minimum retention:</strong> 180 days</li>
+            <li><strong>Best for:</strong> Long-term compliance data, legal archives, old backups that must be kept but rarely accessed</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Archive = Offline Storage</strong>
+              Blobs in Archive tier are stored offline — you cannot read them directly. You must first "rehydrate" them (move to Hot or Cool) which takes 1–15 hours depending on the priority setting. Only then can you access the data.
+            </div>
+          </div>
+
+          <h2 id="comparison">Side-by-Side Comparison</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tier</th><th>Storage Cost</th><th>Access Cost</th><th>Retrieval Time</th><th>Min Retention</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Hot</strong></td><td>Highest</td><td>Lowest</td><td>Immediate</td><td>None</td></tr>
+                <tr><td><strong>Cool</strong></td><td>Medium</td><td>Medium</td><td>Immediate</td><td>30 days</td></tr>
+                <tr><td><strong>Cold</strong></td><td>Low</td><td>High</td><td>Immediate</td><td>90 days</td></tr>
+                <tr><td><strong>Archive</strong></td><td>Lowest</td><td>Highest</td><td>Hours</td><td>180 days</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="setting-tiers">Setting Access Tiers</h2>
+          <p>Tiers can be set at two levels:</p>
+          <ul>
+            <li><strong>Account level</strong> — Default tier for all new blobs (Hot or Cool only)</li>
+            <li><strong>Blob level</strong> — Override for individual blobs (Hot, Cool, Cold, or Archive)</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Set blob access tier</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Set a blob to Cool tier
+az storage blob set-tier \
+  --account-name mystorageaccount2026 \
+  --container-name backups \
+  --name old-backup.bak \
+  --tier Cool \
+  --auth-mode login
+
+# Set a blob to Archive tier
+az storage blob set-tier \
+  --account-name mystorageaccount2026 \
+  --container-name archives \
+  --name compliance-2020.pdf \
+  --tier Archive \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="rehydration">Rehydrating from Archive</h2>
+          <p>To access a blob in Archive tier, you must first rehydrate it — move it to Hot or Cool tier. There are two rehydration priorities:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Priority</th><th>Time</th><th>Cost</th><th>Use When</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>High priority</strong></td><td>Under 1 hour (for blobs &lt; 10 GB)</td><td>Higher</td><td>Urgent retrieval needed</td></tr>
+                <tr><td><strong>Standard priority</strong></td><td>Up to 15 hours</td><td>Lower</td><td>Non-urgent retrieval</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Rehydrate a blob from Archive to Hot</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Rehydrate with standard priority (up to 15 hours)
+az storage blob set-tier \
+  --account-name mystorageaccount2026 \
+  --container-name archives \
+  --name compliance-2020.pdf \
+  --tier Hot \
+  --rehydrate-priority Standard \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="choosing">Choosing the Right Tier</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Data Example</th><th>Access Pattern</th><th>Recommended Tier</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Profile pictures on a social app</td><td>Accessed every page load</td><td>Hot</td></tr>
+                <tr><td>Last month's backups</td><td>Rarely accessed, might restore if needed</td><td>Cool</td></tr>
+                <tr><td>6-month-old application data</td><td>Very rarely accessed</td><td>Cold</td></tr>
+                <tr><td>7-year compliance archive</td><td>Almost never — legal requirement only</td><td>Archive</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know all four tiers and their retrieval times. Hot = immediate + expensive storage. Archive = hours to retrieve + cheapest storage. Know the minimum retention periods: Cool = 30 days, Cold = 90 days, Archive = 180 days. Archive blobs must be rehydrated before they can be accessed.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company stores 7-year-old compliance documents that are legally required to be retained but almost never accessed. Which access tier is most cost-effective?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hot tier has the highest storage cost — it is designed for frequently accessed data, which compliance archives are not.')">
+                <span class="option-label">A</span> Hot
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cool tier is for data accessed less than once a month — it is still more expensive than Archive for data that is almost never accessed.')">
+                <span class="option-label">B</span> Cool
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cold tier is cheaper than Cool but more expensive than Archive — and the data is described as "almost never accessed", making Archive the better choice.')">
+                <span class="option-label">C</span> Cold
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Archive tier has the lowest storage cost and is designed exactly for this scenario — data that must be retained for compliance but is almost never accessed. The hours-long retrieval time is acceptable since access is extremely rare.')">
+                <span class="option-label">D</span> Archive
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> How long does it take to access a blob stored in Archive tier?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blobs in Archive tier are stored offline and cannot be accessed immediately — they must be rehydrated first, which takes hours.')">
+                <span class="option-label">A</span> Immediately — same as Hot tier
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Archive retrieval takes hours, not minutes. A few minutes is the retrieval time for Hot and Cool tiers which store data online.')">
+                <span class="option-label">B</span> A few minutes
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Archive blobs are stored offline and must be "rehydrated" (moved to Hot or Cool) before they can be accessed. Standard priority takes up to 15 hours; High priority takes under 1 hour for blobs under 10 GB.')">
+                <span class="option-label">C</span> Up to 15 hours (standard priority) or under 1 hour (high priority)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Archive retrieval takes hours — not days. High priority rehydration can complete in under 1 hour for small blobs.')">
+                <span class="option-label">D</span> 1–3 days
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the minimum retention period for the Cool access tier?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Cool tier has a 30-day minimum retention period. If a blob is deleted or moved to a different tier within 30 days, an early deletion fee is charged for the remaining days.')">
+                <span class="option-label">A</span> 30 days
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 90 days is the minimum retention for the Cold tier — not Cool.')">
+                <span class="option-label">B</span> 90 days
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 180 days is the minimum retention for the Archive tier — not Cool.')">
+                <span class="option-label">C</span> 180 days
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hot tier has no minimum retention period. Cool tier has a 30-day minimum.')">
+                <span class="option-label">D</span> No minimum retention period
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Can blobs in Archive tier be read directly without any special process?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Archive blobs cannot be read directly — they are stored offline and must be rehydrated first.')">
+                <span class="option-label">A</span> Yes — they can be read immediately, just like Hot tier blobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Archive blobs cannot be accessed with additional authentication — they are offline and must be rehydrated regardless of authentication.')">
+                <span class="option-label">B</span> Yes — but only with additional authentication
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Blobs in Archive tier are stored offline and cannot be read directly. They must first be rehydrated — moved to Hot or Cool tier — which takes up to 15 hours (standard) or under 1 hour (high priority). Only after rehydration can the data be accessed.')">
+                <span class="option-label">C</span> No — they must first be rehydrated (moved to Hot or Cool), which takes hours
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Archive blobs cannot be read using a special API — rehydration is required regardless of how you access them.')">
+                <span class="option-label">D</span> Yes — using a special archive API endpoint
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which access tier provides the lowest storage cost but the highest access and retrieval cost?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hot tier has the highest storage cost and the lowest access cost — it is the opposite of what the question describes.')">
+                <span class="option-label">A</span> Hot
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cool tier has medium storage and access costs — not the lowest storage cost.')">
+                <span class="option-label">B</span> Cool
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cold tier has lower storage cost than Cool but higher access cost — however Archive has an even lower storage cost.')">
+                <span class="option-label">C</span> Cold
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Archive tier has the lowest storage cost of all tiers, but compensates with the highest access/retrieval costs and hours-long retrieval times. This trade-off makes it ideal for rarely accessed compliance archives.')">
+                <span class="option-label">D</span> Archive
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="lifecycle-management.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Blob Lifecycle Management</span>
+            </a>
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="blob-storage.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Blob Storage</span>
+          </a>
+          <a class="nav-card next" href="lifecycle-management.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Blob Lifecycle Management</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

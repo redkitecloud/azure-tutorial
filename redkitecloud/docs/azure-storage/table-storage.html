@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Table Storage | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Table Storage — NoSQL key-value store, partition and row keys, querying, and when to use Table Storage vs Cosmos DB." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Table Storage</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Table Storage</h1>
+
+        <p class="page-intro">
+          Azure Table Storage is a NoSQL key-value store that lets you store large amounts of structured, non-relational data cheaply and simply. Unlike a SQL database, there's no schema — each row can have different columns. It's not a full-featured database, but for the right workload — simple lookups, user data, configuration — it's extremely fast and cost-effective.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Table Storage is · The data model — tables, entities, partition key, row key · How partitioning works · Querying with OData filters · Working with tables via CLI · Table Storage vs Cosmos DB Table API · When to use (and when not to use) Table Storage
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-table">What is Azure Table Storage?</a></li>
+            <li><a href="#data-model">The Data Model</a></li>
+            <li><a href="#partition-row-keys">Partition Key and Row Key</a></li>
+            <li><a href="#querying">Querying with OData</a></li>
+            <li><a href="#working-with-tables">Working With Tables via CLI</a></li>
+            <li><a href="#table-vs-cosmos">Table Storage vs Cosmos DB</a></li>
+            <li><a href="#when-to-use">When to Use Table Storage</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-table">What is Azure Table Storage?</h2>
+          <p>Azure Table Storage is a NoSQL datastore that stores structured data as a collection of entities (rows) in tables. It is:</p>
+          <ul>
+            <li><strong>Schema-less</strong> — Each entity can have different properties (columns)</li>
+            <li><strong>Massively scalable</strong> — Petabytes of data, millions of entities</li>
+            <li><strong>Very cheap</strong> — Much cheaper than Azure SQL Database for simple lookups</li>
+            <li><strong>Fast for key-based lookups</strong> — Extremely fast when you query by partition key + row key</li>
+            <li><strong>Not relational</strong> — No joins, no foreign keys, limited query capability</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>NoSQL = Not Only SQL</strong>
+              Table Storage doesn't use SQL. It's optimised for key-based lookups rather than complex queries. If you know the exact partition key and row key, retrieval is near-instant regardless of table size.
+            </div>
+          </div>
+
+          <h2 id="data-model">The Data Model</h2>
+          <p>The hierarchy in Table Storage:</p>
+          <ul>
+            <li><strong>Storage Account</strong> — Top-level container</li>
+            <li><strong>Table</strong> — A collection of entities (like a database table)</li>
+            <li><strong>Entity</strong> — A single record (like a database row), up to 1 MB</li>
+            <li><strong>Property</strong> — A name-value pair within an entity (like a column), up to 252 custom properties</li>
+          </ul>
+
+          <h3>System Properties</h3>
+          <p>Every entity automatically has three system properties:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Property</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>PartitionKey</strong></td><td>Groups related entities together for scalability</td></tr>
+                <tr><td><strong>RowKey</strong></td><td>Unique identifier within a partition</td></tr>
+                <tr><td><strong>Timestamp</strong></td><td>Last modified time — managed automatically by Azure</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Example Entity</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">JSON</span>
+              <span class="code-label">A Table Storage entity (user record)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">{
+  "PartitionKey": "India",
+  "RowKey": "user-001",
+  "Name": "Priya Sharma",
+  "Email": "priya@example.com",
+  "Plan": "Premium",
+  "CreatedDate": "2026-01-15",
+  "Timestamp": "2026-05-07T10:30:00Z"
+}</code></pre>
+          </div>
+
+          <h2 id="partition-row-keys">Partition Key and Row Key</h2>
+          <p>The combination of PartitionKey + RowKey must be unique across the entire table. Together they form the primary key.</p>
+
+          <h3>Partition Key</h3>
+          <p>Determines which partition (storage node) an entity lives on. Entities with the same partition key are stored together and can be retrieved very efficiently. Good partition key design is crucial for performance:</p>
+          <ul>
+            <li><strong>Good partition keys</strong> — CountryCode, UserId range, Date (year-month), TenantId</li>
+            <li><strong>Bad partition key</strong> — A single value for all entities (creates a hot partition — all traffic goes to one node)</li>
+            <li><strong>Bad partition key</strong> — Completely unique per entity (defeats the purpose of partitioning — poor scan performance)</li>
+          </ul>
+
+          <h3>Row Key</h3>
+          <p>Uniquely identifies an entity within a partition. Combined with PartitionKey, it provides the fastest possible lookup — O(1) time complexity regardless of table size.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Design Pattern</strong>
+              For a user table: PartitionKey = country code (e.g., "IN", "US"), RowKey = user ID. This groups users by country (good for regional queries) while uniquely identifying each user within the country.
+            </div>
+          </div>
+
+          <h2 id="querying">Querying with OData</h2>
+          <p>Table Storage uses OData (Open Data Protocol) filter expressions for queries. Querying by PartitionKey + RowKey is fastest. Queries across all partitions (table scans) are slow and expensive for large tables.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Query Type</th><th>Speed</th><th>Use When</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>PartitionKey + RowKey</td><td>⚡ Fastest (point lookup)</td><td>You know exactly which entity you want</td></tr>
+                <tr><td>PartitionKey only</td><td>✅ Fast (partition scan)</td><td>You want all entities in a partition</td></tr>
+                <tr><td>PartitionKey + row range</td><td>✅ Good</td><td>Range queries within a partition</td></tr>
+                <tr><td>Table scan (no partition key)</td><td>🐢 Slow</td><td>Avoid — scans all partitions</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Query Table Storage entities</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Query by PartitionKey + RowKey (fastest)
+az storage entity show \
+  --table-name users \
+  --partition-key "India" \
+  --row-key "user-001" \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Query all entities in a partition
+az storage entity query \
+  --table-name users \
+  --filter "PartitionKey eq 'India'" \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Query with multiple filters
+az storage entity query \
+  --table-name users \
+  --filter "PartitionKey eq 'India' and Plan eq 'Premium'" \
+  --account-name mystorageaccount2026 \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="working-with-tables">Working With Tables via CLI</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create table and insert entities</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create a table
+az storage table create \
+  --name users \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Insert an entity
+az storage entity insert \
+  --table-name users \
+  --entity PartitionKey=India RowKey=user-001 Name=PriyaSharma Email=priya@example.com Plan=Premium \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Update an entity
+az storage entity merge \
+  --table-name users \
+  --entity PartitionKey=India RowKey=user-001 Plan=Enterprise \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Delete an entity
+az storage entity delete \
+  --table-name users \
+  --partition-key India \
+  --row-key user-001 \
+  --account-name mystorageaccount2026 \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="table-vs-cosmos">Table Storage vs Cosmos DB</h2>
+          <p>Azure Cosmos DB offers a Table API that is compatible with Azure Table Storage — you can migrate with minimal code changes. Cosmos DB is significantly more powerful but also more expensive:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Table Storage</th><th>Cosmos DB Table API</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Global distribution</td><td>Single region (or paired)</td><td>Multi-region, globally distributed</td></tr>
+                <tr><td>Latency SLA</td><td>No latency SLA</td><td>&lt;10ms read, &lt;15ms write (99th percentile)</td></tr>
+                <tr><td>Secondary indexes</td><td>No</td><td>Yes — on any property</td></tr>
+                <tr><td>Throughput</td><td>Shared, no guarantee</td><td>Dedicated, provisioned RU/s</td></tr>
+                <tr><td>Cost</td><td>Very cheap</td><td>More expensive</td></tr>
+                <tr><td>Best for</td><td>Simple lookups, cost-sensitive</td><td>Global apps, latency-sensitive, complex queries</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="when-to-use">When to Use Table Storage</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Good Fit</th><th>Poor Fit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>User profile lookups by ID</td><td>Complex relational queries with joins</td></tr>
+                <tr><td>Application configuration/settings</td><td>Transactions across multiple entities</td></tr>
+                <tr><td>Session state storage</td><td>Ad-hoc queries on non-key properties</td></tr>
+                <tr><td>Device telemetry by device ID</td><td>Global low-latency requirements</td></tr>
+                <tr><td>Simple audit logs</td><td>Reporting and analytics workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the Table Storage data model — tables, entities, PartitionKey, RowKey. Know that PartitionKey + RowKey is the fastest query. Know that Table Storage is schema-less NoSQL. Know when to use Table Storage vs Cosmos DB Table API.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What uniquely identifies an entity in Azure Table Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PartitionKey alone does not uniquely identify an entity — multiple entities can share the same PartitionKey.')">
+                <span class="option-label">A</span> PartitionKey alone
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RowKey alone does not uniquely identify an entity — the same RowKey can exist in different partitions.')">
+                <span class="option-label">B</span> RowKey alone
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The combination of PartitionKey + RowKey must be unique across the entire table. Together they form the composite primary key. Using both for a query is the fastest possible lookup — called a point query.')">
+                <span class="option-label">C</span> The combination of PartitionKey + RowKey
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Timestamp is managed automatically by Azure and is not used as a unique identifier for entities.')">
+                <span class="option-label">D</span> The Timestamp property
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which type of query is fastest in Azure Table Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A full table scan (no partition key specified) is the slowest query — it must scan all partitions.')">
+                <span class="option-label">A</span> A full table scan with no filter
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Querying by a non-key property requires a table scan — very slow for large tables.')">
+                <span class="option-label">B</span> A query filtering only by a custom property (e.g., Email)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A point query using both PartitionKey and RowKey is the fastest possible query — it directly locates the exact entity in O(1) time regardless of how many entities are in the table.')">
+                <span class="option-label">C</span> A point query using both PartitionKey and RowKey
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Querying by PartitionKey only scans one partition — faster than a table scan, but slower than a point query using both keys.')">
+                <span class="option-label">D</span> A query filtering only by PartitionKey
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is a bad practice when choosing a PartitionKey?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using a country code as a PartitionKey is a good practice — it distributes entities logically and allows efficient regional queries.')">
+                <span class="option-label">A</span> Using a country code (e.g., "India", "US") as the PartitionKey
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Using the same PartitionKey for all entities creates a "hot partition" — all data and traffic goes to a single storage node. This creates a performance bottleneck and prevents Azure from distributing load across multiple nodes.')">
+                <span class="option-label">B</span> Using the same PartitionKey for all entities (creating a hot partition)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using a date range (year-month) as a PartitionKey is a good pattern — it groups time-series data logically.')">
+                <span class="option-label">C</span> Using a date range (year-month) as the PartitionKey
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using TenantId as a PartitionKey is a good multi-tenant design pattern — it groups each tenant\'s data together.')">
+                <span class="option-label">D</span> Using TenantId as the PartitionKey in a multi-tenant app
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the maximum number of custom properties an entity can have in Azure Table Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Table Storage entities can have up to 252 custom properties — not 10.')">
+                <span class="option-label">A</span> 10
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The limit is 252 custom properties per entity — not 64.')">
+                <span class="option-label">B</span> 64
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Each entity can have up to 252 custom properties in addition to the 3 system properties (PartitionKey, RowKey, Timestamp), for a total of 255 properties. Each entity can be up to 1 MB in size.')">
+                <span class="option-label">C</span> 252
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Table Storage has a limit of 252 custom properties — not unlimited.')">
+                <span class="option-label">D</span> Unlimited
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> When should you consider migrating from Azure Table Storage to Cosmos DB Table API?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Table Storage handles high volume well and is cheaper than Cosmos DB for simple workloads — high volume alone is not a reason to migrate.')">
+                <span class="option-label">A</span> When you need to store more than 1 TB of data
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Cosmos DB Table API is the right choice when you need global distribution across multiple regions, guaranteed low-latency SLAs (under 10ms reads), secondary indexes on non-key properties, or dedicated provisioned throughput.')">
+                <span class="option-label">B</span> When you need global distribution, low-latency SLAs, or secondary indexes on non-key properties
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Table Storage supports all regions already — region support alone is not a reason to migrate to Cosmos DB.')">
+                <span class="option-label">C</span> When you need to deploy in the Central India region
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB Table API is compatible with Table Storage API — but cost alone should not drive migration since Cosmos DB is significantly more expensive.')">
+                <span class="option-label">D</span> When Table Storage becomes too expensive
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="queue-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Queue Storage</span>
+            </a>
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="queue-storage.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Queue Storage</span>
+          </a>
+          <a class="nav-card next" href="storage-redundancy.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Storage Redundancy</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
