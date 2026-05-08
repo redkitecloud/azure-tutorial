@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Queue Storage | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Queue Storage — how message queues work, sending and receiving messages, TTL, poison messages, and real-world use cases." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Queue Storage</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Queue Storage</h1>
+
+        <p class="page-intro">
+          Azure Queue Storage is a simple, highly scalable message queuing service that enables communication between application components. Instead of one component calling another directly — which creates tight coupling and breaks when either component is down — queues let components leave messages for each other and process them asynchronously. It's the glue that holds loosely-coupled, resilient applications together.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What message queues are and why they matter · How Azure Queue Storage works · Queue concepts — messages, TTL, visibility timeout · Sending and receiving messages via CLI · Poison messages · Queue Storage vs Service Bus · Real-world use cases
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-queues">What Are Message Queues?</a></li>
+            <li><a href="#how-it-works">How Azure Queue Storage Works</a></li>
+            <li><a href="#key-concepts">Key Concepts</a></li>
+            <li><a href="#working-with-queues">Working With Queues via CLI</a></li>
+            <li><a href="#poison-messages">Poison Messages</a></li>
+            <li><a href="#queue-vs-servicebus">Queue Storage vs Service Bus</a></li>
+            <li><a href="#use-cases">Real-World Use Cases</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-queues">What Are Message Queues?</h2>
+          <p>Without a queue, if Component A needs to call Component B, it calls it directly. Problems with this:</p>
+          <ul>
+            <li>If B is down, A fails too</li>
+            <li>If B is slow, A waits and slows down</li>
+            <li>If traffic spikes, both A and B get overwhelmed</li>
+          </ul>
+          <p>With a queue in between, A drops a message into the queue and continues. B reads from the queue at its own pace. A and B are now <strong>decoupled</strong> — B can be down, slow, or restarting without affecting A at all.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Real-World Analogy</strong>
+              A queue is like a restaurant order system. Waiters (producers) write orders and put them on a spike (the queue). Chefs (consumers) pick up orders one at a time and cook them. The waiter doesn't wait for the food — they go take more orders. If the kitchen is busy, orders queue up. The restaurant still functions smoothly.
+            </div>
+          </div>
+
+          <h2 id="how-it-works">How Azure Queue Storage Works</h2>
+          <ol>
+            <li>A <strong>producer</strong> (your application) sends a message to the queue</li>
+            <li>The message sits in the queue until a consumer picks it up</li>
+            <li>A <strong>consumer</strong> reads the message — it becomes invisible to other consumers for a configurable <strong>visibility timeout</strong></li>
+            <li>If the consumer processes it successfully, it <strong>deletes</strong> the message from the queue</li>
+            <li>If the consumer crashes before deleting, the message becomes visible again after the visibility timeout — another consumer can pick it up</li>
+          </ol>
+
+          <h2 id="key-concepts">Key Concepts</h2>
+
+          <h3>Message Size</h3>
+          <p>Each message can be up to <strong>64 KB</strong> in size. For larger payloads, store the data in Blob Storage and put a reference (URL) in the queue message.</p>
+
+          <h3>Message TTL (Time to Live)</h3>
+          <p>How long a message stays in the queue before being automatically deleted. Default is <strong>7 days</strong>. Maximum is <strong>7 days</strong>. Minimum is 1 second. Set to -1 for messages that never expire.</p>
+
+          <h3>Visibility Timeout</h3>
+          <p>When a consumer reads a message, it becomes invisible to other consumers for this duration. Default is <strong>30 seconds</strong>. The consumer must delete the message within this time or it reappears in the queue. Set it based on how long your processing takes.</p>
+
+          <h3>Queue Depth</h3>
+          <p>Azure Queue Storage can hold up to <strong>500 TB</strong> of messages per queue. Essentially unlimited for practical purposes.</p>
+
+          <h3>Dequeue Count</h3>
+          <p>Each message tracks how many times it has been dequeued. If a message keeps failing, its dequeue count grows. You can use this to detect <strong>poison messages</strong> (messages that always fail processing).</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Concept</th><th>Default</th><th>Maximum</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Message size</td><td>—</td><td>64 KB</td></tr>
+                <tr><td>Message TTL</td><td>7 days</td><td>7 days</td></tr>
+                <tr><td>Visibility timeout</td><td>30 seconds</td><td>7 days</td></tr>
+                <tr><td>Messages per batch read</td><td>1</td><td>32</td></tr>
+                <tr><td>Queue capacity</td><td>—</td><td>500 TB</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="working-with-queues">Working With Queues via CLI</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a queue and send/receive messages</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create a queue
+az storage queue create \
+  --name myqueue \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Send a message
+az storage message put \
+  --queue-name myqueue \
+  --content "Process order #12345" \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Receive (peek) a message without removing it
+az storage message peek \
+  --queue-name myqueue \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Get a message (makes it invisible for processing)
+az storage message get \
+  --queue-name myqueue \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Delete a message after processing (requires message ID and pop receipt)
+az storage message delete \
+  --queue-name myqueue \
+  --id [message-id] \
+  --pop-receipt [pop-receipt] \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Get queue length
+az storage queue metadata show \
+  --name myqueue \
+  --account-name mystorageaccount2026 \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="poison-messages">Poison Messages</h2>
+          <p>A poison message is a message that cannot be successfully processed — it keeps failing, reappearing in the queue, and failing again. Without handling, it can block processing indefinitely.</p>
+
+          <h3>Detecting Poison Messages</h3>
+          <p>Check the <strong>dequeue count</strong>. If a message has been dequeued more than a threshold (e.g., 5 times), it's likely a poison message.</p>
+
+          <h3>Handling Poison Messages</h3>
+          <ol>
+            <li>Read the message and check its dequeue count</li>
+            <li>If dequeue count exceeds threshold, move it to a <strong>dead-letter queue</strong> (a separate queue for failed messages)</li>
+            <li>Delete it from the main queue</li>
+            <li>Alert your team to investigate the dead-letter queue</li>
+          </ol>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Azure Functions Integration</strong>
+              Azure Functions has a built-in Queue trigger that automatically handles poison messages — after 5 failed attempts, it moves the message to a <code>-poison</code> queue automatically. This is the easiest way to work with queues in production.
+            </div>
+          </div>
+
+          <h2 id="queue-vs-servicebus">Queue Storage vs Service Bus</h2>
+          <p>Azure has two queuing services. Choose the right one:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Queue Storage</th><th>Service Bus</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Message size</td><td>64 KB</td><td>Up to 100 MB</td></tr>
+                <tr><td>Max TTL</td><td>7 days</td><td>Unlimited</td></tr>
+                <tr><td>Ordering guarantee</td><td>No (best effort)</td><td>Yes (FIFO sessions)</td></tr>
+                <tr><td>Dead-letter queue</td><td>Manual</td><td>Built-in</td></tr>
+                <tr><td>Topics/Subscriptions</td><td>No</td><td>Yes (pub/sub)</td></tr>
+                <tr><td>Cost</td><td>Very cheap</td><td>More expensive</td></tr>
+                <tr><td>Best for</td><td>Simple decoupling, high volume</td><td>Enterprise messaging, complex routing</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Simple Rule</strong>
+              Need simple, cheap, high-volume queuing? → Queue Storage. Need message ordering, large messages, dead-letter queue, pub/sub topics, or enterprise features? → Service Bus.
+            </div>
+          </div>
+
+          <h2 id="use-cases">Real-World Use Cases</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Use Case</th><th>How Queue Helps</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>E-commerce order processing</td><td>Web app puts order in queue; backend processes asynchronously</td></tr>
+                <tr><td>Image/video processing</td><td>Upload triggers a queue message; worker VM processes the file</td></tr>
+                <tr><td>Email/notification sending</td><td>App puts notification in queue; email service consumes at its own rate</td></tr>
+                <tr><td>Log ingestion</td><td>Multiple services write logs to queue; single processor writes to storage</td></tr>
+                <tr><td>Task scheduling</td><td>Scheduled jobs place tasks in queue; workers pick up and execute</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Queue Storage messages are up to 64 KB, have a max TTL of 7 days, use visibility timeout for at-least-once delivery, and that dequeue count helps identify poison messages. Know the key differences between Queue Storage and Service Bus.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the maximum message size in Azure Queue Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 1 MB is the maximum message size for Azure Service Bus — not Queue Storage.')">
+                <span class="option-label">A</span> 1 MB
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Queue Storage messages can be up to 64 KB in size. For larger payloads, store the data in Blob Storage and put a reference URL in the queue message.')">
+                <span class="option-label">B</span> 64 KB
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 256 KB is not the correct limit for Queue Storage messages — the limit is 64 KB.')">
+                <span class="option-label">C</span> 256 KB
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no 10 MB limit for Queue Storage messages — the limit is 64 KB.')">
+                <span class="option-label">D</span> 10 MB
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What happens to a queue message if the consumer reads it but crashes before deleting it?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A message that is not deleted after processing does not get permanently deleted — it becomes visible again after the visibility timeout so another consumer can process it.')">
+                <span class="option-label">A</span> The message is permanently deleted from the queue
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a consumer reads a message, it becomes invisible for the visibility timeout period. If the consumer crashes and does not delete the message before the timeout, the message becomes visible again and another consumer can pick it up. This ensures at-least-once delivery.')">
+                <span class="option-label">B</span> After the visibility timeout, the message reappears for another consumer to process
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue Storage does not automatically route unprocessed messages to a dead-letter queue — this must be handled manually in application code.')">
+                <span class="option-label">C</span> The message is automatically moved to a dead-letter queue
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Messages do not immediately reappear — they remain invisible until the visibility timeout expires, then become available again.')">
+                <span class="option-label">D</span> The message immediately becomes visible for all consumers
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is a poison message?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. An expired message is one that has exceeded its TTL and was automatically deleted — not a poison message.')">
+                <span class="option-label">A</span> A message that has expired and been automatically deleted
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A poison message is one that repeatedly fails processing — it keeps being dequeued, failing, and reappearing in the queue. Poison messages are detected by monitoring the dequeue count. When it exceeds a threshold, the message should be moved to a dead-letter queue for investigation.')">
+                <span class="option-label">B</span> A message that consistently fails processing and keeps reappearing in the queue
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A message containing malicious content is a security concern — but "poison message" specifically refers to a message that repeatedly causes processing failures.')">
+                <span class="option-label">C</span> A message containing malicious or invalid data that corrupts the database
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A very large message is one that exceeds the size limit — not what "poison message" means.')">
+                <span class="option-label">D</span> A message that exceeds the maximum size limit
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> When should you choose Azure Service Bus over Azure Queue Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue Storage handles high volume very well and is cheaper than Service Bus for simple high-volume scenarios.')">
+                <span class="option-label">A</span> When you need to handle very high message volumes cheaply
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Service Bus is the right choice when you need enterprise messaging features like guaranteed message ordering (FIFO), built-in dead-letter queues, publish/subscribe topics, large messages (up to 100 MB), or messages that need to live longer than 7 days.')">
+                <span class="option-label">B</span> When you need message ordering guarantees, pub/sub topics, or built-in dead-letter queues
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue Storage is perfectly capable of simple decoupling scenarios — Service Bus is not required for this.')">
+                <span class="option-label">C</span> For simple decoupling between two application components
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Queue Storage and Service Bus support Azure Functions integration — this is not a differentiator.')">
+                <span class="option-label">D</span> When using Azure Functions triggers
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the default and maximum TTL (Time to Live) for messages in Azure Queue Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default and maximum TTL for Queue Storage messages is 7 days — not 24 hours.')">
+                <span class="option-label">A</span> Default 24 hours, maximum 30 days
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Both the default and maximum TTL for Azure Queue Storage messages is 7 days. Messages that are not processed within 7 days are automatically deleted. You can set TTL to -1 for messages that should never expire.')">
+                <span class="option-label">B</span> Default 7 days, maximum 7 days
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum TTL is 7 days — not 30 days. Service Bus supports unlimited TTL, but Queue Storage is capped at 7 days.')">
+                <span class="option-label">C</span> Default 1 day, maximum 30 days
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue Storage messages do not persist indefinitely by default — the default TTL is 7 days.')">
+                <span class="option-label">D</span> No default TTL — messages persist indefinitely
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="table-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Table Storage</span>
+            </a>
+            <a class="related-card" href="file-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure File Storage</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="file-storage.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure File Storage</span>
+          </a>
+          <a class="nav-card next" href="table-storage.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Table Storage</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

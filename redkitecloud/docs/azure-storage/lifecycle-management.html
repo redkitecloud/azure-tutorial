@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blob Lifecycle Management | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Automate Azure Blob Storage tier transitions and deletions with Lifecycle Management policies — reduce costs without manual intervention." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Blob Lifecycle Management</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Blob Lifecycle Management</h1>
+
+        <p class="page-intro">
+          You know that moving blobs from Hot to Cool to Archive saves money. But doing this manually for thousands or millions of blobs is impossible. Azure Blob Lifecycle Management lets you define rules that automatically transition blobs between tiers — or delete them — based on age or last-accessed time. Set it once, save money forever.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What lifecycle management is · Policy structure — rules, filters, actions · Common lifecycle patterns · Creating policies via portal and CLI · Filtering by blob prefix · Handling blob versions and snapshots · Real-world cost optimisation examples
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-lifecycle">What is Lifecycle Management?</a></li>
+            <li><a href="#policy-structure">Policy Structure</a></li>
+            <li><a href="#common-patterns">Common Lifecycle Patterns</a></li>
+            <li><a href="#creating-portal">Creating a Policy via Portal</a></li>
+            <li><a href="#creating-cli">Creating a Policy via CLI</a></li>
+            <li><a href="#filtering">Filtering by Prefix</a></li>
+            <li><a href="#versions-snapshots">Handling Versions and Snapshots</a></li>
+            <li><a href="#real-world">Real-World Examples</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-lifecycle">What is Lifecycle Management?</h2>
+          <p>Azure Blob Storage Lifecycle Management is a rules engine that automatically manages blobs based on their age or last access time. You define a policy with one or more rules, and Azure applies those rules daily to blobs in your storage account.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Why It Matters</strong>
+              Manually managing tier transitions for large storage accounts is impossible. A single backup storage account might have millions of blobs. Lifecycle policies automate the entire process — blobs automatically move to cheaper tiers as they age, and delete themselves when they're no longer needed.
+            </div>
+          </div>
+
+          <h2 id="policy-structure">Policy Structure</h2>
+          <p>A lifecycle policy consists of one or more <strong>rules</strong>. Each rule has three parts:</p>
+
+          <h3>1. Filters</h3>
+          <p>Which blobs does this rule apply to? You can filter by:</p>
+          <ul>
+            <li><strong>Blob type</strong> — blockBlob, appendBlob</li>
+            <li><strong>Prefix match</strong> — e.g., only blobs in <code>backups/</code> prefix</li>
+            <li><strong>Blob index tags</strong> — filter by custom metadata tags</li>
+          </ul>
+
+          <h3>2. Conditions</h3>
+          <p>When should the action trigger? Based on:</p>
+          <ul>
+            <li><strong>daysAfterModificationGreaterThan</strong> — days since blob was last modified</li>
+            <li><strong>daysAfterCreationGreaterThan</strong> — days since blob was created</li>
+            <li><strong>daysAfterLastAccessTimeGreaterThan</strong> — days since last access (requires access tracking enabled)</li>
+          </ul>
+
+          <h3>3. Actions</h3>
+          <p>What happens when the condition is met?</p>
+          <ul>
+            <li><strong>tierToCool</strong> — Move to Cool tier</li>
+            <li><strong>tierToCold</strong> — Move to Cold tier</li>
+            <li><strong>tierToArchive</strong> — Move to Archive tier</li>
+            <li><strong>delete</strong> — Permanently delete the blob</li>
+          </ul>
+
+          <h2 id="common-patterns">Common Lifecycle Patterns</h2>
+
+          <h3>Pattern 1 — Gradual Archive (Most Common)</h3>
+          <p>Blobs are active initially, then used less over time, eventually archived or deleted:</p>
+          <ul>
+            <li>0–30 days: Hot (active)</li>
+            <li>30–90 days: Cool (less frequent access)</li>
+            <li>90–365 days: Cold (rare access)</li>
+            <li>365+ days: Archive (compliance only)</li>
+            <li>2555+ days (7 years): Delete</li>
+          </ul>
+
+          <h3>Pattern 2 — Backup Retention</h3>
+          <p>Keep daily backups for 30 days, then delete:</p>
+          <ul>
+            <li>0–30 days: Cool</li>
+            <li>30+ days: Delete</li>
+          </ul>
+
+          <h3>Pattern 3 — Log File Management</h3>
+          <p>Application logs: keep recent ones accessible, archive old ones:</p>
+          <ul>
+            <li>0–7 days: Hot (being actively queried)</li>
+            <li>7–90 days: Cool</li>
+            <li>90+ days: Archive or Delete</li>
+          </ul>
+
+          <h2 id="creating-portal">Creating a Policy via Portal</h2>
+          <ol>
+            <li>Go to your Storage Account in the Azure Portal</li>
+            <li>In the left menu → <strong>Data management</strong> → <strong>Lifecycle management</strong></li>
+            <li>Click <strong>+ Add a rule</strong></li>
+            <li>Give the rule a name</li>
+            <li>Select <strong>Block blobs</strong></li>
+            <li>Set the filter (all blobs or by prefix)</li>
+            <li>Configure the actions — e.g., "Move to cool after 30 days"</li>
+            <li>Add more actions for further transitions</li>
+            <li>Click <strong>Add</strong></li>
+          </ol>
+
+          <h2 id="creating-cli">Creating a Policy via CLI</h2>
+          <p>Lifecycle policies are defined in JSON format:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">JSON</span>
+              <span class="code-label">lifecycle-policy.json — Gradual archive pattern</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">{
+  "rules": [
+    {
+      "name": "archiveOldBlobs",
+      "enabled": true,
+      "type": "Lifecycle",
+      "definition": {
+        "filters": {
+          "blobTypes": ["blockBlob"]
+        },
+        "actions": {
+          "baseBlob": {
+            "tierToCool": {
+              "daysAfterModificationGreaterThan": 30
+            },
+            "tierToCold": {
+              "daysAfterModificationGreaterThan": 90
+            },
+            "tierToArchive": {
+              "daysAfterModificationGreaterThan": 365
+            },
+            "delete": {
+              "daysAfterModificationGreaterThan": 2555
+            }
+          }
+        }
+      }
+    }
+  ]
+}</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Apply the lifecycle policy</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Apply policy from JSON file
+az storage account management-policy create \
+  --account-name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --policy @lifecycle-policy.json</code></pre>
+          </div>
+
+          <h2 id="filtering">Filtering by Prefix</h2>
+          <p>You can apply different lifecycle rules to different "folders" of blobs using prefix filters:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">JSON</span>
+              <span class="code-label">Separate rules for backups and logs</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">{
+  "rules": [
+    {
+      "name": "backupRetention",
+      "enabled": true,
+      "type": "Lifecycle",
+      "definition": {
+        "filters": {
+          "blobTypes": ["blockBlob"],
+          "prefixMatch": ["backups/"]
+        },
+        "actions": {
+          "baseBlob": {
+            "tierToCool": { "daysAfterModificationGreaterThan": 7 },
+            "delete": { "daysAfterModificationGreaterThan": 30 }
+          }
+        }
+      }
+    },
+    {
+      "name": "logArchive",
+      "enabled": true,
+      "type": "Lifecycle",
+      "definition": {
+        "filters": {
+          "blobTypes": ["blockBlob"],
+          "prefixMatch": ["logs/"]
+        },
+        "actions": {
+          "baseBlob": {
+            "tierToArchive": { "daysAfterModificationGreaterThan": 90 },
+            "delete": { "daysAfterModificationGreaterThan": 365 }
+          }
+        }
+      }
+    }
+  ]
+}</code></pre>
+          </div>
+
+          <h2 id="versions-snapshots">Handling Versions and Snapshots</h2>
+          <p>If blob versioning is enabled, lifecycle policies can also manage old versions and snapshots separately from the current blob:</p>
+          <ul>
+            <li><strong>version</strong> actions — apply to non-current versions</li>
+            <li><strong>snapshot</strong> actions — apply to blob snapshots</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">JSON</span>
+              <span class="code-label">Manage blob versions lifecycle</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">"actions": {
+  "baseBlob": {
+    "tierToArchive": { "daysAfterModificationGreaterThan": 365 }
+  },
+  "version": {
+    "tierToArchive": { "daysAfterCreationGreaterThan": 90 },
+    "delete": { "daysAfterCreationGreaterThan": 365 }
+  },
+  "snapshot": {
+    "delete": { "daysAfterCreationGreaterThan": 30 }
+  }
+}</code></pre>
+          </div>
+
+          <h2 id="real-world">Real-World Examples</h2>
+
+          <h3>Media Company — Video Archive</h3>
+          <p>A media company uploads new videos daily. Recent videos get lots of views, older ones rarely watched:</p>
+          <ul>
+            <li>0–30 days: Hot (new release — high traffic)</li>
+            <li>30–180 days: Cool (catalog — occasional views)</li>
+            <li>180+ days: Cold (archive — very rare views)</li>
+            <li>3+ years: Archive (compliance archive)</li>
+          </ul>
+          <p>Savings: Videos older than 6 months automatically stored at fraction of Hot tier cost.</p>
+
+          <h3>Healthcare — Patient Records</h3>
+          <p>Patient records must be kept for 7 years (regulatory requirement) but are rarely accessed after initial treatment:</p>
+          <ul>
+            <li>0–1 year: Cool (recently treated, may need records)</li>
+            <li>1–7 years: Archive (compliance only)</li>
+            <li>7+ years: Delete (retention period expired)</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that lifecycle policies automate tier transitions and deletions based on blob age. Know that rules can filter by blob type and prefix. Know that policies are applied daily by Azure. Know that you can manage blob versions and snapshots separately from base blobs.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the primary purpose of Azure Blob Storage Lifecycle Management?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Lifecycle Management does not improve performance — it manages cost by automatically transitioning blobs between storage tiers.')">
+                <span class="option-label">A</span> To improve blob storage performance
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Lifecycle Management automatically transitions blobs between tiers (Hot→Cool→Archive) or deletes them based on age or last access time — reducing storage costs without manual intervention.')">
+                <span class="option-label">B</span> To automatically move blobs between tiers or delete them based on age to reduce costs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Lifecycle Management manages tiers and deletion — not replication. Redundancy is configured separately at the storage account level.')">
+                <span class="option-label">C</span> To replicate blobs to a secondary region automatically
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob versioning is a separate feature — Lifecycle Management can manage versions, but that is not its primary purpose.')">
+                <span class="option-label">D</span> To create automatic versions of blobs when they are modified
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> How often does Azure evaluate and apply lifecycle management policies?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Lifecycle policies are not applied in real-time — they run on a daily schedule.')">
+                <span class="option-label">A</span> In real-time as blobs are created or modified
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure evaluates and applies lifecycle management policies on a daily basis. Blobs that meet the policy conditions on a given day will have the specified action applied.')">
+                <span class="option-label">B</span> Daily
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Lifecycle policies run daily — not weekly.')">
+                <span class="option-label">C</span> Weekly
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Lifecycle policies are not manually triggered — Azure applies them automatically on a daily schedule.')">
+                <span class="option-label">D</span> Only when manually triggered
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A company wants to apply a lifecycle policy only to blobs in the "backups/" virtual folder. How do they achieve this?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There are no subfolders in Blob Storage — the hierarchy is flat. You can simulate folder structure with prefixes, but you use prefix filters in lifecycle policies.')">
+                <span class="option-label">A</span> Create a separate container named "backups" and apply the policy to that container
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Lifecycle policy rules support prefix matching via the "prefixMatch" filter. Setting prefixMatch to ["backups/"] applies the rule only to blobs whose names start with "backups/".')">
+                <span class="option-label">B</span> Use a prefix filter in the lifecycle rule — set prefixMatch to "backups/"
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob tags can be used as filters but are not the most common approach for folder-based filtering — prefix matching is simpler and more common.')">
+                <span class="option-label">C</span> Tag all backups blobs with a "backups" tag and filter by tag
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Lifecycle policies apply to blobs, not containers — and you cannot create a policy that applies to only one container using container-level settings in the management policy.')">
+                <span class="option-label">D</span> Apply the lifecycle policy only to the storage account in the backups resource group
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which action in a lifecycle policy permanently removes blobs?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "tierToArchive" moves a blob to Archive tier — it does not delete it.')">
+                <span class="option-label">A</span> tierToArchive
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "tierToCool" moves a blob to Cool tier — it does not delete it.')">
+                <span class="option-label">B</span> tierToCool
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The "delete" action permanently removes blobs that meet the specified age condition. For example, "delete blobs modified more than 365 days ago" will permanently delete qualifying blobs.')">
+                <span class="option-label">C</span> delete
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "remove" is not a valid lifecycle management action — the correct action for deletion is "delete".')">
+                <span class="option-label">D</span> remove
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A lifecycle policy is configured to move blobs to Cool after 30 days and delete them after 90 days. A blob was last modified 45 days ago. What tier is it in?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The blob is 45 days old — it passed the 30-day threshold and was moved to Cool tier. It has not yet reached the 90-day deletion threshold.')">
+                <span class="option-label">A</span> Hot
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The blob is 45 days old. It passed the 30-day threshold (moved to Cool) but has not yet reached the 90-day deletion threshold. Therefore it is in the Cool tier.')">
+                <span class="option-label">B</span> Cool
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The policy does not include an Archive action — it only has Cool (at 30 days) and delete (at 90 days).')">
+                <span class="option-label">C</span> Archive
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The blob is only 45 days old — the deletion threshold is 90 days. It has not been deleted yet.')">
+                <span class="option-label">D</span> Deleted
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="blob-access-tiers.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Blob Access Tiers</span>
+            </a>
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="storage-redundancy.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Redundancy</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="blob-access-tiers.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Blob Access Tiers</span>
+          </a>
+          <a class="nav-card next" href="file-storage.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure File Storage</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>

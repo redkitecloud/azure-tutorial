@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Storage Overview | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete overview of Azure Storage — storage account types, services, redundancy options, access tiers, and when to use each storage service." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Storage Overview</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Storage Overview</h1>
+
+        <p class="page-intro">
+          Azure Storage is Microsoft's cloud storage platform — a massively scalable, durable, and highly available storage service that underpins nearly everything in Azure. Whether you're storing images for a website, backing up virtual machines, archiving compliance data, or queuing messages between microservices — Azure Storage has a service for it. This overview covers the complete storage landscape before we dive deep into each service.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          The Azure Storage account — what it is and how it works · The four core storage services · Storage account types · Redundancy options (LRS, ZRS, GRS, GZRS) · Performance tiers · How to create a storage account · Choosing the right storage service
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-storage">What is Azure Storage?</a></li>
+            <li><a href="#storage-account">The Storage Account</a></li>
+            <li><a href="#four-services">The Four Core Storage Services</a></li>
+            <li><a href="#account-types">Storage Account Types</a></li>
+            <li><a href="#redundancy">Redundancy Options</a></li>
+            <li><a href="#performance">Performance Tiers</a></li>
+            <li><a href="#creating">Creating a Storage Account</a></li>
+            <li><a href="#choosing">Choosing the Right Storage Service</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-storage">What is Azure Storage?</h2>
+          <p>Azure Storage is a cloud storage platform offering multiple storage services — all accessed via HTTP/HTTPS REST APIs from anywhere in the world. It is:</p>
+          <ul>
+            <li><strong>Durable</strong> — Data is replicated multiple times (3–6 copies depending on redundancy option)</li>
+            <li><strong>Highly available</strong> — 99.9% to 99.99% SLA depending on redundancy</li>
+            <li><strong>Massively scalable</strong> — Store petabytes of data, handle millions of requests per second</li>
+            <li><strong>Secure</strong> — Encrypted at rest (AES-256) and in transit (TLS) by default</li>
+            <li><strong>Cost-effective</strong> — Pay only for what you store and transfer</li>
+          </ul>
+
+          <h2 id="storage-account">The Storage Account</h2>
+          <p>A <strong>Storage Account</strong> is the top-level container for all Azure Storage services. Every storage resource (blob container, file share, queue, table) lives inside a storage account. Think of it as a namespace — a unique endpoint in Azure under which all your storage data lives.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Storage Account Naming</strong>
+              Storage account names must be globally unique across all of Azure (not just your subscription). They must be 3–24 characters, lowercase letters and numbers only — no hyphens or special characters. Example: <code>mystorageaccount2026</code>
+            </div>
+          </div>
+
+          <h3>Storage Account Endpoints</h3>
+          <p>Each storage account gets unique endpoints for each service:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Service</th><th>Endpoint Format</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Blob Storage</td><td><code>https://[accountname].blob.core.windows.net</code></td></tr>
+                <tr><td>File Storage</td><td><code>https://[accountname].file.core.windows.net</code></td></tr>
+                <tr><td>Queue Storage</td><td><code>https://[accountname].queue.core.windows.net</code></td></tr>
+                <tr><td>Table Storage</td><td><code>https://[accountname].table.core.windows.net</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="four-services">The Four Core Storage Services</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Service</th><th>What It Stores</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Blob Storage</strong></td><td>Unstructured data — files, images, videos, backups</td><td>Object/file storage for any data type</td></tr>
+                <tr><td><strong>File Storage</strong></td><td>File shares accessible via SMB or NFS protocol</td><td>Shared file system for VMs and apps</td></tr>
+                <tr><td><strong>Queue Storage</strong></td><td>Messages between application components</td><td>Decoupling microservices and async processing</td></tr>
+                <tr><td><strong>Table Storage</strong></td><td>Structured NoSQL key-value data</td><td>Simple structured data without complex queries</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="account-types">Storage Account Types</h2>
+          <p>Azure offers several storage account types — choose based on what you need to store:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Account Type</th><th>Supported Services</th><th>Use Case</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Standard general-purpose v2</strong></td><td>Blob, File, Queue, Table</td><td>Most workloads — recommended default</td></tr>
+                <tr><td><strong>Premium block blobs</strong></td><td>Blob only (block blobs)</td><td>High-performance blob workloads, low latency</td></tr>
+                <tr><td><strong>Premium file shares</strong></td><td>File only</td><td>High-performance file shares (SMB/NFS)</td></tr>
+                <tr><td><strong>Premium page blobs</strong></td><td>Blob only (page blobs)</td><td>VM disks (legacy — use Managed Disks instead)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Default Choice</strong>
+              For 90% of use cases, use <strong>Standard general-purpose v2</strong>. It supports all four storage services and all redundancy options. Only use Premium accounts when you have specific high-performance requirements.
+            </div>
+          </div>
+
+          <h2 id="redundancy">Redundancy Options</h2>
+          <p>Azure Storage always stores multiple copies of your data to protect against failures. You choose how and where those copies are stored:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Option</th><th>Copies</th><th>Where</th><th>Protects Against</th><th>Cost</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>LRS</strong> — Locally Redundant</td><td>3</td><td>Same data centre</td><td>Hardware failures within one DC</td><td>Lowest</td></tr>
+                <tr><td><strong>ZRS</strong> — Zone Redundant</td><td>3</td><td>3 AZs in same region</td><td>Data centre (zone) failures</td><td>Medium</td></tr>
+                <tr><td><strong>GRS</strong> — Geo Redundant</td><td>6</td><td>Primary + paired region (LRS each)</td><td>Regional disasters</td><td>High</td></tr>
+                <tr><td><strong>GZRS</strong> — Geo-Zone Redundant</td><td>6</td><td>3 AZs primary + LRS paired region</td><td>Zone failures + regional disasters</td><td>Highest</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>RA- Variants (Read Access)</strong>
+              GRS and GZRS also have read-access variants: <strong>RA-GRS</strong> and <strong>RA-GZRS</strong>. These allow reading from the secondary region even when the primary is healthy — useful for globally distributed read workloads.
+            </div>
+          </div>
+
+          <h3>Which Redundancy to Choose</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scenario</th><th>Recommended</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Dev/test, non-critical data</td><td>LRS — cheapest</td></tr>
+                <tr><td>Production data, region supports AZs</td><td>ZRS — zone-level protection</td></tr>
+                <tr><td>Critical data needing regional DR</td><td>GRS or GZRS</td></tr>
+                <tr><td>Compliance requiring geo-redundancy</td><td>GRS or GZRS</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="performance">Performance Tiers</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tier</th><th>Storage</th><th>Latency</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Standard</strong></td><td>HDD-backed</td><td>Milliseconds</td><td>Most workloads, cost-sensitive</td></tr>
+                <tr><td><strong>Premium</strong></td><td>SSD-backed</td><td>Single-digit ms</td><td>High-performance, low-latency workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="creating">Creating a Storage Account</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a storage account</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Create a Standard GPv2 storage account with ZRS
+az storage account create \
+  --name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --location centralindia \
+  --sku Standard_ZRS \
+  --kind StorageV2 \
+  --access-tier Hot</code></pre>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>SKU Value</th><th>Redundancy</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Standard_LRS</td><td>Locally Redundant Storage</td></tr>
+                <tr><td>Standard_ZRS</td><td>Zone Redundant Storage</td></tr>
+                <tr><td>Standard_GRS</td><td>Geo Redundant Storage</td></tr>
+                <tr><td>Standard_GZRS</td><td>Geo-Zone Redundant Storage</td></tr>
+                <tr><td>Standard_RAGRS</td><td>Read-Access Geo Redundant Storage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="choosing">Choosing the Right Storage Service</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>You Need To...</th><th>Use</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Store images, videos, documents, backups</td><td>Blob Storage</td></tr>
+                <tr><td>Share files between VMs (like a network drive)</td><td>File Storage</td></tr>
+                <tr><td>Pass messages between app components</td><td>Queue Storage</td></tr>
+                <tr><td>Store simple key-value structured data cheaply</td><td>Table Storage</td></tr>
+                <tr><td>Store VM disks</td><td>Managed Disks (not Storage Account)</td></tr>
+                <tr><td>Store relational data with complex queries</td><td>Azure SQL Database</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the four storage services and what each stores. Know LRS/ZRS/GRS/GZRS and what each protects against. Know that storage account names must be globally unique, 3–24 chars, lowercase alphanumeric only.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What are the character restrictions for an Azure Storage account name?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage account names must be lowercase only — uppercase letters are not allowed.')">
+                <span class="option-label">A</span> 1–64 characters, letters and numbers, uppercase allowed
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Storage account names must be 3–24 characters, lowercase letters and numbers only (no hyphens, underscores, or special characters), and must be globally unique across all of Azure.')">
+                <span class="option-label">B</span> 3–24 characters, lowercase letters and numbers only, globally unique
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hyphens are NOT allowed in storage account names.')">
+                <span class="option-label">C</span> 3–63 characters, letters, numbers, and hyphens allowed
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage account names have a maximum of 24 characters — not 255.')">
+                <span class="option-label">D</span> Up to 255 characters, any character allowed
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which redundancy option replicates data across three Availability Zones within a single region?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. LRS replicates 3 copies within a single data centre — not across Availability Zones.')">
+                <span class="option-label">A</span> LRS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ZRS (Zone Redundant Storage) replicates data synchronously across three Availability Zones within the same region. If one zone fails, data remains accessible from the other two zones.')">
+                <span class="option-label">B</span> ZRS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GRS replicates to a paired region — not across Availability Zones within the same region.')">
+                <span class="option-label">C</span> GRS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GZRS combines ZRS in the primary region with LRS in the paired region — but the question specifically asks about zone replication within one region.')">
+                <span class="option-label">D</span> GZRS
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A developer needs to share files between multiple Azure VMs — like a network drive. Which Azure Storage service should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob Storage stores unstructured files but is accessed via HTTP/API — it cannot be mounted as a network drive (SMB/NFS) on VMs.')">
+                <span class="option-label">A</span> Blob Storage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure File Storage provides fully managed file shares accessible via SMB and NFS protocols — exactly like a network drive. Multiple VMs can mount the same file share simultaneously.')">
+                <span class="option-label">B</span> File Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue Storage stores messages for communication between application components — not file sharing between VMs.')">
+                <span class="option-label">C</span> Queue Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Table Storage is a NoSQL key-value store — not a file sharing solution for VMs.')">
+                <span class="option-label">D</span> Table Storage
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which storage account type is recommended for most general-purpose workloads?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Standard general-purpose v2 (GPv2) is the recommended default for most workloads. It supports all four storage services (Blob, File, Queue, Table), all redundancy options, and all access tiers.')">
+                <span class="option-label">A</span> Standard general-purpose v2
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium block blobs is a specialised account for high-performance blob workloads — not a general-purpose recommendation.')">
+                <span class="option-label">B</span> Premium block blobs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium file shares is specifically for high-performance file share scenarios — not general-purpose storage.')">
+                <span class="option-label">C</span> Premium file shares
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium page blobs is a legacy account type primarily used for VM disks — Managed Disks are the recommended approach for VM storage now.')">
+                <span class="option-label">D</span> Premium page blobs
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What does RA-GRS provide that GRS does not?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both GRS and RA-GRS replicate to the same number of locations — the difference is read access to the secondary, not additional copies.')">
+                <span class="option-label">A</span> More copies of data in the primary region
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! RA-GRS (Read-Access Geo-Redundant Storage) provides read access to the secondary region even when the primary region is healthy. Standard GRS only allows reading from the secondary after a failover.')">
+                <span class="option-label">B</span> Read access to the secondary region even when the primary is healthy
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RA-GRS does not provide faster replication — the replication speed is the same as GRS.')">
+                <span class="option-label">C</span> Faster replication to the secondary region
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both GRS and RA-GRS replicate to a paired region — RA-GRS just adds read access to that secondary region.')">
+                <span class="option-label">D</span> Replication to multiple secondary regions instead of one
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="file-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure File Storage</span>
+            </a>
+            <a class="related-card" href="storage-redundancy.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Redundancy</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <div></div>
+          <a class="nav-card next" href="blob-storage.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Blob Storage</span>
+          </a>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="bottom"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
