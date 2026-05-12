@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network Security Groups (NSG) | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Network Security Groups — inbound/outbound rules, priority, default rules, application security groups, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Network Security Groups</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Network Security Groups (NSG)</h1>
+
+        <p class="page-intro">
+          A Network Security Group (NSG) is Azure's virtual firewall — a set of rules that filter network traffic to and from Azure resources. NSGs are one of the most fundamental and frequently tested topics in AZ-104. Every production resource should have an NSG, and understanding how rules interact, how priority works, and how to troubleshoot connectivity issues with NSGs is essential for real-world Azure.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What NSGs are and how they work · Inbound and outbound rules · Rule properties — priority, protocol, ports, source/destination · Default rules that exist in every NSG · Applying NSGs to subnets and NICs · Traffic evaluation order · Application Security Groups (ASG) · Effective security rules · Creating NSGs via CLI
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-nsg">What is an NSG?</a></li>
+            <li><a href="#rule-properties">Rule Properties</a></li>
+            <li><a href="#default-rules">Default Rules</a></li>
+            <li><a href="#applying-nsgs">Applying NSGs</a></li>
+            <li><a href="#traffic-evaluation">Traffic Evaluation</a></li>
+            <li><a href="#asg">Application Security Groups (ASG)</a></li>
+            <li><a href="#effective-rules">Effective Security Rules</a></li>
+            <li><a href="#creating-nsgs">Creating and Managing NSGs</a></li>
+            <li><a href="#common-rules">Common NSG Rule Examples</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-nsg">What is an NSG?</h2>
+          <p>An NSG is a list of security rules that allow or deny inbound and outbound network traffic. Rules are evaluated in priority order. The first matching rule wins — processing stops at that rule.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>NSG is Stateful</strong>
+              NSGs are stateful — if you allow inbound traffic on a port, the return traffic (outbound response) is automatically allowed. You don't need to create both inbound and outbound rules for a single connection.
+            </div>
+          </div>
+
+          <h2 id="rule-properties">Rule Properties</h2>
+          <p>Every NSG rule has these properties:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Property</th><th>Description</th><th>Examples</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Priority</strong></td><td>100–4096. Lower = higher priority. First match wins.</td><td>100, 200, 300...</td></tr>
+                <tr><td><strong>Name</strong></td><td>Descriptive rule name</td><td>Allow-HTTP, Deny-SSH</td></tr>
+                <tr><td><strong>Protocol</strong></td><td>TCP, UDP, ICMP, or Any (*)</td><td>TCP</td></tr>
+                <tr><td><strong>Source</strong></td><td>IP, CIDR, Service Tag, or ASG</td><td>10.0.1.0/24, Internet, VirtualNetwork</td></tr>
+                <tr><td><strong>Source Port</strong></td><td>Port or range (usually * for inbound)</td><td>*, 1024-65535</td></tr>
+                <tr><td><strong>Destination</strong></td><td>IP, CIDR, Service Tag, or ASG</td><td>10.0.2.0/24, VirtualNetwork</td></tr>
+                <tr><td><strong>Destination Port</strong></td><td>Port or range</td><td>80, 443, 3389, 22, 80-443</td></tr>
+                <tr><td><strong>Action</strong></td><td>Allow or Deny</td><td>Allow, Deny</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Service Tags</h3>
+          <p>Service Tags are named groups of IP address prefixes managed by Microsoft. They simplify rules by representing groups of Azure services without requiring you to know specific IP ranges:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Service Tag</th><th>Represents</th></tr></thead>
+              <tbody>
+                <tr><td><code>Internet</code></td><td>Public internet</td></tr>
+                <tr><td><code>VirtualNetwork</code></td><td>VNet address space + connected networks</td></tr>
+                <tr><td><code>AzureLoadBalancer</code></td><td>Azure Load Balancer health probe IPs</td></tr>
+                <tr><td><code>Storage</code></td><td>Azure Storage service IPs</td></tr>
+                <tr><td><code>Sql</code></td><td>Azure SQL Database IPs</td></tr>
+                <tr><td><code>AzureMonitor</code></td><td>Azure Monitor service IPs</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="default-rules">Default Rules</h2>
+          <p>Every NSG has three default rules that cannot be deleted — only overridden by higher-priority rules:</p>
+
+          <h3>Default Inbound Rules</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Priority</th><th>Name</th><th>Source</th><th>Destination</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>65000</td><td>AllowVnetInBound</td><td>VirtualNetwork</td><td>VirtualNetwork</td><td>Allow</td></tr>
+                <tr><td>65001</td><td>AllowAzureLoadBalancerInBound</td><td>AzureLoadBalancer</td><td>Any</td><td>Allow</td></tr>
+                <tr><td>65500</td><td>DenyAllInBound</td><td>Any</td><td>Any</td><td><strong>Deny</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Default Outbound Rules</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Priority</th><th>Name</th><th>Source</th><th>Destination</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>65000</td><td>AllowVnetOutBound</td><td>VirtualNetwork</td><td>VirtualNetwork</td><td>Allow</td></tr>
+                <tr><td>65001</td><td>AllowInternetOutBound</td><td>Any</td><td>Internet</td><td>Allow</td></tr>
+                <tr><td>65500</td><td>DenyAllOutBound</td><td>Any</td><td>Any</td><td><strong>Deny</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Key Insight</strong>
+              By default, all inbound traffic from the internet is blocked (DenyAllInBound at 65500). All outbound traffic to the internet is allowed (AllowInternetOutBound at 65001). All VNet-to-VNet traffic is allowed in both directions. This is why you need to add rules to allow inbound HTTP/SSH/RDP.
+            </div>
+          </div>
+
+          <h2 id="applying-nsgs">Applying NSGs</h2>
+          <p>NSGs can be applied at two levels:</p>
+
+          <h3>Subnet Level</h3>
+          <p>Applies to all traffic entering/leaving the subnet. All resources in the subnet are subject to the rules. Best for applying consistent policies to a tier (e.g., all web servers).</p>
+
+          <h3>NIC Level</h3>
+          <p>Applies to traffic for a specific VM's network interface. Allows per-VM rules in addition to subnet-level rules.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Both Subnet and NIC NSGs</strong>
+              If both a subnet NSG and a NIC NSG exist, traffic must pass BOTH for inbound: subnet NSG first, then NIC NSG. For outbound: NIC NSG first, then subnet NSG. Both must allow the traffic.
+            </div>
+          </div>
+
+          <h2 id="traffic-evaluation">Traffic Evaluation</h2>
+          <p>For inbound traffic to a VM:</p>
+          <ol>
+            <li>Traffic hits the subnet NSG first</li>
+            <li>Rules evaluated in priority order (lowest number first)</li>
+            <li>First matching rule is applied — processing stops</li>
+            <li>If allowed, traffic proceeds to the NIC NSG</li>
+            <li>NIC NSG rules evaluated in same way</li>
+            <li>If allowed by both, traffic reaches the VM</li>
+          </ol>
+
+          <h2 id="asg">Application Security Groups (ASG)</h2>
+          <p>ASGs let you group VMs logically and use those groups in NSG rules instead of IP addresses. This makes rules readable and maintainable — especially as your infrastructure grows.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create ASGs and use in NSG rules</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create ASGs
+az network asg create --name WebServers --resource-group myRG --location centralindia
+az network asg create --name AppServers --resource-group myRG --location centralindia
+az network asg create --name DbServers  --resource-group myRG --location centralindia
+
+# Associate VM NIC with ASG
+az network nic ip-config update \
+  --resource-group myRG \
+  --nic-name vm-web-nic \
+  --name ipconfig1 \
+  --application-security-groups WebServers
+
+# Create NSG rule using ASGs
+az network nsg rule create \
+  --resource-group myRG \
+  --nsg-name myNSG \
+  --name Allow-Web-to-App \
+  --priority 200 \
+  --source-asgs WebServers \
+  --destination-asgs AppServers \
+  --destination-port-ranges 8080 \
+  --protocol TCP \
+  --access Allow</code></pre>
+          </div>
+
+          <h2 id="effective-rules">Effective Security Rules</h2>
+          <p>When troubleshooting connectivity, check the Effective Security Rules for a NIC — it shows the combined result of both the subnet NSG and NIC NSG, making it easy to see exactly what is allowed and denied.</p>
+
+          <p>In the Azure Portal: VM → Networking → Network Interface → Effective security rules</p>
+
+          <h2 id="creating-nsgs">Creating and Managing NSGs</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create NSG with common rules</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create NSG
+az network nsg create \
+  --resource-group myRG \
+  --name web-nsg \
+  --location centralindia
+
+# Allow HTTP inbound
+az network nsg rule create \
+  --resource-group myRG \
+  --nsg-name web-nsg \
+  --name Allow-HTTP \
+  --priority 100 \
+  --source-address-prefixes Internet \
+  --destination-port-ranges 80 \
+  --protocol TCP \
+  --access Allow
+
+# Allow HTTPS inbound
+az network nsg rule create \
+  --resource-group myRG \
+  --nsg-name web-nsg \
+  --name Allow-HTTPS \
+  --priority 110 \
+  --source-address-prefixes Internet \
+  --destination-port-ranges 443 \
+  --protocol TCP \
+  --access Allow
+
+# Attach NSG to subnet
+az network vnet subnet update \
+  --resource-group myRG \
+  --vnet-name myVNet \
+  --name web-subnet \
+  --network-security-group web-nsg</code></pre>
+          </div>
+
+          <h2 id="common-rules">Common NSG Rule Examples</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Use Case</th><th>Direction</th><th>Port</th><th>Protocol</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Allow web traffic</td><td>Inbound</td><td>80, 443</td><td>TCP</td><td>Internet</td></tr>
+                <tr><td>Allow SSH (Linux VMs)</td><td>Inbound</td><td>22</td><td>TCP</td><td>Your IP or Bastion subnet</td></tr>
+                <tr><td>Allow RDP (Windows VMs)</td><td>Inbound</td><td>3389</td><td>TCP</td><td>Your IP or Bastion subnet</td></tr>
+                <tr><td>Allow app tier from web tier</td><td>Inbound</td><td>8080</td><td>TCP</td><td>Web subnet CIDR</td></tr>
+                <tr><td>Allow SQL from app tier</td><td>Inbound</td><td>1433</td><td>TCP</td><td>App subnet CIDR</td></tr>
+                <tr><td>Deny all other inbound</td><td>Inbound</td><td>*</td><td>*</td><td>Any</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the three default inbound rules (VNet allow, LB allow, deny all) and default outbound rules (VNet allow, Internet allow, deny all). Know that lower priority number = higher precedence. Know that NSGs are stateful. Know that both subnet and NIC NSGs must allow traffic for it to reach a VM.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> An NSG has two inbound rules: Priority 100 — Allow TCP port 80 from Internet, and Priority 200 — Deny TCP port 80 from Internet. What happens to HTTP traffic?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! NSG rules are evaluated in priority order — lower number first. Priority 100 (Allow) is evaluated before Priority 200 (Deny). The first matching rule wins and processing stops. HTTP traffic is allowed because rule 100 matches first.')">
+                <span class="option-label">A</span> HTTP traffic is allowed — Priority 100 Allow rule matches first
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Deny rule at priority 200 is evaluated AFTER the Allow rule at priority 100. Since 100 matches first, the Deny rule is never reached.')">
+                <span class="option-label">B</span> HTTP traffic is denied — the Deny rule overrides the Allow rule
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Conflicting rules do not cause traffic to be dropped — the first matching rule (lowest priority number) wins.')">
+                <span class="option-label">C</span> HTTP traffic is dropped — conflicting rules cancel each other out
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSG rules do not require manual conflict resolution — the priority system automatically handles this.')">
+                <span class="option-label">D</span> HTTP traffic is blocked until the conflict is manually resolved
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> By default (without custom rules), can a VM in Azure access the internet (outbound)?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! NSGs have a default outbound rule "AllowInternetOutBound" at priority 65001 that allows all outbound traffic to the internet. Without custom rules, VMs can access the internet by default.')">
+                <span class="option-label">A</span> Yes — the default AllowInternetOutBound rule allows all outbound internet traffic
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default outbound rules allow internet access — outbound traffic to the internet is allowed by the AllowInternetOutBound default rule (priority 65001).')">
+                <span class="option-label">B</span> No — all outbound traffic is denied by default
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Outbound internet access is allowed by default via a default NSG rule — no custom rule is needed to enable it.')">
+                <span class="option-label">C</span> Only if a custom Allow rule is created for port 443
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Outbound internet access is allowed regardless of whether a public IP is assigned — NAT is handled by Azure.')">
+                <span class="option-label">D</span> Only if the VM has a public IP address
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A VM has both a subnet NSG and a NIC NSG. The subnet NSG allows inbound port 80, but the NIC NSG has no rule for port 80 (only the default deny-all). Can HTTP traffic reach the VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic must pass BOTH NSGs. Even though the subnet NSG allows port 80, the NIC NSG\'s implicit deny-all blocks it before it reaches the VM.')">
+                <span class="option-label">A</span> Yes — the subnet NSG allow rule is sufficient
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When both subnet and NIC NSGs exist, traffic must pass BOTH. For inbound: subnet NSG is evaluated first. Port 80 is allowed by subnet NSG. Then NIC NSG is evaluated — no allow rule for port 80, default deny blocks it. HTTP traffic cannot reach the VM.')">
+                <span class="option-label">B</span> No — traffic must pass both NSGs; the NIC NSG denies it
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSG rules don\'t merge automatically — traffic must explicitly pass every NSG in the path.')">
+                <span class="option-label">C</span> Yes — Azure merges the rules from both NSGs automatically
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The subnet NSG is evaluated first for inbound traffic, then the NIC NSG. Both must allow the traffic.')">
+                <span class="option-label">D</span> Yes — NIC NSG rules take precedence over subnet NSG rules
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the purpose of Application Security Groups (ASG)?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ASGs do not provide additional encryption — they are a grouping mechanism for NSG rules.')">
+                <span class="option-label">A</span> To encrypt traffic between application tiers
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ASGs allow you to group VMs (NICs) logically by role (e.g., WebServers, AppServers) and use those groups as source/destination in NSG rules instead of IP addresses. This makes rules much more readable and maintainable as your infrastructure scales.')">
+                <span class="option-label">B</span> To group VMs logically so they can be used as source/destination in NSG rules instead of IP addresses
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-scaling is handled by VM Scale Sets — not by Application Security Groups.')">
+                <span class="option-label">C</span> To automatically scale VMs based on traffic patterns
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Load balancing is handled by Azure Load Balancer — ASGs are for NSG rule management, not load distribution.')">
+                <span class="option-label">D</span> To load balance traffic between VMs in the same tier
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the priority range for custom NSG rules?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Custom NSG rules can have priorities from 100 to 4096. The default rules (65000–65500) cannot be deleted or created in this range. Lower numbers have higher priority — rule 100 is evaluated before rule 200.')">
+                <span class="option-label">A</span> 100 to 4096
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The range is 100–4096 — not 1–100.')">
+                <span class="option-label">B</span> 1 to 100
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The range is 100–4096 — not 1000–65000.')">
+                <span class="option-label">C</span> 1000 to 65000
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is a defined range of 100–4096 for custom rules — not unlimited.')">
+                <span class="option-label">D</span> Any number — no limit
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vnet.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Virtual Networks (VNet)</span>
+            </a>
+            <a class="related-card" href="subnets.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Subnets &amp; IP Addressing</span>
+            </a>
+            <a class="related-card" href="azure-firewall.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Firewall</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="subnets.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Subnets &amp; IP Addressing</span>
+          </a>
+          <a class="nav-card next" href="load-balancer.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Load Balancer</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

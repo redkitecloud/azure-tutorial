@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure DDoS Protection | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure DDoS Protection — Network vs IP tiers, mitigation, telemetry, SLA guarantee, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">Azure DDoS Protection</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 9 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure DDoS Protection</h1>
+        <p class="page-intro">A Distributed Denial of Service (DDoS) attack floods your resources with so much traffic that legitimate users can't get through. Azure DDoS Protection defends your Azure resources against these attacks — automatically detecting and mitigating attack traffic while allowing legitimate traffic through. It leverages Microsoft's massive global network scale to absorb attack traffic.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          DDoS attack types · Azure DDoS Protection tiers (Infrastructure, IP, Network) · How mitigation works · Adaptive tuning · DDoS telemetry and alerts · SLA credit guarantee · DDoS Rapid Response team · Cost · Best practices
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#attack-types">DDoS Attack Types</a></li>
+            <li><a href="#protection-tiers">Protection Tiers</a></li>
+            <li><a href="#how-mitigation-works">How Mitigation Works</a></li>
+            <li><a href="#adaptive-tuning">Adaptive Tuning</a></li>
+            <li><a href="#telemetry">Telemetry and Alerts</a></li>
+            <li><a href="#sla-credit">SLA Credit Guarantee</a></li>
+            <li><a href="#drr">DDoS Rapid Response</a></li>
+            <li><a href="#enabling">Enabling DDoS Protection</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="attack-types">DDoS Attack Types</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Type</th><th>Description</th><th>Example</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Volumetric</strong></td><td>Flood bandwidth with massive traffic</td><td>UDP flood, ICMP flood — measured in Gbps</td></tr>
+                <tr><td><strong>Protocol</strong></td><td>Exhaust network equipment (firewalls, load balancers)</td><td>SYN flood, fragmented packet attacks</td></tr>
+                <tr><td><strong>Resource layer (L7)</strong></td><td>Exhaust application resources</td><td>HTTP flood — appears as legitimate traffic</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="protection-tiers">Protection Tiers</h2>
+
+          <h3>DDoS Infrastructure Protection (Free)</h3>
+          <p>Automatically applied to all Azure services. Provides basic protection against common attacks that affect the Azure platform itself. No SLA, no telemetry, no adaptive tuning. Sufficient for most standard workloads that don't specifically target your application.</p>
+
+          <h3>DDoS IP Protection</h3>
+          <p>Pay-per-protected-IP model — enable on individual public IP resources. Includes adaptive tuning, telemetry, alerts, and post-attack reports. Cheaper than Network Protection for workloads with few public IPs. No DDoS Rapid Response support.</p>
+
+          <h3>DDoS Network Protection</h3>
+          <p>The most comprehensive tier — enabled at VNet level, protects all public IP resources in the VNet. Includes everything in IP Protection plus DDoS Rapid Response (access to Microsoft DDoS experts during an attack) and SLA credit guarantee.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Feature</th><th>Infrastructure</th><th>IP Protection</th><th>Network Protection</th></tr></thead>
+              <tbody>
+                <tr><td>Cost</td><td>Free</td><td>Per-IP charge</td><td>~₹180,000+/month per plan</td></tr>
+                <tr><td>Adaptive tuning</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Attack telemetry</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Alerts</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Post-attack report</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>DDoS Rapid Response</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td>SLA credit guarantee</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td>Cost protection</td><td>❌</td><td>❌</td><td>✅</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="how-mitigation-works">How Mitigation Works</h2>
+          <p>When an attack is detected against your resources:</p>
+          <ol>
+            <li>Azure's network monitors traffic patterns continuously</li>
+            <li>When anomalous traffic is detected (traffic exceeding learned baselines), mitigation begins automatically</li>
+            <li>Attack traffic is scrubbed — malicious packets are dropped while legitimate traffic passes through</li>
+            <li>Azure's global network scale absorbs volumetric floods (terabits per second capacity)</li>
+            <li>After attack subsides, mitigation is removed automatically</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Always-On Protection</strong>
+              DDoS Protection is always monitoring — there's no need to activate it during an attack. Mitigation begins automatically within seconds of attack detection, with no impact on legitimate traffic.
+            </div>
+          </div>
+
+          <h2 id="adaptive-tuning">Adaptive Tuning</h2>
+          <p>DDoS IP and Network Protection learn the normal traffic patterns for your application over time. When traffic deviates significantly from the learned baseline, mitigation triggers. This reduces false positives compared to static threshold-based approaches — your legitimate traffic spikes (e.g., flash sales) won't accidentally trigger mitigation.</p>
+
+          <h2 id="telemetry">Telemetry and Alerts</h2>
+          <p>With IP or Network Protection enabled, you get:</p>
+          <ul>
+            <li>Real-time attack metrics in Azure Monitor (packets dropped, attack vectors, attack type)</li>
+            <li>Attack start/stop alerts</li>
+            <li>Post-attack mitigation reports</li>
+            <li>Integration with Azure Sentinel for SIEM alerting</li>
+          </ul>
+
+          <h2 id="sla-credit">SLA Credit Guarantee</h2>
+          <p>DDoS Network Protection includes a financial protection — if a DDoS attack causes your application to scale out or incur extra compute/bandwidth charges, Microsoft provides service credits to offset those costs. Available only with Network Protection tier.</p>
+
+          <h2 id="drr">DDoS Rapid Response</h2>
+          <p>During an active attack, DDoS Network Protection customers can engage Microsoft's DDoS experts for assistance — available 24/7 during an ongoing attack. They can help identify the attack type, recommend mitigations, and provide guidance. Only available with Network Protection tier.</p>
+
+          <h2 id="enabling">Enabling DDoS Protection</h2>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create DDoS Protection plan and link to VNet</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Create DDoS protection plan
+az network ddos-protection create \
+  --name myDdosPlan \
+  --resource-group myRG \
+  --location centralindia
+
+# Link to VNet
+az network vnet update \
+  --name myVNet \
+  --resource-group myRG \
+  --ddos-protection-plan myDdosPlan \
+  --ddos-protection true</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the three tiers: Infrastructure (free, automatic), IP Protection (per-IP, no DRR), Network Protection (per-VNet, includes DRR and SLA credits). Know that DDoS protection is always-on and automatic — no manual activation during attacks. Know that Network Protection enables cost protection via SLA credits.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which Azure DDoS Protection tier is automatically applied to all Azure resources at no extra cost?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! DDoS Infrastructure Protection is automatically applied to all Azure services at no extra cost. It provides basic platform-level protection against common DDoS attacks but has no SLA, no telemetry, and no adaptive tuning.')">A — DDoS Infrastructure Protection</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP Protection is a paid, per-IP service that must be explicitly enabled.')">B — DDoS IP Protection</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Network Protection is the most comprehensive paid tier — it requires explicit configuration and costs ~₹180,000+/month.')">C — DDoS Network Protection</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Basic" tier — the three tiers are Infrastructure, IP Protection, and Network Protection.')">D — DDoS Basic</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which DDoS Protection tier includes access to Microsoft DDoS experts during an active attack (DDoS Rapid Response)?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Infrastructure Protection is the free tier with no expert access.')">A — DDoS Infrastructure Protection</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP Protection includes telemetry and alerts but NOT DDoS Rapid Response — that is a Network Protection exclusive feature.')">B — DDoS IP Protection</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! DDoS Rapid Response (DRR) — access to Microsoft\'s DDoS experts during an active attack — is exclusively available with DDoS Network Protection. It also includes SLA credits and cost protection, which IP Protection does not provide.')">C — DDoS Network Protection</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DDoS Rapid Response is available with Network Protection only — not all paid tiers.')">D — Both IP Protection and Network Protection</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is "adaptive tuning" in Azure DDoS Protection?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Adaptive tuning learns your specific traffic patterns — it does not use fixed thresholds.')">A — Fixed bandwidth thresholds that trigger mitigation at preset levels</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Adaptive tuning learns your application\'s normal traffic baseline over time and adjusts mitigation thresholds accordingly. This reduces false positives — your legitimate traffic spikes (like a product launch) won\'t accidentally trigger mitigation.')">B — Machine learning that learns normal traffic patterns and adjusts thresholds to reduce false positives</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Adaptive tuning is about learning traffic baselines — not about auto-scaling your resources.')">C — Automatic scaling of your application during a DDoS attack</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Adaptive tuning adjusts detection thresholds — not firewall rules.')">D — Automatic firewall rule updates during an attack</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Does Azure DDoS Protection require manual activation when an attack begins?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DDoS Protection is always-on — it automatically detects and mitigates attacks without any manual intervention.')">A — Yes — you must enable mitigation mode in the Azure Portal</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure DDoS Protection is always-on — it continuously monitors traffic and automatically activates mitigation within seconds of detecting an attack. No manual intervention, no activation — mitigation starts and stops automatically.')">B — No — it is always-on and activates automatically when an attack is detected</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DDoS Protection activates automatically within seconds — not after a 5-minute delay.')">C — No — but there is a 5-minute delay before mitigation starts</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DDoS protection activates automatically — calling support is not required.')">D — Yes — you must call Azure Support to initiate mitigation</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A volumetric DDoS attack floods your application with 500 Gbps of traffic. Which DDoS attack type is this?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Volumetric attacks flood bandwidth with massive amounts of traffic — measured in Gbps or Tbps. Examples include UDP floods and ICMP floods. They aim to saturate the network connection and prevent legitimate traffic from getting through.')">A — Volumetric attack</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Protocol attacks target network equipment (firewalls, load balancers) by exhausting their state tables — SYN floods are an example. They\'re measured in packets per second, not Gbps bandwidth.')">B — Protocol attack</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resource layer (L7) attacks target application resources — like HTTP floods that appear as legitimate requests. They don\'t typically generate 500 Gbps of raw traffic.')">C — Resource layer attack</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DNS amplification is a specific type of volumetric attack — but the general category for bandwidth flooding is "volumetric".')">D — DNS amplification attack</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="azure-firewall.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure Firewall</span></a>
+            <a class="related-card" href="nsg.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Network Security Groups</span></a>
+            <a class="related-card" href="private-endpoints.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure Private Endpoints</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="azure-firewall.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Firewall</span></a>
+          <a class="nav-card next" href="private-endpoints.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Private Endpoints</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

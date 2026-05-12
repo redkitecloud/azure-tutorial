@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Application Gateway | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Application Gateway — Layer 7 load balancing, URL routing, SSL termination, WAF, autoscaling, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Application Gateway</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Application Gateway</h1>
+
+        <p class="page-intro">
+          Azure Application Gateway is a Layer 7 (HTTP/HTTPS) load balancer and application delivery controller. Unlike the basic Load Balancer, Application Gateway understands HTTP — it can route based on URL paths, hostnames, and HTTP headers. It also provides SSL termination, cookie-based session affinity, and an integrated Web Application Firewall (WAF) to protect against common web vulnerabilities.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Application Gateway does and when to use it · SKUs — Standard v2 and WAF v2 · Key components — listeners, routing rules, backend pools, HTTP settings · URL path-based routing · Multi-site hosting · SSL termination and end-to-end SSL · Web Application Firewall (WAF) · Autoscaling · App Gateway vs Load Balancer
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-appgw">What is Application Gateway?</a></li>
+            <li><a href="#skus">SKUs</a></li>
+            <li><a href="#components">Key Components</a></li>
+            <li><a href="#url-routing">URL Path-Based Routing</a></li>
+            <li><a href="#multi-site">Multi-Site Hosting</a></li>
+            <li><a href="#ssl">SSL Termination</a></li>
+            <li><a href="#waf">Web Application Firewall (WAF)</a></li>
+            <li><a href="#autoscaling">Autoscaling</a></li>
+            <li><a href="#appgw-vs-lb">App Gateway vs Load Balancer</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-appgw">What is Application Gateway?</h2>
+          <p>Application Gateway is a web traffic load balancer that enables you to manage traffic to your web applications. It is an Application Delivery Controller (ADC) as a service — handling SSL offloading, URL routing, health monitoring, and security in one place.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Feature</th><th>Capability</th></tr></thead>
+              <tbody>
+                <tr><td>Layer 7 routing</td><td>Route based on URL paths, hostnames, HTTP headers</td></tr>
+                <tr><td>SSL termination</td><td>Decrypt HTTPS at the gateway, send HTTP to backends</td></tr>
+                <tr><td>End-to-end SSL</td><td>Decrypt, inspect, re-encrypt to backends</td></tr>
+                <tr><td>WAF</td><td>Protect against OWASP Top 10 vulnerabilities</td></tr>
+                <tr><td>Session affinity</td><td>Cookie-based — same user always hits same backend</td></tr>
+                <tr><td>Health probes</td><td>HTTP/HTTPS probes to backend pool members</td></tr>
+                <tr><td>Autoscaling</td><td>Scale in/out based on traffic load (v2 SKU)</td></tr>
+                <tr><td>Zone redundancy</td><td>Deploy across Availability Zones (v2 SKU)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="skus">SKUs</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>SKU</th><th>Features</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Standard v2</strong></td><td>All App Gateway features, autoscaling, zone redundancy</td><td>Production web applications</td></tr>
+                <tr><td><strong>WAF v2</strong></td><td>Standard v2 + Web Application Firewall</td><td>Web apps needing security protection</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Always use v2 SKUs</strong>
+              v1 SKUs are legacy and being retired. Standard v2 and WAF v2 support autoscaling and zone redundancy. For any internet-facing web application, WAF v2 is strongly recommended.
+            </div>
+          </div>
+
+          <h2 id="components">Key Components</h2>
+
+          <h3>Frontend IP</h3>
+          <p>The public or private IP that clients connect to. Application Gateway must be deployed in its own subnet (no other resources in that subnet).</p>
+
+          <h3>Listeners</h3>
+          <p>A listener accepts incoming connection requests. It defines: protocol (HTTP/HTTPS), port, frontend IP, and optionally hostname. You create one listener per website/port combination.</p>
+
+          <h3>Routing Rules</h3>
+          <p>Maps a listener to a backend pool and HTTP settings. Two types:</p>
+          <ul>
+            <li><strong>Basic</strong> — All traffic from the listener goes to one backend pool</li>
+            <li><strong>Path-based</strong> — Different URL paths go to different backend pools</li>
+          </ul>
+
+          <h3>Backend Pools</h3>
+          <p>Groups of backend servers — VMs, VM Scale Sets, App Services, or IP/FQDN addresses. Multiple backend pools can exist for different purposes.</p>
+
+          <h3>HTTP Settings</h3>
+          <p>Defines how Application Gateway connects to backend servers: protocol, port, cookie-based affinity, connection timeout, and health probe.</p>
+
+          <h2 id="url-routing">URL Path-Based Routing</h2>
+          <p>One of Application Gateway's most powerful features — route different URL paths to different backend pools:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">URL path-based routing</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">www.contoso.com/api/*     → API backend pool (API servers)
+www.contoso.com/images/*  → Images backend pool (image servers)
+www.contoso.com/*         → Default backend pool (web servers)</code></pre>
+          </div>
+
+          <p>This is extremely useful for microservices architectures where different services handle different URL paths — all behind a single frontend IP.</p>
+
+          <h2 id="multi-site">Multi-Site Hosting</h2>
+          <p>Application Gateway can host multiple websites on the same gateway using hostname-based routing:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">Multi-site hosting</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">www.contoso.com    → Contoso backend pool
+www.fabrikam.com   → Fabrikam backend pool</code></pre>
+          </div>
+
+          <p>Both domains point to the same Application Gateway IP. The gateway inspects the HTTP Host header to route to the correct backend.</p>
+
+          <h2 id="ssl">SSL Termination</h2>
+          <p>Application Gateway can handle SSL/TLS so your backend servers don't have to:</p>
+
+          <h3>SSL Termination (Offloading)</h3>
+          <p>Client → HTTPS → App Gateway (decrypt) → HTTP → Backend<br/>
+          Backend servers receive unencrypted HTTP — simpler, lower CPU load on backends.</p>
+
+          <h3>End-to-End SSL</h3>
+          <p>Client → HTTPS → App Gateway (decrypt, inspect) → HTTPS → Backend<br/>
+          Re-encrypts traffic to backends. Required for compliance scenarios where data must be encrypted in transit throughout.</p>
+
+          <h2 id="waf">Web Application Firewall (WAF)</h2>
+          <p>The WAF v2 SKU includes a Web Application Firewall that protects against common web vulnerabilities in the OWASP (Open Web Application Security Project) Core Rule Set:</p>
+          <ul>
+            <li>SQL Injection</li>
+            <li>Cross-Site Scripting (XSS)</li>
+            <li>Command Injection</li>
+            <li>HTTP Request Smuggling</li>
+            <li>HTTP Response Splitting</li>
+            <li>Remote File Inclusion</li>
+          </ul>
+
+          <h3>WAF Modes</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Mode</th><th>Behaviour</th><th>Use When</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Detection</strong></td><td>Logs violations but allows all traffic through</td><td>Initial deployment — tune rules without blocking legitimate traffic</td></tr>
+                <tr><td><strong>Prevention</strong></td><td>Blocks traffic that matches WAF rules</td><td>Production — after tuning to eliminate false positives</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Always Start with Detection Mode</strong>
+              When you first enable WAF, use Detection mode. Review the logs for false positives (legitimate traffic that would be blocked). Add exclusions as needed, then switch to Prevention mode.
+            </div>
+          </div>
+
+          <h2 id="autoscaling">Autoscaling</h2>
+          <p>Application Gateway v2 supports autoscaling — it automatically adds or removes capacity based on traffic load. You set a minimum and maximum instance count. Azure handles the rest — no manual scaling needed during traffic spikes.</p>
+          <ul>
+            <li>Minimum instances: 0 (for dev/test — scales to zero when idle)</li>
+            <li>Maximum instances: up to 125</li>
+            <li>Scales in ~1–2 minutes</li>
+          </ul>
+
+          <h2 id="appgw-vs-lb">App Gateway vs Load Balancer</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>App Gateway</th><th>Load Balancer</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>OSI Layer</td><td>Layer 7</td><td>Layer 4</td></tr>
+                <tr><td>Protocols</td><td>HTTP, HTTPS only</td><td>Any TCP, UDP</td></tr>
+                <tr><td>URL routing</td><td>✅ Yes</td><td>❌ No</td></tr>
+                <tr><td>SSL termination</td><td>✅ Yes</td><td>❌ No</td></tr>
+                <tr><td>WAF</td><td>✅ Yes (WAF SKU)</td><td>❌ No</td></tr>
+                <tr><td>Scope</td><td>Regional</td><td>Regional</td></tr>
+                <tr><td>Internal use</td><td>Yes</td><td>Yes</td></tr>
+                <tr><td>Cost</td><td>Higher</td><td>Lower</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that App Gateway is Layer 7 (HTTP/HTTPS only), supports URL path-based routing, multi-site hosting, SSL termination, cookie-based session affinity, and WAF. The WAF has Detection and Prevention modes. v2 SKU supports autoscaling and zone redundancy.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company wants to route requests to /api/* to API servers and /static/* to CDN servers using a single Azure service. What should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Load Balancer operates at Layer 4 and cannot inspect URL paths — it cannot route based on URL content.')">
+                <span class="option-label">A</span> Azure Load Balancer
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Application Gateway supports URL path-based routing — different URL paths can be routed to different backend pools. This is one of App Gateway\'s signature features as a Layer 7 load balancer.')">
+                <span class="option-label">B</span> Azure Application Gateway
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs control traffic allow/deny based on IP and ports — they cannot route traffic to different backends based on URL paths.')">
+                <span class="option-label">C</span> Network Security Groups
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager is a DNS-based global routing service — it cannot route based on URL paths within a region.')">
+                <span class="option-label">D</span> Azure Traffic Manager
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is SSL termination on Application Gateway?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSL termination means decrypting HTTPS at the gateway — not blocking SSL traffic.')">
+                <span class="option-label">A</span> Blocking all SSL/HTTPS traffic
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SSL termination means Application Gateway decrypts HTTPS traffic from clients, then communicates with backend servers over unencrypted HTTP. This removes SSL overhead from backend servers — they don\'t need to handle certificate management or decryption.')">
+                <span class="option-label">B</span> Decrypting HTTPS at the gateway and forwarding HTTP to backends — offloading SSL from backend servers
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. End-to-end SSL is when the gateway decrypts and re-encrypts — SSL termination specifically means the backend receives plain HTTP.')">
+                <span class="option-label">C</span> Re-encrypting traffic between App Gateway and backend servers
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSL termination relates to HTTPS traffic handling — not certificate generation for clients.')">
+                <span class="option-label">D</span> Generating SSL certificates for client devices
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> When should you use WAF Detection mode vs Prevention mode?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Detection mode logs but allows all traffic — it does not block attacks. Prevention mode is used for production protection.')">
+                <span class="option-label">A</span> Detection mode for production; Prevention mode for testing
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Use Detection mode first when deploying WAF — it logs rule violations but lets all traffic through, so you can identify false positives without disrupting legitimate users. After tuning exclusions, switch to Prevention mode to actively block threats.')">
+                <span class="option-label">B</span> Detection mode initially to tune rules and eliminate false positives; then Prevention mode for production
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both modes work with all traffic types — the difference is whether violations are blocked or just logged.')">
+                <span class="option-label">C</span> Detection mode for HTTP; Prevention mode for HTTPS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. WAF mode selection is about blocking vs logging — not about whether traffic is internal or external.')">
+                <span class="option-label">D</span> Detection mode for internal traffic; Prevention mode for internet-facing traffic
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Application Gateway v2 supports autoscaling. What does this mean?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Autoscaling in App Gateway scales the gateway itself — not the backend VMs.')">
+                <span class="option-label">A</span> Backend VMs are automatically added or removed based on traffic
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Application Gateway v2 autoscaling means the gateway itself automatically scales its processing capacity up or down based on traffic load. You set minimum and maximum instance counts, and Azure handles the rest — no manual intervention needed during traffic spikes.')">
+                <span class="option-label">B</span> The gateway automatically scales its own capacity based on traffic load
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Autoscaling refers to capacity scaling — not geographic distribution across regions.')">
+                <span class="option-label">C</span> Traffic is automatically distributed across multiple Azure regions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSL certificates are managed separately — autoscaling is about capacity management, not certificate renewal.')">
+                <span class="option-label">D</span> SSL certificates are automatically renewed
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What protocols does Azure Application Gateway support for load balancing?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Gateway does not support raw TCP — only HTTP and HTTPS. Use Azure Load Balancer for TCP/UDP.')">
+                <span class="option-label">A</span> TCP, UDP, HTTP, and HTTPS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Application Gateway is specifically designed for HTTP and HTTPS traffic — it operates at Layer 7 (Application layer) and understands HTTP protocols. For TCP/UDP load balancing, use Azure Load Balancer.')">
+                <span class="option-label">B</span> HTTP and HTTPS only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Gateway supports HTTPS — SSL termination and end-to-end SSL are key features.')">
+                <span class="option-label">C</span> HTTP only — no HTTPS support
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Gateway does not support WebSocket natively in basic routing — and does not support FTP.')">
+                <span class="option-label">D</span> HTTP, HTTPS, WebSocket, and FTP
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="load-balancer.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Load Balancer</span>
+            </a>
+            <a class="related-card" href="front-door.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Front Door</span>
+            </a>
+            <a class="related-card" href="nsg.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Network Security Groups</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="load-balancer.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Load Balancer</span>
+          </a>
+          <a class="nav-card next" href="front-door.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Front Door</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

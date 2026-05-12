@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure DNS | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure DNS — public DNS zones, private DNS zones, record types, alias records, and custom DNS in VNets." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">Azure DNS</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure DNS</h1>
+        <p class="page-intro">Azure DNS is a hosting service for DNS domains — providing name resolution using Microsoft Azure infrastructure. By hosting your DNS zones in Azure, you manage all your DNS records using the same credentials and billing as your other Azure resources. Azure DNS also provides Private DNS Zones for internal name resolution within VNets — so VMs can resolve each other by name without external DNS.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Public DNS zones — hosting your domains · DNS record types (A, AAAA, CNAME, MX, TXT, NS, SOA) · Alias records · Private DNS zones · Auto-registration of VMs · Linking Private DNS zones to VNets · Azure-provided DNS vs custom DNS · Creating zones and records via CLI
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#public-zones">Public DNS Zones</a></li>
+            <li><a href="#record-types">DNS Record Types</a></li>
+            <li><a href="#alias-records">Alias Records</a></li>
+            <li><a href="#private-zones">Private DNS Zones</a></li>
+            <li><a href="#auto-registration">Auto-Registration of VMs</a></li>
+            <li><a href="#dns-resolution">DNS Resolution in VNets</a></li>
+            <li><a href="#creating">Creating Zones and Records</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="public-zones">Public DNS Zones</h2>
+          <p>A DNS zone holds the DNS records for a domain. Azure DNS hosts your public DNS zones — managing records for your domain (like contoso.com). Azure DNS uses a global anycast network, providing high availability and fast name resolution from anywhere.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Azure DNS is not a Domain Registrar</strong>
+              Azure DNS hosts DNS zones but cannot purchase domain names. Buy your domain from a registrar (GoDaddy, Namecheap, Google Domains) and then delegate DNS management to Azure by updating the registrar's nameservers to point to Azure DNS nameservers.
+            </div>
+          </div>
+
+          <h3>Delegating to Azure DNS</h3>
+          <ol>
+            <li>Create a DNS zone in Azure for your domain (e.g., contoso.com)</li>
+            <li>Azure assigns 4 nameservers (e.g., ns1-01.azure-dns.com)</li>
+            <li>Log in to your domain registrar and change the NS records to point to these 4 Azure DNS nameservers</li>
+            <li>All DNS lookups for contoso.com now resolve via Azure DNS</li>
+          </ol>
+
+          <h2 id="record-types">DNS Record Types</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Record Type</th><th>Purpose</th><th>Example</th></tr></thead>
+              <tbody>
+                <tr><td><strong>A</strong></td><td>Maps hostname to IPv4 address</td><td>www → 1.2.3.4</td></tr>
+                <tr><td><strong>AAAA</strong></td><td>Maps hostname to IPv6 address</td><td>www → 2001:db8::1</td></tr>
+                <tr><td><strong>CNAME</strong></td><td>Alias — maps hostname to another hostname</td><td>blog → mysite.azurewebsites.net</td></tr>
+                <tr><td><strong>MX</strong></td><td>Mail exchange — routes email</td><td>@ → mail.contoso.com (priority 10)</td></tr>
+                <tr><td><strong>TXT</strong></td><td>Text record — domain verification, SPF</td><td>@ → "v=spf1 include:..."</td></tr>
+                <tr><td><strong>NS</strong></td><td>Nameserver records (auto-created)</td><td>@ → ns1-01.azure-dns.com</td></tr>
+                <tr><td><strong>SOA</strong></td><td>Start of Authority (auto-created)</td><td>Zone metadata</td></tr>
+                <tr><td><strong>PTR</strong></td><td>Reverse DNS — maps IP to hostname</td><td>4.3.2.1.in-addr.arpa → www.contoso.com</td></tr>
+                <tr><td><strong>SRV</strong></td><td>Service location record</td><td>_sip._tcp → sip.contoso.com:5061</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>CNAME at Zone Apex is Not Allowed</strong>
+              You cannot create a CNAME record at the zone apex (root domain, e.g., contoso.com). The zone apex must have NS and SOA records. For root domain aliasing, use an Alias record instead.
+            </div>
+          </div>
+
+          <h2 id="alias-records">Alias Records</h2>
+          <p>Azure DNS Alias records are an extension of standard DNS records. They allow an A, AAAA, or CNAME record to directly reference an Azure resource — and automatically update when the resource's IP changes.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Target Resource</th><th>Use Case</th></tr></thead>
+              <tbody>
+                <tr><td>Azure Public IP address</td><td>Point root domain to a dynamic public IP</td></tr>
+                <tr><td>Azure Traffic Manager profile</td><td>Point root domain to Traffic Manager</td></tr>
+                <tr><td>Azure Front Door profile</td><td>Point root domain to Front Door</td></tr>
+                <tr><td>Azure CDN endpoint</td><td>Point root domain to CDN</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Alias Records Solve the Zone Apex Problem</strong>
+              You can't use a CNAME at contoso.com (zone apex). But you can use an Alias A record at the apex — pointing to Traffic Manager or Front Door. This is the correct way to map a root domain to a load balancer or CDN.
+            </div>
+          </div>
+
+          <h2 id="private-zones">Private DNS Zones</h2>
+          <p>Private DNS Zones enable name resolution for resources within Azure VNets — using your own domain names (like internal.contoso.com) that are only resolvable from within the VNet.</p>
+
+          <h3>Key Differences from Public Zones</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th></th><th>Public DNS Zone</th><th>Private DNS Zone</th></tr></thead>
+              <tbody>
+                <tr><td>Resolvable from</td><td>The entire internet</td><td>Only linked VNets</td></tr>
+                <tr><td>Use case</td><td>Public websites and services</td><td>Internal VM communication</td></tr>
+                <tr><td>Auto-registration</td><td>No</td><td>Yes — auto-registers VMs</td></tr>
+                <tr><td>Linked to</td><td>Nothing (global)</td><td>Specific VNets</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="auto-registration">Auto-Registration of VMs</h2>
+          <p>When you link a Private DNS Zone to a VNet with auto-registration enabled, Azure automatically creates DNS A records for all VMs in that VNet. When a VM is created, its hostname is registered. When deleted, the record is removed. VMs can then resolve each other by name (e.g., <code>vm1.internal.contoso.com</code>).</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Auto-Registration Limits</strong>
+              A VNet can only have auto-registration enabled for one Private DNS Zone. You can link a VNet to multiple zones, but only one can have auto-registration.
+            </div>
+          </div>
+
+          <h2 id="dns-resolution">DNS Resolution in VNets</h2>
+          <p>Three options for DNS in Azure VNets:</p>
+          <ul>
+            <li><strong>Azure-provided DNS (168.63.129.16)</strong> — Default. Resolves Azure internal names and internet names. No configuration needed.</li>
+            <li><strong>Azure Private DNS Zones</strong> — Custom domain names within VNets. Link zones to VNets for resolution.</li>
+            <li><strong>Custom DNS servers</strong> — Your own DNS servers (on-premises AD, custom resolvers). Configure at VNet level.</li>
+          </ul>
+
+          <h2 id="creating">Creating Zones and Records</h2>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create public DNS zone and records</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Create a public DNS zone
+az network dns zone create \
+  --resource-group myRG \
+  --name contoso.com
+
+# Create an A record
+az network dns record-set a add-record \
+  --resource-group myRG \
+  --zone-name contoso.com \
+  --record-set-name www \
+  --ipv4-address 1.2.3.4
+
+# Create a CNAME record
+az network dns record-set cname set-record \
+  --resource-group myRG \
+  --zone-name contoso.com \
+  --record-set-name blog \
+  --cname myblog.azurewebsites.net</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create Private DNS zone and link to VNet</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Create private DNS zone
+az network private-dns zone create \
+  --resource-group myRG \
+  --name internal.contoso.com
+
+# Link to VNet with auto-registration
+az network private-dns link vnet create \
+  --resource-group myRG \
+  --zone-name internal.contoso.com \
+  --name myVNetLink \
+  --virtual-network myVNet \
+  --registration-enabled true</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Azure DNS can't register domains — only host zones. Know alias records solve zone apex CNAME limitations. Know private DNS zones are linked to VNets for internal resolution. Know that auto-registration automatically creates DNS records for VMs.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company wants to map their root domain (contoso.com) to an Azure Traffic Manager profile. What DNS record type should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CNAME records cannot be used at the zone apex (root domain). A CNAME at contoso.com is not permitted by DNS standards.')">A — CNAME record</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A standard A record has a fixed IP — Traffic Manager uses a DNS name, not an IP. Also, the IP would need to be manually updated if it changes.')">B — A record pointing to the Traffic Manager IP</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure DNS Alias records solve the zone apex CNAME problem. An Alias A/AAAA record at the zone apex can point directly to a Traffic Manager profile (or Front Door, CDN, etc.). The IP is automatically resolved and updated.')">C — Alias record pointing to the Traffic Manager profile</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. MX records are for email routing — not for mapping a domain to a Traffic Manager profile.')">D — MX record</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the purpose of Azure Private DNS Zones?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private DNS Zones are for internal VNet resolution — not for protecting public zones from internet access.')">A — To protect public DNS zones from internet access</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Private DNS Zones enable custom domain name resolution within Azure VNets — accessible only from linked VNets. VMs can resolve each other by name (e.g., vm1.internal.contoso.com) without the names being visible publicly.')">B — To enable custom domain name resolution within Azure VNets (not visible on the internet)</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Domain registration is done through registrars — Azure DNS (neither public nor private zones) can register domains.')">C — To register domain names without needing a domain registrar</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Caching DNS queries is a function of DNS resolvers — not Private DNS Zones.')">D — To cache DNS queries for faster resolution</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> When auto-registration is enabled on a Private DNS Zone link, what happens automatically?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-registration does not create public DNS records — it creates private DNS records within the linked VNet.')">A — Public DNS records are created for all VMs</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! With auto-registration enabled, Azure automatically creates and manages DNS A records in the Private DNS Zone for all VMs in the linked VNet. When a VM is created, its record appears. When deleted, the record is removed.')">B — DNS A records for all VMs in the VNet are automatically created and maintained</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-registration creates DNS records — it does not create NSGs.')">C — NSG rules are automatically created for all VMs</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-registration creates DNS records — it does not affect IP addressing.')">D — Static IP addresses are automatically assigned to all VMs</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What DNS record type maps a hostname to an IPv4 address?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! An A record maps a hostname to an IPv4 address. For example: www.contoso.com → 1.2.3.4. AAAA records map to IPv6 addresses.')">A — A record</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CNAME maps a hostname to another hostname — not to an IP address.')">B — CNAME record</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. MX records are for mail exchange routing — not hostname to IP mapping.')">C — MX record</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. TXT records store text values (domain verification, SPF) — not hostname to IP mappings.')">D — TXT record</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Can Azure DNS purchase and register domain names (like contoso.com)?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure DNS is not a domain registrar — it only hosts DNS zones for domains you already own.')">A — Yes — Azure DNS is a full domain registrar</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure DNS is a DNS hosting service — not a domain registrar. You must purchase your domain from a registrar (like GoDaddy or Namecheap), then delegate DNS management to Azure by updating the NS records at your registrar to point to Azure DNS nameservers.')">B — No — Azure DNS only hosts zones; you must buy the domain from a registrar</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure DNS does not register domains for any TLD — it only hosts DNS zones.')">C — Only for .com domains</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure DNS does not register domains regardless of subscription type.')">D — Only with Enterprise Agreement subscriptions</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vnet.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Virtual Networks (VNet)</span></a>
+            <a class="related-card" href="traffic-manager.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure Traffic Manager</span></a>
+            <a class="related-card" href="private-endpoints.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure Private Endpoints</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vnet-peering.html"><span class="nav-label">← Previous</span><span class="nav-title">VNet Peering</span></a>
+          <a class="nav-card next" href="azure-firewall.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Firewall</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

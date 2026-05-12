@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Firewall | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Firewall — managed cloud-native firewall, rule types, DNAT, threat intelligence, SKUs, and Azure Firewall vs NSG." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">Azure Firewall</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Firewall</h1>
+        <p class="page-intro">Azure Firewall is a managed, cloud-native network security service that protects your Azure VNet resources. Unlike NSGs (which are simple allow/deny rules on ports/IPs), Azure Firewall is a full stateful firewall — it understands application protocols, can filter by FQDNs (domain names), integrates threat intelligence, and provides centralised logging and policy management across your entire Azure environment.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Azure Firewall vs NSGs — when to use which · Azure Firewall SKUs · Rule types — Network, Application, NAT · FQDN filtering · Threat intelligence · Azure Firewall Manager · Azure Firewall in hub-spoke · Forced tunnelling · Firewall deployment
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#firewall-vs-nsg">Firewall vs NSG</a></li>
+            <li><a href="#skus">Azure Firewall SKUs</a></li>
+            <li><a href="#rule-types">Rule Types</a></li>
+            <li><a href="#fqdn">FQDN Filtering</a></li>
+            <li><a href="#threat-intel">Threat Intelligence</a></li>
+            <li><a href="#firewall-manager">Azure Firewall Manager</a></li>
+            <li><a href="#hub-spoke">Firewall in Hub-Spoke</a></li>
+            <li><a href="#deploying">Deploying Azure Firewall</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="firewall-vs-nsg">Firewall vs NSG</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Feature</th><th>NSG</th><th>Azure Firewall</th></tr></thead>
+              <tbody>
+                <tr><td>Type</td><td>Layer 4 allow/deny rules</td><td>Full stateful Layer 4 + Layer 7 firewall</td></tr>
+                <tr><td>FQDN filtering</td><td>No — IP/port only</td><td>Yes — filter by domain names</td></tr>
+                <tr><td>Application rules</td><td>No</td><td>Yes — HTTP/S, SQL, etc.</td></tr>
+                <tr><td>Threat intelligence</td><td>No</td><td>Yes — known malicious IPs/domains</td></tr>
+                <tr><td>Centralised policy</td><td>Per-VNet/subnet</td><td>Single policy across all VNets</td></tr>
+                <tr><td>Logging</td><td>NSG Flow Logs</td><td>Structured logs in Azure Monitor</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>~₹55,000+/month</td></tr>
+                <tr><td>Best for</td><td>Basic subnet/NIC filtering</td><td>Centralised enterprise firewall</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Use Both Together</strong>
+              NSGs and Azure Firewall complement each other. Use NSGs for fast, cheap subnet-level filtering (East-West traffic within VNets). Use Azure Firewall for centralised policy, FQDN filtering, and North-South traffic inspection (internet-bound traffic).
+            </div>
+          </div>
+
+          <h2 id="skus">Azure Firewall SKUs</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>SKU</th><th>Key Features</th><th>Best For</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Basic</strong></td><td>Basic L3-L7 filtering, threat intel (alert only), limited throughput</td><td>SMBs, non-critical workloads</td></tr>
+                <tr><td><strong>Standard</strong></td><td>Full L3-L7, threat intel (alert+deny), Firewall Manager</td><td>Enterprise production workloads</td></tr>
+                <tr><td><strong>Premium</strong></td><td>Standard + TLS inspection, IDPS, URL filtering, web categories</td><td>Highly sensitive environments, compliance</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="rule-types">Rule Types</h2>
+          <p>Azure Firewall processes rules in this order: NAT rules → Network rules → Application rules. First matching rule wins.</p>
+
+          <h3>NAT Rules (DNAT)</h3>
+          <p>Translate and forward inbound internet traffic to specific backend resources. Example: forward port 3389 from your firewall's public IP to a specific VM.</p>
+
+          <h3>Network Rules</h3>
+          <p>Allow/deny traffic based on source IP, destination IP, protocol, and port — similar to NSG rules but processed centrally. Used for non-HTTP protocols and cross-VNet traffic.</p>
+
+          <h3>Application Rules</h3>
+          <p>Allow/deny outbound HTTP/HTTPS traffic based on FQDNs (domain names), URLs, or web categories. Example: allow VMs to access *.microsoft.com but block all other internet browsing.</p>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Example</span><span class="code-label">Application rule — allow specific FQDNs only</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code">Allow Rule:
+  Source: 10.0.0.0/16 (VNet)
+  Protocol: HTTPS:443
+  Target FQDNs: *.microsoft.com, *.azure.com, *.windows.net
+
+Deny Rule (implicit — everything else blocked)</code></pre>
+          </div>
+
+          <h2 id="fqdn">FQDN Filtering</h2>
+          <p>One of Azure Firewall's most powerful features — filtering by Fully Qualified Domain Names instead of IP addresses. This matters because:</p>
+          <ul>
+            <li>Cloud services use dynamic IPs — you can't rely on IP-based rules</li>
+            <li>FQDNs can represent CDNs with thousands of IPs</li>
+            <li>Azure Firewall resolves FQDNs to IPs and keeps the filter updated automatically</li>
+          </ul>
+
+          <h3>FQDN Tags</h3>
+          <p>Pre-defined groups of FQDNs for common Microsoft services — <code>WindowsUpdate</code>, <code>Office365</code>, <code>AzureBackup</code>. Use these to allow common services without listing every URL.</p>
+
+          <h2 id="threat-intel">Threat Intelligence</h2>
+          <p>Azure Firewall can alert on or block traffic to/from known malicious IP addresses and domains — automatically updated by Microsoft's threat intelligence feed. In Premium SKU, it also includes IDPS (Intrusion Detection and Prevention System).</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Mode</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>Off</td><td>Threat intel disabled</td></tr>
+                <tr><td>Alert only</td><td>Logs known malicious traffic but allows it</td></tr>
+                <tr><td>Alert and deny</td><td>Blocks known malicious traffic + logs it</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="firewall-manager">Azure Firewall Manager</h2>
+          <p>Centralised security management for Azure Firewall across multiple VNets and subscriptions. Instead of managing firewall policies individually on each firewall, Firewall Manager lets you define a single <strong>Firewall Policy</strong> and apply it to all firewalls in your environment.</p>
+
+          <h2 id="hub-spoke">Firewall in Hub-Spoke</h2>
+          <p>Azure Firewall is deployed in the hub VNet's dedicated subnet (AzureFirewallSubnet, minimum /26). User Defined Routes (UDRs) in each spoke subnet direct traffic through the firewall:</p>
+          <ul>
+            <li>All internet-bound traffic (0.0.0.0/0) → Azure Firewall's private IP</li>
+            <li>All cross-spoke traffic → Azure Firewall's private IP</li>
+          </ul>
+          <p>This gives you centralised inspection of all traffic — East-West and North-South.</p>
+
+          <h2 id="deploying">Deploying Azure Firewall</h2>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Deploy Azure Firewall in hub VNet</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Create AzureFirewallSubnet
+az network vnet subnet create \
+  --name AzureFirewallSubnet \
+  --resource-group myRG \
+  --vnet-name hubVNet \
+  --address-prefix 10.0.0.0/26
+
+# Create public IP for firewall
+az network public-ip create \
+  --name fw-pip \
+  --resource-group myRG \
+  --sku Standard \
+  --allocation-method Static
+
+# Deploy Azure Firewall
+az network firewall create \
+  --name myFirewall \
+  --resource-group myRG \
+  --location centralindia \
+  --vnet-name hubVNet \
+  --public-ip myFirewallPublicIP \
+  --sku AZFW_VNet \
+  --tier Standard</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Azure Firewall requires AzureFirewallSubnet (/26 minimum). Know the three rule types — NAT, Network, Application — and their processing order. Know that FQDN filtering is an advantage over NSGs. Know that UDRs are needed to route traffic through the firewall.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the key advantage of Azure Firewall's Application rules over NSG rules?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both NSGs and Azure Firewall can filter by IP address and port.')">A — Application rules can filter by IP address and port</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Firewall Application rules filter outbound HTTP/HTTPS traffic by FQDN (domain names) rather than IP addresses. This is essential for cloud services that have dynamic IPs — you can allow *.microsoft.com without knowing their specific IPs.')">B — Application rules filter by FQDN (domain names), not just IP addresses</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs also support TCP filtering — the key advantage is FQDN-based filtering.')">C — Application rules support TCP protocol filtering</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both NSGs and Azure Firewall can be applied across multiple subnets.')">D — Application rules apply to multiple subnets simultaneously</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> In what order does Azure Firewall process rule types?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The processing order is NAT → Network → Application.')">A — Application → Network → NAT</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Firewall processes rules in this order: 1) NAT rules (DNAT inbound), 2) Network rules (IP/port allow/deny), 3) Application rules (FQDN-based). The first matching rule in each category wins.')">B — NAT → Network → Application</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The order is NAT → Network → Application — not Network first.')">C — Network → Application → NAT</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The processing order is fixed — NAT → Network → Application.')">D — All rule types are evaluated simultaneously</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the minimum subnet size for AzureFirewallSubnet?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. /28 is too small for Azure Firewall. Minimum is /26.')">A — /28</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. /27 is too small for Azure Firewall. Minimum is /26.')">B — /27</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! AzureFirewallSubnet requires a minimum of /26 (64 IP addresses). The subnet must be named exactly "AzureFirewallSubnet" — no other resources should be placed in it.')">C — /26</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. /24 works but is larger than the minimum. /26 is the minimum.')">D — /24</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What networking feature routes spoke VNet traffic through Azure Firewall in a hub-spoke topology?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs control allow/deny but don\'t route traffic through a specific next-hop like Azure Firewall.')">A — NSG rules on each spoke subnet</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! User Defined Routes (UDRs) in each spoke subnet override Azure\'s default routing and direct traffic to Azure Firewall\'s private IP as the next hop. Without UDRs, traffic would bypass the firewall entirely.')">B — User Defined Routes (UDRs) pointing to the firewall as next hop</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering connects VNets but does not route traffic through Azure Firewall automatically.')">C — VNet Peering configuration</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Service Endpoints connect VNets to PaaS services — they don\'t route traffic through Azure Firewall.')">D — Service Endpoints on spoke subnets</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What does Azure Firewall's threat intelligence feature do in "Alert and deny" mode?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Alert and deny" actively blocks malicious traffic — it doesn\'t just log it.')">A — Logs all traffic patterns for security analysis</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! In "Alert and deny" mode, Azure Firewall blocks all traffic to/from known malicious IP addresses and domains (from Microsoft\'s threat intelligence feed) AND generates alerts in the logs. This proactively prevents connections to known bad actors.')">B — Blocks traffic to/from known malicious IPs and domains AND generates alerts</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Alert only" mode logs but doesn\'t block — "Alert and deny" actively blocks AND alerts.')">C — Alerts administrators but allows the traffic through</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Threat intelligence works automatically based on Microsoft\'s feed — it doesn\'t require manual IP updates.')">D — Requires manual IP blacklist updates</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="nsg.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Network Security Groups</span></a>
+            <a class="related-card" href="ddos-protection.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure DDoS Protection</span></a>
+            <a class="related-card" href="vnet-peering.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">VNet Peering</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="azure-dns.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure DNS</span></a>
+          <a class="nav-card next" href="ddos-protection.html"><span class="nav-label">Next →</span><span class="nav-title">Azure DDoS Protection</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

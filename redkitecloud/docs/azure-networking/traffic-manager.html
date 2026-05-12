@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Traffic Manager | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Traffic Manager — DNS-based global routing, routing methods, health monitoring, nested profiles, and when to use it." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Traffic Manager</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Traffic Manager</h1>
+
+        <p class="page-intro">
+          Azure Traffic Manager is a DNS-based global traffic routing service that distributes traffic across Azure regions and endpoints worldwide. Unlike Front Door or Load Balancer, Traffic Manager doesn't sit in the data path — it only responds to DNS queries, directing users to the best endpoint based on routing rules. This makes it protocol-agnostic — it works with any internet-accessible endpoint, not just HTTP.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          How Traffic Manager works (DNS-based routing) · Traffic Manager profiles and endpoints · All six routing methods explained · Health monitoring · Nested profiles · Limitations of DNS-based routing · Traffic Manager vs Front Door · Real-world use cases
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#how-it-works">How Traffic Manager Works</a></li>
+            <li><a href="#profiles">Profiles and Endpoints</a></li>
+            <li><a href="#routing-methods">Six Routing Methods</a></li>
+            <li><a href="#health-monitoring">Health Monitoring</a></li>
+            <li><a href="#nested-profiles">Nested Profiles</a></li>
+            <li><a href="#limitations">Limitations of DNS Routing</a></li>
+            <li><a href="#tm-vs-fd">Traffic Manager vs Front Door</a></li>
+            <li><a href="#use-cases">Real-World Use Cases</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="how-it-works">How Traffic Manager Works</h2>
+          <p>Traffic Manager is pure DNS routing — it never sees your actual traffic. Here's what happens:</p>
+          <ol>
+            <li>User types <code>app.contoso.com</code> in their browser</li>
+            <li>DNS resolves <code>app.contoso.com</code> to Traffic Manager's DNS name</li>
+            <li>Traffic Manager evaluates its routing policy and health of endpoints</li>
+            <li>Traffic Manager returns the DNS name of the best endpoint (e.g., <code>contoso-eastus.azurewebsites.net</code>)</li>
+            <li>User's browser connects directly to that endpoint</li>
+            <li>Traffic Manager is no longer involved — all traffic goes directly to the endpoint</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Traffic Manager is NOT in the Data Path</strong>
+              Traffic Manager only handles DNS — it never touches your actual traffic. All HTTP/HTTPS traffic flows directly between the user and the endpoint. This is the fundamental difference from Front Door, which acts as a proxy and is in the data path.
+            </div>
+          </div>
+
+          <h2 id="profiles">Profiles and Endpoints</h2>
+          <p>A Traffic Manager <strong>profile</strong> defines the routing method and contains endpoints. <strong>Endpoints</strong> are the destinations traffic is routed to. Three endpoint types:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Endpoint Type</th><th>What It Points To</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Azure endpoints</strong></td><td>Azure resources — VMs, App Services, Load Balancers, Cloud Services</td></tr>
+                <tr><td><strong>External endpoints</strong></td><td>Any internet endpoint — on-premises or other clouds</td></tr>
+                <tr><td><strong>Nested endpoints</strong></td><td>Another Traffic Manager profile (for complex multi-tier routing)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="routing-methods">Six Routing Methods</h2>
+
+          <h3>1. Priority</h3>
+          <p>All traffic goes to the primary endpoint. If it fails health checks, traffic fails over to the secondary. Best for active-passive disaster recovery.</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">Priority routing</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">Priority 1: East US (primary — all normal traffic)
+Priority 2: West Europe (secondary — only if East US fails)</code></pre>
+          </div>
+
+          <h3>2. Weighted</h3>
+          <p>Traffic is distributed across endpoints based on assigned weights. Used for gradual rollouts, A/B testing, or distributing load proportionally.</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">Weighted routing</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">East US — Weight 90 (90% of traffic)
+West US — Weight 10 (10% of traffic — canary)</code></pre>
+          </div>
+
+          <h3>3. Performance</h3>
+          <p>Routes users to the endpoint with the lowest network latency — typically the closest geographic region. Best for globally distributed applications where performance matters most.</p>
+
+          <h3>4. Geographic</h3>
+          <p>Routes users based on their geographic location. Users in India → India endpoints, users in Europe → European endpoints. Used for data sovereignty, content localisation, and compliance requirements.</p>
+
+          <h3>5. Multivalue</h3>
+          <p>Returns multiple healthy endpoint IPs in a single DNS response. The client picks one. Only works with IPv4/IPv6 endpoints (not nested profiles). Increases availability — even if one endpoint fails, the client has alternatives.</p>
+
+          <h3>6. Subnet</h3>
+          <p>Maps specific source IP address ranges to specific endpoints. Useful for directing traffic from your corporate network to a specific backend, or A/B testing by IP range.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Routing Method</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Priority</td><td>Active-passive failover between regions</td></tr>
+                <tr><td>Weighted</td><td>Gradual rollout, A/B testing, load distribution</td></tr>
+                <tr><td>Performance</td><td>Global apps — route to lowest latency region</td></tr>
+                <tr><td>Geographic</td><td>Data sovereignty, content localisation</td></tr>
+                <tr><td>Multivalue</td><td>Higher availability — multiple IPs in DNS response</td></tr>
+                <tr><td>Subnet</td><td>Route specific IP ranges to specific endpoints</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="health-monitoring">Health Monitoring</h2>
+          <p>Traffic Manager monitors endpoint health by sending periodic HTTP/HTTPS/TCP probes to a configured path. If an endpoint fails health checks, Traffic Manager stops returning it in DNS responses until it recovers.</p>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>DNS TTL and Failover Speed</strong>
+              Traffic Manager's failover speed is limited by DNS TTL (Time to Live). Even after an endpoint is marked unhealthy, clients with the old DNS response cached continue connecting to the failed endpoint until the TTL expires. The default TTL is 60 seconds. For faster failover, lower the TTL — but this increases DNS query volume and cost.
+            </div>
+          </div>
+
+          <h2 id="nested-profiles">Nested Profiles</h2>
+          <p>Nested profiles allow complex routing scenarios — a parent profile routes between regions, and child profiles handle routing within each region:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">Nested profile — geographic + performance</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">Parent profile (Geographic routing):
+  Asia users → Asia child profile (Performance routing between India/Singapore)
+  Europe users → Europe child profile (Performance routing between UK/Germany)</code></pre>
+          </div>
+
+          <h2 id="limitations">Limitations of DNS Routing</h2>
+          <ul>
+            <li><strong>No SSL termination</strong> — Traffic Manager doesn't touch HTTP/HTTPS</li>
+            <li><strong>No WAF</strong> — No web application firewall capability</li>
+            <li><strong>No CDN caching</strong> — Only DNS routing, no content delivery</li>
+            <li><strong>Failover limited by DNS TTL</strong> — Not instant failover like Front Door</li>
+            <li><strong>No URL path routing</strong> — Routes at the domain level, not URL path level</li>
+            <li><strong>Client DNS caching</strong> — Clients may cache DNS responses beyond TTL</li>
+          </ul>
+
+          <h2 id="tm-vs-fd">Traffic Manager vs Front Door</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Traffic Manager</th><th>Front Door</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Mechanism</td><td>DNS only</td><td>Layer 7 HTTP proxy</td></tr>
+                <tr><td>Protocols</td><td>Any (DNS-based)</td><td>HTTP/HTTPS only</td></tr>
+                <tr><td>Failover speed</td><td>DNS TTL dependent</td><td>Seconds (proxy-based)</td></tr>
+                <tr><td>CDN</td><td>❌ No</td><td>✅ Yes</td></tr>
+                <tr><td>SSL termination</td><td>❌ No</td><td>✅ Yes</td></tr>
+                <tr><td>WAF</td><td>❌ No</td><td>✅ Yes (Premium)</td></tr>
+                <tr><td>URL routing</td><td>❌ No</td><td>✅ Yes</td></tr>
+                <tr><td>Non-HTTP protocols</td><td>✅ Yes (DNS only)</td><td>❌ No</td></tr>
+                <tr><td>Cost</td><td>Lower</td><td>Higher</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="use-cases">Real-World Use Cases</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Scenario</th><th>Routing Method</th></tr></thead>
+              <tbody>
+                <tr><td>DR failover between East US (primary) and West Europe (secondary)</td><td>Priority</td></tr>
+                <tr><td>Global web app — route to nearest region for low latency</td><td>Performance</td></tr>
+                <tr><td>GDPR compliance — European users must stay in Europe</td><td>Geographic</td></tr>
+                <tr><td>Gradually roll out v2 to 10% of traffic</td><td>Weighted</td></tr>
+                <tr><td>Route corporate VPN users to internal endpoint</td><td>Subnet</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know all six routing methods and their use cases. Know that Traffic Manager is DNS-based and NOT in the data path. Know that failover speed depends on DNS TTL. Know when to use Traffic Manager vs Front Door — Traffic Manager for non-HTTP protocols and simple DNS routing; Front Door for HTTP/HTTPS with CDN, WAF, and SSL.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Azure Traffic Manager is a DNS-based service. What does this mean for actual user traffic?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager only resolves DNS — all actual HTTP/HTTPS traffic flows directly between the user and the endpoint, bypassing Traffic Manager entirely.')">
+                <span class="option-label">A</span> All user traffic passes through Traffic Manager's infrastructure
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Traffic Manager only handles DNS resolution — it tells the client which endpoint IP to connect to. After that, all actual traffic flows directly between the user and the endpoint. Traffic Manager never sees HTTP traffic or payload data.')">
+                <span class="option-label">B</span> Traffic Manager only resolves DNS — actual traffic flows directly between user and endpoint
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager does not encrypt traffic — it only handles DNS routing. SSL/TLS is handled by the endpoints themselves.')">
+                <span class="option-label">C</span> Traffic Manager encrypts all traffic between users and endpoints
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager does not cache content — CDN caching is handled by Azure CDN or Front Door.')">
+                <span class="option-label">D</span> Traffic Manager caches responses for faster delivery
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company needs European users to be served exclusively from European data centres for GDPR compliance. Which Traffic Manager routing method should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Performance routing routes to the lowest-latency endpoint — it might route European users to a US endpoint if it has lower latency.')">
+                <span class="option-label">A</span> Performance routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Priority routing routes all traffic to the primary endpoint regardless of user location — not suitable for compliance-based geographic routing.')">
+                <span class="option-label">B</span> Priority routing
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Geographic routing enforces that users from specific regions are routed to specific endpoints — European users are always directed to European endpoints regardless of performance. This satisfies GDPR data residency requirements.')">
+                <span class="option-label">C</span> Geographic routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Weighted routing distributes traffic by percentage — it doesn\'t route based on user location.')">
+                <span class="option-label">D</span> Weighted routing
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Why is Traffic Manager failover not instantaneous like Azure Front Door?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager health probe frequency can be configured and is not the primary reason for slow failover — DNS TTL caching is the main factor.')">
+                <span class="option-label">A</span> Traffic Manager health probes run less frequently than Front Door probes
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Traffic Manager is DNS-based — clients cache DNS responses for the duration of the TTL (typically 60 seconds). Even after Traffic Manager stops returning a failed endpoint, clients with cached DNS responses continue connecting to it until the TTL expires. Front Door is a proxy — it can instantly stop routing to a failed backend.')">
+                <span class="option-label">B</span> DNS TTL caching — clients continue using cached DNS responses until TTL expires
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager does not use slower algorithms — the failover delay is caused by DNS TTL caching, not processing speed.')">
+                <span class="option-label">C</span> Traffic Manager uses slower routing algorithms than Front Door
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure support is not involved in automatic failover — this is handled automatically. The delay is due to DNS TTL.')">
+                <span class="option-label">D</span> Traffic Manager requires Azure support to approve failover decisions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which Traffic Manager routing method routes all traffic to the primary endpoint and only switches to secondary when the primary fails?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Priority routing assigns numeric priorities to endpoints. All traffic goes to the endpoint with the lowest priority number (highest priority). Only when that endpoint fails health checks does Traffic Manager start using the next-highest priority endpoint.')">
+                <span class="option-label">A</span> Priority routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Performance routing distributes traffic based on latency — it doesn\'t have a primary/secondary failover concept.')">
+                <span class="option-label">B</span> Performance routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Weighted routing splits traffic proportionally — it doesn\'t keep all traffic on one endpoint until it fails.')">
+                <span class="option-label">C</span> Weighted routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Geographic routing routes based on user location — not primary/secondary failover logic.')">
+                <span class="option-label">D</span> Geographic routing
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Can Azure Traffic Manager route non-HTTP protocols (like custom TCP applications)?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Since Traffic Manager is DNS-based and never touches actual traffic, it works with any internet-accessible endpoint regardless of protocol — HTTP, HTTPS, FTP, custom TCP, UDP, etc. It only resolves which IP the client should connect to. Azure Front Door, by contrast, only works with HTTP/HTTPS.')">
+                <span class="option-label">A</span> Yes — Traffic Manager is DNS-based so it works with any protocol
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager works with any protocol since it only handles DNS — not HTTP/HTTPS exclusively.')">
+                <span class="option-label">B</span> No — Traffic Manager only supports HTTP and HTTPS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager supports all protocols via DNS routing — not just TCP.')">
+                <span class="option-label">C</span> Only TCP protocols — not UDP
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Non-HTTP protocol support requires no special configuration — Traffic Manager routes DNS regardless of the endpoint\'s protocol.')">
+                <span class="option-label">D</span> Only with a special non-HTTP routing configuration
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="front-door.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Front Door</span>
+            </a>
+            <a class="related-card" href="load-balancer.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Load Balancer</span>
+            </a>
+            <a class="related-card" href="azure-dns.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure DNS</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="front-door.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Front Door</span>
+          </a>
+          <a class="nav-card next" href="vpn-gateway.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure VPN Gateway</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

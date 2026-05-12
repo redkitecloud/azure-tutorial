@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Network Watcher | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Network Watcher — IP flow verify, next hop, packet capture, NSG flow logs, connection monitor, and topology." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">Azure Network Watcher</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Network Watcher</h1>
+        <p class="page-intro">Azure Network Watcher is a regional network monitoring and diagnostics service. When a VM can't connect to a database, when traffic isn't reaching an endpoint, when you need to understand what path traffic takes through your network — Network Watcher has the tools to diagnose and resolve these issues. It's the Swiss Army knife of Azure network troubleshooting.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          IP Flow Verify — test if traffic is allowed/blocked · Next Hop — see where traffic is routed · Packet Capture — capture network packets · NSG Flow Logs — log all NSG traffic decisions · Connection Monitor — continuous connectivity testing · VPN Diagnostics · Network Topology view
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-nw">What is Network Watcher?</a></li>
+            <li><a href="#ip-flow">IP Flow Verify</a></li>
+            <li><a href="#next-hop">Next Hop</a></li>
+            <li><a href="#packet-capture">Packet Capture</a></li>
+            <li><a href="#nsg-flow-logs">NSG Flow Logs</a></li>
+            <li><a href="#connection-monitor">Connection Monitor</a></li>
+            <li><a href="#vpn-diag">VPN Diagnostics</a></li>
+            <li><a href="#topology">Network Topology</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-nw">What is Network Watcher?</h2>
+          <p>Network Watcher is automatically enabled in each region when you create a VNet. It provides monitoring, diagnostics, and logging capabilities for Azure IaaS networking. All tools are accessible from the Azure Portal under Network Watcher.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Network Watcher is Regional</strong>
+              Network Watcher is deployed per region. It automatically appears in your subscription when you create a VNet in a region — usually in a resource group called NetworkWatcherRG. You don't need to manually create it.
+            </div>
+          </div>
+
+          <h2 id="ip-flow">IP Flow Verify</h2>
+          <p>IP Flow Verify tests whether traffic between a VM and a specific endpoint is <strong>allowed or denied</strong> by NSG rules — and which specific rule is responsible. The most useful first-step troubleshooting tool when connectivity fails.</p>
+
+          <h3>What You Specify</h3>
+          <ul>
+            <li>VM and its NIC</li>
+            <li>Direction (inbound or outbound)</li>
+            <li>Protocol (TCP or UDP)</li>
+            <li>Local IP and port</li>
+            <li>Remote IP and port</li>
+          </ul>
+
+          <h3>What You Get</h3>
+          <p>Allowed or Denied — and the name of the specific NSG rule causing the allow/deny decision.</p>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">IP Flow Verify</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Check if inbound TCP port 80 from internet is allowed
+az network watcher test-ip-flow \
+  --direction Inbound \
+  --protocol TCP \
+  --remote-ip 1.2.3.4 \
+  --remote-port 80 \
+  --local-ip 10.0.1.4 \
+  --local-port 80 \
+  --vm myVM \
+  --resource-group myRG</code></pre>
+          </div>
+
+          <h2 id="next-hop">Next Hop</h2>
+          <p>Next Hop shows the <strong>routing path</strong> — where would a packet go from a VM to a destination IP? This reveals whether traffic is being routed correctly, going through Azure Firewall, or taking an unexpected route.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Next Hop Type</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td>Internet</td><td>Packet exits to the internet</td></tr>
+                <tr><td>VirtualNetwork</td><td>Packet stays within the VNet</td></tr>
+                <tr><td>VirtualNetworkGateway</td><td>Packet goes to VPN/ER gateway</td></tr>
+                <tr><td>VirtualAppliance</td><td>Packet routes to NVA (firewall IP)</td></tr>
+                <tr><td>None</td><td>No route — packet is dropped</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Get next hop for a packet</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Find next hop from VM to destination IP
+az network watcher show-next-hop \
+  --dest-ip 8.8.8.8 \
+  --vm myVM \
+  --source-ip 10.0.1.4 \
+  --resource-group myRG</code></pre>
+          </div>
+
+          <h2 id="packet-capture">Packet Capture</h2>
+          <p>Packet Capture records network packets flowing through a VM's NIC — similar to running Wireshark on the VM. Useful for deep-dive traffic analysis, performance issues, or security investigations.</p>
+
+          <h3>How It Works</h3>
+          <ul>
+            <li>Requires the Network Watcher agent extension on the VM</li>
+            <li>Captures to a Storage Account blob or local VM file</li>
+            <li>You can filter by protocol, local/remote IP, port</li>
+            <li>Stops automatically after a time limit or file size limit</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Start a packet capture</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Start packet capture (saves to storage account)
+az network watcher packet-capture create \
+  --name myCapture \
+  --resource-group myRG \
+  --vm myVM \
+  --storage-account mystorageaccount2026 \
+  --time-limit 60 \
+  --filters '[{"protocol":"TCP","remotePort":"443"}]'</code></pre>
+          </div>
+
+          <h2 id="nsg-flow-logs">NSG Flow Logs</h2>
+          <p>NSG Flow Logs record information about IP traffic flowing through an NSG. Every connection attempt — allowed or denied — is logged with: source/destination IP, port, protocol, direction, and allow/deny decision.</p>
+
+          <h3>Flow Log Versions</h3>
+          <ul>
+            <li><strong>Version 1</strong> — Basic flow information</li>
+            <li><strong>Version 2</strong> — Adds bytes and packets transferred per flow</li>
+          </ul>
+
+          <h3>Traffic Analytics</h3>
+          <p>Process NSG Flow Logs through Traffic Analytics (requires Log Analytics workspace) for visualisations, anomaly detection, and query-based investigation across your entire network.</p>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable NSG Flow Logs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Enable flow logs on an NSG
+az network watcher flow-log create \
+  --name myFlowLog \
+  --nsg myNSG \
+  --resource-group myRG \
+  --storage-account mystorageaccount2026 \
+  --enabled true \
+  --format JSON \
+  --log-version 2 \
+  --retention 30</code></pre>
+          </div>
+
+          <h2 id="connection-monitor">Connection Monitor</h2>
+          <p>Connection Monitor provides continuous end-to-end monitoring of network connections. Unlike IP Flow Verify (one-time test), Connection Monitor runs periodically and alerts you when connectivity degrades or fails.</p>
+
+          <h3>What It Monitors</h3>
+          <ul>
+            <li>Latency between source and destination</li>
+            <li>Packet loss percentage</li>
+            <li>Pass/fail of connectivity checks</li>
+            <li>Hop-by-hop path analysis</li>
+          </ul>
+
+          <p>Sources can be Azure VMs or on-premises servers (with monitoring agent). Destinations can be Azure resources, internet endpoints, or on-premises resources.</p>
+
+          <h2 id="vpn-diag">VPN Diagnostics</h2>
+          <p>Diagnose issues with VPN Gateway connections — tests the health of a VPN connection and generates a detailed diagnostic report about the gateway, tunnels, and traffic flows. Useful when S2S VPN connections fail or have intermittent issues.</p>
+
+          <h2 id="topology">Network Topology</h2>
+          <p>Generates a visual map of your network resources — VNets, subnets, VMs, NICs, NSGs, public IPs, and their relationships. Gives a bird's-eye view of your entire network architecture without having to manually trace relationships.</p>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Get network topology</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Export topology for a resource group
+az network watcher show-topology \
+  --resource-group myRG \
+  --location centralindia</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Troubleshooting Toolkit</strong>
+              The exam loves network troubleshooting scenarios. Know which tool to use: Can't connect? → IP Flow Verify. Wrong routing? → Next Hop. Need packet-level data? → Packet Capture. Audit all traffic? → NSG Flow Logs. Continuous monitoring? → Connection Monitor. VPN issues? → VPN Diagnostics.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A VM cannot connect to a web server on port 443. You suspect an NSG rule is blocking traffic. Which Network Watcher tool should you use first?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! IP Flow Verify tests whether a specific traffic flow (direction, protocol, IP, port) is allowed or denied by NSG rules — and tells you exactly which rule is responsible. It\'s the fastest first step when diagnosing NSG-related connectivity issues.')">A — IP Flow Verify</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Packet Capture captures actual packet data — it\'s more complex and used when you need deep traffic analysis, not for a simple NSG allow/deny check.')">B — Packet Capture</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSG Flow Logs record historical traffic — they\'re useful for analysis but not for instant "is this blocked?" testing.')">C — NSG Flow Logs</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Connection Monitor is for continuous monitoring — not for quick one-time diagnostics.')">D — Connection Monitor</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Traffic from a VM should go through Azure Firewall but you suspect it's bypassing it. Which Network Watcher tool diagnoses this?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP Flow Verify tests whether NSG rules allow/block traffic — it doesn\'t show the routing path.')">A — IP Flow Verify</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Next Hop shows the routing path for a packet — where it would be sent next. If traffic should go through Azure Firewall (VirtualAppliance) but Next Hop shows "Internet" instead, you know the UDR is missing or incorrect.')">B — Next Hop</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Packet Capture captures traffic — it wouldn\'t directly show routing decisions.')">C — Packet Capture</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Network Topology shows resource relationships — not routing decisions for specific traffic flows.')">D — Network Topology</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A security team wants to audit all traffic accepted and rejected by an NSG over the past 30 days. Which feature provides this?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP Flow Verify tests current rules in real-time — it doesn\'t log historical traffic.')">A — IP Flow Verify</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Packet Capture captures live packets for a short duration — not 30 days of historical traffic.')">B — Packet Capture</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! NSG Flow Logs record all allow and deny decisions made by an NSG — including source/destination IPs, ports, protocols, and flow direction. With a 30-day retention setting and Traffic Analytics, you get comprehensive historical traffic audit data.')">C — NSG Flow Logs</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Connection Monitor tests connectivity health over time — it doesn\'t log individual NSG traffic decisions.')">D — Connection Monitor</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What does Connection Monitor provide that IP Flow Verify does not?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP Flow Verify specifically tests NSG rules — Connection Monitor tests end-to-end connectivity which may be blocked by NSGs too.')">A — Tests NSG rule evaluation</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Connection Monitor runs continuously and tracks latency, packet loss, and connectivity pass/fail over time — alerting you when degradation occurs. IP Flow Verify is a one-time, instant test. Connection Monitor is ongoing health monitoring.')">B — Continuous monitoring with latency and packet loss tracking over time, with alerts</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP Flow Verify shows NSG rule details — Connection Monitor tests end-to-end connectivity, not individual NSG rules.')">C — Shows which NSG rule is blocking traffic</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Packet capture is a separate feature — Connection Monitor doesn\'t capture packet content.')">D — Captures packet content for analysis</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What does a "None" result from the Next Hop tool indicate?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "None" does not mean traffic goes to the internet — it means there is no valid route and packets are dropped.')">A — Traffic is routed to the internet by default</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A "None" result from Next Hop means there is no route for the destination IP — packets will be dropped. This typically indicates a missing route table entry, or the destination is unreachable from this VM.')">B — No route exists — packets are dropped at that point</div>
+              <div name="option" onclick="checkAnswer(this, false, 'Incorrect. "None" means no route — not that traffic goes to a VPN Gateway.')">C — Traffic is routed to the VPN Gateway</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "None" is a definitive result — it means no route exists, not that Next Hop can\'t determine the path.')">D — Next Hop cannot determine the routing path</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="nsg.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Network Security Groups</span></a>
+            <a class="related-card" href="vpn-gateway.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure VPN Gateway</span></a>
+            <a class="related-card" href="vnet.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Virtual Networks (VNet)</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="private-endpoints.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Private Endpoints</span></a>
+          <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

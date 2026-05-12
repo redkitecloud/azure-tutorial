@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Networking Overview | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete overview of Azure Networking — VNets, NSGs, load balancers, gateways, DNS, and how all networking components fit together." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Networking Overview</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Networking Overview</h1>
+
+        <p class="page-intro">
+          Networking is the backbone of everything in Azure. Every VM, every database, every app service communicates through Azure's networking layer. Understanding how Azure networking works — VNets, subnets, security groups, load balancers, gateways — is one of the most important skills for AZ-104 and for real-world Azure architecture. This overview maps out the entire networking landscape before you dive into each service.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          The Azure networking stack from the ground up · VNets and subnets · Network security · Load balancing options · Connectivity services (VPN, ExpressRoute) · DNS in Azure · Traffic routing services · How all components fit together in a real architecture
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#networking-stack">The Azure Networking Stack</a></li>
+            <li><a href="#core-components">Core Networking Components</a></li>
+            <li><a href="#security-layer">Network Security Layer</a></li>
+            <li><a href="#load-balancing">Load Balancing Options</a></li>
+            <li><a href="#connectivity">Hybrid Connectivity</a></li>
+            <li><a href="#dns">DNS in Azure</a></li>
+            <li><a href="#traffic-routing">Traffic Routing Services</a></li>
+            <li><a href="#typical-architecture">Typical Azure Network Architecture</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="networking-stack">The Azure Networking Stack</h2>
+          <p>Azure networking works in layers — each layer handles a different aspect of connectivity. Think of it like this:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Layer</th><th>What It Does</th><th>Azure Services</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Connectivity</strong></td><td>Connect resources together or to on-premises</td><td>VNet, VNet Peering, VPN Gateway, ExpressRoute</td></tr>
+                <tr><td><strong>Security</strong></td><td>Control what traffic is allowed</td><td>NSG, Azure Firewall, DDoS Protection</td></tr>
+                <tr><td><strong>Load Balancing</strong></td><td>Distribute traffic across multiple backends</td><td>Load Balancer, Application Gateway, Front Door, Traffic Manager</td></tr>
+                <tr><td><strong>Name Resolution</strong></td><td>Translate names to IP addresses</td><td>Azure DNS, Private DNS Zones</td></tr>
+                <tr><td><strong>Monitoring</strong></td><td>Observe network behaviour</td><td>Network Watcher, Flow Logs, Connection Monitor</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="core-components">Core Networking Components</h2>
+
+          <h3>Virtual Network (VNet)</h3>
+          <p>A VNet is your private network in Azure — an isolated, logically defined network that your Azure resources live in. All VMs, databases, and other resources must be in a VNet to communicate privately. A VNet has an IP address space (e.g., 10.0.0.0/16) which you divide into subnets.</p>
+
+          <h3>Subnet</h3>
+          <p>A subnet is a segment within a VNet. You deploy resources into specific subnets to organise them and apply security policies. For example: a web subnet for front-end VMs, an app subnet for application servers, a data subnet for databases.</p>
+
+          <h3>Network Interface Card (NIC)</h3>
+          <p>Every VM has at least one NIC — the virtual network adapter connecting it to a subnet. The NIC has a private IP (from the subnet) and optionally a public IP.</p>
+
+          <h3>Public IP Address</h3>
+          <p>Resources need a public IP to be reachable from the internet. Public IPs can be dynamic (changes on stop/start) or static (fixed). Standard SKU is recommended for production.</p>
+
+          <h2 id="security-layer">Network Security Layer</h2>
+
+          <h3>Network Security Group (NSG)</h3>
+          <p>An NSG is a virtual firewall — a set of inbound and outbound rules that allow or deny network traffic. NSGs can be applied to subnets or individual NICs. Rules are evaluated in priority order (lower number = higher priority).</p>
+
+          <h3>Azure Firewall</h3>
+          <p>A managed, cloud-native network firewall with advanced features — FQDN filtering, threat intelligence, central policy management across VNets. More powerful than NSGs but costs more.</p>
+
+          <h3>Azure DDoS Protection</h3>
+          <p>Protects Azure resources from Distributed Denial of Service attacks. Basic tier is free and automatically applied. Standard tier adds adaptive tuning, attack analytics, and SLA guarantees.</p>
+
+          <h2 id="load-balancing">Load Balancing Options</h2>
+          <p>Azure has four load balancing services — choosing the right one depends on the traffic type and use case:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Service</th><th>Layer</th><th>Scope</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Azure Load Balancer</strong></td><td>Layer 4 (TCP/UDP)</td><td>Regional</td><td>Internal/external VM load balancing</td></tr>
+                <tr><td><strong>Application Gateway</strong></td><td>Layer 7 (HTTP/HTTPS)</td><td>Regional</td><td>Web apps, URL-based routing, WAF</td></tr>
+                <tr><td><strong>Azure Front Door</strong></td><td>Layer 7 (HTTP/HTTPS)</td><td>Global</td><td>Global web apps, CDN, WAF</td></tr>
+                <tr><td><strong>Traffic Manager</strong></td><td>DNS-based</td><td>Global</td><td>DNS routing between regions/endpoints</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Quick Decision Guide</strong>
+              Non-HTTP traffic or internal VMs → Load Balancer · HTTP/HTTPS within one region → Application Gateway · HTTP/HTTPS globally or need CDN → Front Door · Multi-region DNS failover → Traffic Manager
+            </div>
+          </div>
+
+          <h2 id="connectivity">Hybrid Connectivity</h2>
+
+          <h3>VNet Peering</h3>
+          <p>Connects two VNets so resources in each can communicate privately. Traffic stays on Microsoft's backbone — low latency, no internet. Can peer VNets in the same region (regional peering) or different regions (global peering).</p>
+
+          <h3>VPN Gateway</h3>
+          <p>Creates an encrypted tunnel over the internet between your on-premises network and Azure VNet (Site-to-Site VPN), or between individual computers and Azure (Point-to-Site VPN).</p>
+
+          <h3>Azure ExpressRoute</h3>
+          <p>A dedicated private connection from your on-premises network to Azure — not over the internet. Higher bandwidth, lower latency, and consistent performance compared to VPN. More expensive and requires working with a connectivity provider.</p>
+
+          <h2 id="dns">DNS in Azure</h2>
+
+          <h3>Azure DNS</h3>
+          <p>Host your public DNS domains in Azure. Manage DNS records (A, CNAME, MX, TXT) for your custom domains using Azure infrastructure.</p>
+
+          <h3>Private DNS Zones</h3>
+          <p>DNS resolution for private resources within VNets. Allows VMs to resolve each other by name (e.g., <code>vm1.internal.com</code>) without going through public DNS.</p>
+
+          <h2 id="traffic-routing">Traffic Routing Services</h2>
+
+          <h3>Route Tables (UDR — User Defined Routes)</h3>
+          <p>Override Azure's default routing to force traffic through specific paths — for example, route all outbound traffic through Azure Firewall for inspection.</p>
+
+          <h3>Service Endpoints</h3>
+          <p>Extend VNet identity to Azure services (Storage, SQL) so traffic between your VNet and those services travels on the Microsoft backbone rather than the internet — without needing private endpoints.</p>
+
+          <h3>Private Endpoints</h3>
+          <p>Give Azure services (Storage, SQL, Key Vault) a private IP within your VNet. Completely removes public internet exposure for those services.</p>
+
+          <h2 id="typical-architecture">Typical Azure Network Architecture</h2>
+          <p>A typical production architecture layers these services together:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Layer</th><th>Service</th><th>Purpose</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Global entry</td><td>Azure Front Door</td><td>Global HTTP routing, WAF, CDN</td></tr>
+                <tr><td>Regional load balancing</td><td>Application Gateway</td><td>URL routing, SSL termination, WAF</td></tr>
+                <tr><td>Web tier subnet</td><td>VMs + NSG</td><td>Web servers, allow port 80/443 inbound</td></tr>
+                <tr><td>App tier subnet</td><td>VMs + NSG</td><td>App servers, allow only from web tier</td></tr>
+                <tr><td>Data tier subnet</td><td>SQL + NSG</td><td>Databases, allow only from app tier</td></tr>
+                <tr><td>Management subnet</td><td>Azure Bastion</td><td>Secure admin access, no public ports</td></tr>
+                <tr><td>On-premises link</td><td>VPN Gateway / ExpressRoute</td><td>Hybrid connectivity</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Azure Networking is the most heavily tested area in AZ-104. Know VNets, subnets, NSGs thoroughly. Understand the four load balancing services and when to use each. Know the difference between VNet Peering, VPN Gateway, and ExpressRoute. These concepts appear in nearly every practice exam.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which Azure service provides Layer 7 (HTTP/HTTPS) load balancing with Web Application Firewall at the global level?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Load Balancer operates at Layer 4 (TCP/UDP) and is regional — not global, and not HTTP-aware.')">
+                <span class="option-label">A</span> Azure Load Balancer
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Gateway operates at Layer 7 but is regional — it handles HTTP traffic within one region, not globally.')">
+                <span class="option-label">B</span> Application Gateway
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Front Door is a global Layer 7 load balancer with CDN, WAF, and SSL offloading. It routes HTTP/HTTPS traffic across multiple regions globally and is Microsoft\'s recommended service for global web applications.')">
+                <span class="option-label">C</span> Azure Front Door
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager is a DNS-based global routing service — it does not inspect HTTP traffic or provide WAF capabilities.')">
+                <span class="option-label">D</span> Traffic Manager
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the difference between VNet Peering and VPN Gateway for connecting two VNets?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering is not more expensive — it is actually cheaper than VPN Gateway and has lower latency.')">
+                <span class="option-label">A</span> VNet Peering is more expensive but provides higher bandwidth
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Peering connects VNets directly over Microsoft\'s backbone — low latency, high bandwidth, no encryption overhead, and no gateway required. VPN Gateway creates an encrypted tunnel which adds latency and cost. For VNet-to-VNet connectivity, peering is almost always preferred.')">
+                <span class="option-label">B</span> VNet Peering uses Microsoft backbone (faster, cheaper); VPN Gateway creates an encrypted tunnel (more overhead)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering can connect VNets across regions (global peering) — it is not limited to the same region.')">
+                <span class="option-label">C</span> VNet Peering only works within the same region; VPN Gateway works globally
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both VNet Peering and VPN Gateway support cross-subscription VNet connectivity.')">
+                <span class="option-label">D</span> VPN Gateway supports cross-subscription VNets; VNet Peering does not
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Which service provides a dedicated private connection from on-premises to Azure — not over the internet?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VPN Gateway creates an encrypted tunnel over the public internet — not a dedicated private connection.')">
+                <span class="option-label">A</span> VPN Gateway
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering connects Azure VNets together — not on-premises networks to Azure.')">
+                <span class="option-label">B</span> VNet Peering
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure ExpressRoute provides a dedicated private circuit from your on-premises network to Azure through a connectivity provider — not over the public internet. It offers higher bandwidth, lower latency, and consistent performance compared to VPN.')">
+                <span class="option-label">C</span> Azure ExpressRoute
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Bastion provides secure VM access — it does not create on-premises to Azure connectivity.')">
+                <span class="option-label">D</span> Azure Bastion
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A company needs to route internal VM-to-VM traffic through Azure Firewall for inspection. What networking feature enables this?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs filter traffic at the subnet/NIC level but cannot force routing through Azure Firewall — that requires User Defined Routes.')">
+                <span class="option-label">A</span> Network Security Groups (NSG)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! User Defined Routes (UDR) / Route Tables allow you to override Azure\'s default routing. You can create a route that sends all traffic through Azure Firewall\'s private IP as the next hop, forcing inspection of all traffic before it reaches its destination.')">
+                <span class="option-label">B</span> User Defined Routes (Route Tables)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Service Endpoints extend VNet identity to Azure PaaS services — they don\'t route traffic through Azure Firewall.')">
+                <span class="option-label">C</span> Service Endpoints
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints give PaaS services a private IP in your VNet — they don\'t control routing paths for VM-to-VM traffic.')">
+                <span class="option-label">D</span> Private Endpoints
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the purpose of Azure Private DNS Zones?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public DNS domains are hosted in Azure DNS (not Private DNS Zones) — Private DNS Zones are for internal name resolution within VNets.')">
+                <span class="option-label">A</span> To host public DNS domains for internet-facing websites
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Private DNS Zones enable name resolution for resources within Azure VNets — so VMs and services can resolve each other by name (e.g., vm1.internal.contoso.com) without using public DNS. The zone is linked to one or more VNets.')">
+                <span class="option-label">B</span> To resolve private resource names within VNets without public DNS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blocking public DNS lookups is handled by network policies and firewalls — not by Private DNS Zones.')">
+                <span class="option-label">C</span> To block DNS lookups from reaching the internet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DDoS protection for DNS is a separate concern — Private DNS Zones are specifically for internal name resolution.')">
+                <span class="option-label">D</span> To protect DNS servers from DDoS attacks
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vnet.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Virtual Networks (VNet)</span>
+            </a>
+            <a class="related-card" href="nsg.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Network Security Groups</span>
+            </a>
+            <a class="related-card" href="load-balancer.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Load Balancer</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <div></div>
+          <a class="nav-card next" href="vnet.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Virtual Networks (VNet)</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>
