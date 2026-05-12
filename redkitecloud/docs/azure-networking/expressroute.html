@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure ExpressRoute | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure ExpressRoute — private dedicated connectivity, circuit SKUs, peering types, FastPath, and when to use ExpressRoute." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">Azure ExpressRoute</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure ExpressRoute</h1>
+        <p class="page-intro">Azure ExpressRoute provides a private, dedicated connection from your on-premises network to Microsoft Azure — not over the public internet. Traffic travels through a connectivity provider's private network to Microsoft's edge. ExpressRoute offers predictable latency, high bandwidth, and is required for workloads with strict compliance requirements that prohibit public internet exposure.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What ExpressRoute is and how it works · Circuit SKUs and bandwidths · Peering types — Private and Microsoft · ExpressRoute Global Reach · FastPath · Coexistence with VPN Gateway · ExpressRoute vs VPN Gateway decision criteria
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#how-it-works">How ExpressRoute Works</a></li>
+            <li><a href="#circuit-skus">Circuit SKUs and Bandwidths</a></li>
+            <li><a href="#peering">Peering Types</a></li>
+            <li><a href="#global-reach">ExpressRoute Global Reach</a></li>
+            <li><a href="#fastpath">FastPath</a></li>
+            <li><a href="#coexistence">Coexistence with VPN Gateway</a></li>
+            <li><a href="#er-vs-vpn">ExpressRoute vs VPN Gateway</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="how-it-works">How ExpressRoute Works</h2>
+          <p>ExpressRoute uses a <strong>connectivity provider</strong> (like Tata Communications, Airtel, Reliance Jio in India) to establish a physical dedicated circuit from your facility to Microsoft's edge routers. The connection bypasses the public internet entirely.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Not Encrypted by Default</strong>
+              ExpressRoute traffic is NOT encrypted by default — the circuit is private, but not encrypted. For encryption over ExpressRoute, you must configure MACsec (Layer 2) or IPsec (Layer 3) on top. This is an important exam point.
+            </div>
+          </div>
+
+          <h3>Connection Models</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Model</th><th>How</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Co-location at cloud exchange</strong></td><td>Your equipment is in same data centre as Microsoft edge — direct cross-connect</td></tr>
+                <tr><td><strong>Point-to-point Ethernet</strong></td><td>Direct dedicated Ethernet link from your site to Microsoft edge</td></tr>
+                <tr><td><strong>Any-to-any (IPVPN)</strong></td><td>Your MPLS/WAN provider integrates Azure into your existing WAN</td></tr>
+                <tr><td><strong>ExpressRoute Direct</strong></td><td>Direct physical connection to Microsoft global network — 10/100 Gbps</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="circuit-skus">Circuit SKUs and Bandwidths</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>SKU</th><th>Available Bandwidths</th><th>Use Case</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Local</strong></td><td>50 Mbps – 10 Gbps</td><td>Single Azure region, unlimited egress</td></tr>
+                <tr><td><strong>Standard</strong></td><td>50 Mbps – 10 Gbps</td><td>Up to 9 Azure regions</td></tr>
+                <tr><td><strong>Premium</strong></td><td>50 Mbps – 10 Gbps</td><td>Global routing, 10+ regions, Office 365</td></tr>
+                <tr><td><strong>ExpressRoute Direct</strong></td><td>10 Gbps, 100 Gbps</td><td>Highest bandwidth, direct Microsoft edge</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="peering">Peering Types</h2>
+          <p>An ExpressRoute circuit has two independent BGP peering sessions:</p>
+
+          <h3>Private Peering</h3>
+          <p>Connects to Azure VNets (VMs, load balancers, internal services). Traffic stays on the private circuit and uses private IP addresses. Required for connecting to Azure IaaS and PaaS resources in VNets.</p>
+
+          <h3>Microsoft Peering</h3>
+          <p>Connects to Microsoft public services — Microsoft 365 (Exchange Online, SharePoint), Azure Storage, Azure SQL over private network. Uses public IP addresses but traffic goes through your private circuit instead of the internet.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Azure Public Peering is Retired</strong>
+              There used to be three peering types — Private, Public, and Microsoft. Azure Public Peering was retired and merged into Microsoft Peering. You may see it referenced in old documentation.
+            </div>
+          </div>
+
+          <h2 id="global-reach">ExpressRoute Global Reach</h2>
+          <p>Global Reach allows you to connect your on-premises sites to each other through Microsoft's network using their ExpressRoute circuits. Instead of building separate on-premises connectivity between sites, traffic flows: Site A → ExpressRoute → Microsoft backbone → ExpressRoute → Site B.</p>
+
+          <h2 id="fastpath">FastPath</h2>
+          <p>By default, ExpressRoute routes traffic through the Virtual Network Gateway, adding some latency. FastPath bypasses the gateway and sends traffic directly to VMs in the VNet — reducing latency and improving throughput. Requires Ultra Performance or ErGw3AZ gateway SKU.</p>
+
+          <h2 id="coexistence">Coexistence with VPN Gateway</h2>
+          <p>You can configure both ExpressRoute and VPN Gateway on the same VNet. Common use case:</p>
+          <ul>
+            <li>ExpressRoute as the primary connection (fast, reliable)</li>
+            <li>VPN Gateway as a failover backup (if ExpressRoute circuit fails)</li>
+          </ul>
+
+          <h2 id="er-vs-vpn">ExpressRoute vs VPN Gateway</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Choose ExpressRoute when...</th><th>Choose VPN Gateway when...</th></tr></thead>
+              <tbody>
+                <tr><td>Compliance requires no public internet exposure</td><td>Budget is limited</td></tr>
+                <tr><td>Need >10 Gbps bandwidth</td><td>Need quick setup (hours vs weeks)</td></tr>
+                <tr><td>Consistent, predictable latency required</td><td>Workload can tolerate variable latency</td></tr>
+                <tr><td>Connecting large data centres with heavy traffic</td><td>Connecting small offices or remote workers</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Remember: ExpressRoute is NOT encrypted by default. It provides private connectivity — but for encryption, you need MACsec or IPsec on top. Know Private Peering (VNets) vs Microsoft Peering (Microsoft 365, Azure public services).
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Is ExpressRoute traffic encrypted by default?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ExpressRoute is private but NOT encrypted by default. Encryption requires adding MACsec or IPsec on top.')">A — Yes — all ExpressRoute traffic is encrypted automatically</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ExpressRoute provides a private circuit — traffic does not traverse the public internet. However, it is NOT encrypted by default. You must explicitly configure MACsec (Layer 2) or IPsec (Layer 3) if encryption is required.')">B — No — it is private but not encrypted; requires MACsec or IPsec for encryption</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ExpressRoute traffic is not encrypted by default on any peering type.')">C — Only Microsoft Peering traffic is encrypted</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption on ExpressRoute is not optional at the circuit level — it must be explicitly configured.')">D — Only if you select the encryption option when creating the circuit</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which ExpressRoute peering type connects to Azure VNets (VMs and internal services)?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Private Peering connects your on-premises network to Azure VNets using private IP addresses. This is the peering type you configure to access your VMs, load balancers, and VNet-integrated services.')">A — Private Peering</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft Peering connects to Microsoft 365 and Azure public services (Storage, SQL via public IPs) — not to private VNets.')">B — Microsoft Peering</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Public Peering was retired — it no longer exists as a separate peering type.')">C — Azure Public Peering</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Global Reach connects on-premises sites to each other through Microsoft\'s network — not specifically for VNet access.')">D — Global Reach</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A company needs to connect Microsoft 365 (Exchange Online) traffic through their ExpressRoute circuit instead of the internet. Which peering type should they configure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Peering is for Azure VNets — not for Microsoft 365 services.')">A — Private Peering</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft Peering connects to Microsoft public services including Microsoft 365 (Exchange Online, SharePoint, Teams), Azure Storage, and Azure SQL — routing that traffic through the private ExpressRoute circuit instead of the public internet.')">B — Microsoft Peering</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Global Reach connects on-premises sites together — not for accessing Microsoft 365.')">C — Global Reach</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FastPath is a performance feature for VNet traffic — not for Microsoft 365 routing.')">D — FastPath</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What does ExpressRoute FastPath do?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FastPath improves VM traffic performance — it does not increase circuit bandwidth.')">A — Increases the circuit bandwidth automatically</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! FastPath bypasses the Virtual Network Gateway and routes traffic directly to VMs in the VNet. This reduces latency and improves throughput for VM-to-on-premises traffic. It requires the Ultra Performance or ErGw3AZ gateway SKU.')">B — Bypasses the VNet Gateway to route traffic directly to VMs, reducing latency</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FastPath routes traffic directly to VMs — not the reverse direction.')">C — Routes traffic from VMs directly to on-premises without going through Azure</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FastPath is a networking performance feature — not related to encryption.')">D — Enables automatic encryption on the ExpressRoute circuit</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is ExpressRoute Global Reach used for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Global Reach connects on-premises sites to each other — not to all Azure regions globally (that is handled by ExpressRoute Premium).')">A — Connecting one ExpressRoute circuit to all Azure regions globally</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ExpressRoute Global Reach allows two on-premises sites to connect to each other through Microsoft\'s backbone network via their respective ExpressRoute circuits — without needing separate WAN connectivity between them.')">B — Connecting two on-premises sites to each other through Microsoft\'s backbone via their ExpressRoute circuits</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Global Reach is for on-premises to on-premises connectivity — not VNet connectivity.')">C — Connecting multiple Azure VNets globally without peering</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Global Reach does not change bandwidth limits — it provides connectivity between on-premises sites.')">D — Increasing the bandwidth of an existing ExpressRoute circuit</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vpn-gateway.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure VPN Gateway</span></a>
+            <a class="related-card" href="vnet.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Virtual Networks (VNet)</span></a>
+            <a class="related-card" href="vnet-peering.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">VNet Peering</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vpn-gateway.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure VPN Gateway</span></a>
+          <a class="nav-card next" href="vnet-peering.html"><span class="nav-label">Next →</span><span class="nav-title">VNet Peering</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

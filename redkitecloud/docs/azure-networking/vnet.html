@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Virtual Networks (VNet) | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Virtual Networks — address spaces, subnets, peering, DNS settings, and creating VNets via Portal and CLI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Virtual Networks (VNet)</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Virtual Networks (VNet)</h1>
+
+        <p class="page-intro">
+          A Virtual Network (VNet) is your private network in Azure — the foundational networking building block that everything else is built on. It's an isolated, logically defined network where your Azure resources live and communicate. Every VM, every database, every App Service Environment needs a VNet. Understanding VNets deeply is the foundation of all Azure networking.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What VNets are and how they work · Address spaces and CIDR notation · VNet scope — region and subscription · Default and custom DNS · VNet Peering — regional and global · Creating VNets via Portal and CLI · VNet limits and best practices · VNet vs on-premises network
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-vnet">What is a VNet?</a></li>
+            <li><a href="#address-space">Address Space and CIDR</a></li>
+            <li><a href="#vnet-scope">VNet Scope</a></li>
+            <li><a href="#dns-settings">DNS Settings</a></li>
+            <li><a href="#vnet-peering">VNet Peering</a></li>
+            <li><a href="#creating-vnet">Creating a VNet</a></li>
+            <li><a href="#limits">VNet Limits</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-vnet">What is a VNet?</h2>
+          <p>A Virtual Network is a logically isolated section of the Azure cloud where you can launch Azure resources in a network that you define. It is similar to a traditional network in your own data centre, but with the added benefits of Azure's scale, availability, and isolation.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Key Properties of a VNet</strong>
+              Isolation — resources in one VNet cannot communicate with another VNet by default · Scope — a VNet exists within a single Azure region · Free — VNets themselves have no cost; you pay for gateways and data transfer · Extensible — can be connected to other VNets or on-premises networks
+            </div>
+          </div>
+
+          <h2 id="address-space">Address Space and CIDR</h2>
+          <p>When creating a VNet, you define its address space using CIDR (Classless Inter-Domain Routing) notation. For example, <code>10.0.0.0/16</code> gives you 65,536 IP addresses.</p>
+
+          <h3>Private IP Ranges (RFC 1918)</h3>
+          <p>Always use private IP ranges for VNets:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Range</th><th>CIDR</th><th>Available IPs</th></tr></thead>
+              <tbody>
+                <tr><td>10.0.0.0 – 10.255.255.255</td><td>10.0.0.0/8</td><td>~16 million</td></tr>
+                <tr><td>172.16.0.0 – 172.31.255.255</td><td>172.16.0.0/12</td><td>~1 million</td></tr>
+                <tr><td>192.168.0.0 – 192.168.255.255</td><td>192.168.0.0/16</td><td>65,536</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>CIDR Quick Reference</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>CIDR</th><th>Usable IPs</th><th>Typical Use</th></tr></thead>
+              <tbody>
+                <tr><td>/8</td><td>~16.7 million</td><td>Enterprise — very large</td></tr>
+                <tr><td>/16</td><td>65,536</td><td>Large VNet — recommended for production</td></tr>
+                <tr><td>/24</td><td>256</td><td>Small VNet or subnet</td></tr>
+                <tr><td>/26</td><td>64</td><td>Small subnet (minimum for Bastion)</td></tr>
+                <tr><td>/28</td><td>16</td><td>Very small subnet (minimum for Gateway)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Plan Your Address Space Carefully</strong>
+              You cannot change a VNet's address space once resources are deployed (without downtime). Plan for growth — use /16 for production VNets even if you don't need that many IPs today. Also ensure your VNet address space doesn't overlap with on-premises networks if you plan to connect them later.
+            </div>
+          </div>
+
+          <h3>Reserved Addresses per Subnet</h3>
+          <p>Azure reserves 5 IP addresses in every subnet:</p>
+          <ul>
+            <li><strong>x.x.x.0</strong> — Network address</li>
+            <li><strong>x.x.x.1</strong> — Default gateway</li>
+            <li><strong>x.x.x.2, x.x.x.3</strong> — Azure DNS</li>
+            <li><strong>x.x.x.255</strong> — Broadcast</li>
+          </ul>
+          <p>So a /24 subnet has 256 – 5 = <strong>251 usable IPs</strong>.</p>
+
+          <h2 id="vnet-scope">VNet Scope</h2>
+          <p>A VNet exists within a single <strong>Azure region</strong> and a single <strong>subscription</strong>. Resources in different regions cannot be in the same VNet — but they can be connected via VNet Peering or VPN Gateway.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Scope</th><th>Can Communicate Without Peering?</th></tr></thead>
+              <tbody>
+                <tr><td>Same VNet, same subnet</td><td>✅ Yes — directly</td></tr>
+                <tr><td>Same VNet, different subnets</td><td>✅ Yes — by default (unless NSG blocks)</td></tr>
+                <tr><td>Different VNets, same region</td><td>❌ No — need VNet Peering or VPN</td></tr>
+                <tr><td>Different VNets, different regions</td><td>❌ No — need Global VNet Peering or VPN</td></tr>
+                <tr><td>VNet to on-premises</td><td>❌ No — need VPN Gateway or ExpressRoute</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="dns-settings">DNS Settings</h2>
+          <p>VNets have a DNS setting that controls how VMs resolve hostnames. Three options:</p>
+          <ul>
+            <li><strong>Azure-provided DNS (default)</strong> — Uses Azure's built-in DNS (<code>168.63.129.16</code>). Resolves Azure resource names automatically. Sufficient for most workloads.</li>
+            <li><strong>Custom DNS servers</strong> — Specify your own DNS servers (on-premises Active Directory, custom resolvers). Required when integrating with on-premises AD.</li>
+            <li><strong>Private DNS Zones</strong> — Azure-managed private DNS for custom domain resolution within VNets.</li>
+          </ul>
+
+          <h2 id="vnet-peering">VNet Peering</h2>
+          <p>VNet Peering connects two VNets so resources in each can communicate privately using private IP addresses. Traffic never traverses the public internet — it uses Microsoft's backbone network.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Feature</th><th>Regional Peering</th><th>Global Peering</th></tr></thead>
+              <tbody>
+                <tr><td>VNet location</td><td>Same region</td><td>Different regions</td></tr>
+                <tr><td>Latency</td><td>Very low (&lt;1ms)</td><td>Low (cross-region)</td></tr>
+                <tr><td>Bandwidth</td><td>Full VNet bandwidth</td><td>Full VNet bandwidth</td></tr>
+                <tr><td>Cost</td><td>Charged per GB</td><td>Charged per GB (higher rate)</td></tr>
+                <tr><td>Encryption</td><td>No (Microsoft backbone is trusted)</td><td>No</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Peering is Non-Transitive</strong>
+              If VNet A is peered with VNet B, and VNet B is peered with VNet C — VNet A cannot communicate with VNet C. You must create a separate peering between A and C, or use a hub-spoke architecture with Azure Firewall or VPN Gateway in the hub.
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create VNet Peering (both directions required)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Peer VNet-A to VNet-B
+az network vnet peering create \
+  --name VNetA-to-VNetB \
+  --resource-group myRG \
+  --vnet-name VNetA \
+  --remote-vnet VNetB \
+  --allow-vnet-access
+
+# Peer VNet-B to VNet-A (peering must be created in BOTH directions)
+az network vnet peering create \
+  --name VNetB-to-VNetA \
+  --resource-group myRG \
+  --vnet-name VNetB \
+  --remote-vnet VNetA \
+  --allow-vnet-access</code></pre>
+          </div>
+
+          <h2 id="creating-vnet">Creating a VNet</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a VNet with two subnets</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create the VNet
+az network vnet create \
+  --name myVNet \
+  --resource-group myResourceGroup \
+  --location centralindia \
+  --address-prefix 10.0.0.0/16
+
+# Add a web subnet
+az network vnet subnet create \
+  --name web-subnet \
+  --resource-group myResourceGroup \
+  --vnet-name myVNet \
+  --address-prefix 10.0.1.0/24
+
+# Add an app subnet
+az network vnet subnet create \
+  --name app-subnet \
+  --resource-group myResourceGroup \
+  --vnet-name myVNet \
+  --address-prefix 10.0.2.0/24
+
+# List subnets
+az network vnet subnet list \
+  --resource-group myResourceGroup \
+  --vnet-name myVNet \
+  --output table</code></pre>
+          </div>
+
+          <h2 id="limits">VNet Limits</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Resource</th><th>Default Limit</th></tr></thead>
+              <tbody>
+                <tr><td>VNets per subscription per region</td><td>1,000</td></tr>
+                <tr><td>Subnets per VNet</td><td>3,000</td></tr>
+                <tr><td>VNet Peerings per VNet</td><td>500</td></tr>
+                <tr><td>DNS servers per VNet</td><td>20</td></tr>
+                <tr><td>Address prefixes per VNet</td><td>200 (via support: 1,000)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="best-practices">Best Practices</h2>
+          <ul>
+            <li><strong>Use /16 for production VNets</strong> — Plenty of room to grow without recreating</li>
+            <li><strong>Don't overlap address spaces</strong> — Plan IP ranges across all VNets and on-premises to avoid conflicts</li>
+            <li><strong>Segment with subnets</strong> — Separate web, app, data, and management tiers into different subnets</li>
+            <li><strong>Use Hub-Spoke topology</strong> — One hub VNet with shared services (Firewall, Bastion, VPN), spoke VNets for workloads</li>
+            <li><strong>Document your IP scheme</strong> — Track which ranges are used where to prevent future conflicts</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that VNet peering must be created in both directions, that peering is non-transitive, that Azure reserves 5 IPs per subnet, and that VNets are scoped to a single region. Address space overlap prevents VNet peering — a very common exam scenario.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> How many IP addresses are reserved by Azure in every subnet?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure reserves 5 IPs per subnet — not 3.')">
+                <span class="option-label">A</span> 3
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure reserves 5 IP addresses in every subnet: the network address (.0), default gateway (.1), two Azure DNS addresses (.2 and .3), and the broadcast address (.255). A /24 subnet has 256 IPs minus 5 reserved = 251 usable IPs.')">
+                <span class="option-label">B</span> 5
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure reserves 5 IPs per subnet — not 8.')">
+                <span class="option-label">C</span> 8
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure reserves 5 IPs per subnet — not 10.')">
+                <span class="option-label">D</span> 10
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> VNet A is peered with VNet B. VNet B is peered with VNet C. Can VNet A communicate with VNet C?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering is non-transitive — even though A→B and B→C peerings exist, A cannot communicate with C without a direct A→C peering.')">
+                <span class="option-label">A</span> Yes — peering is transitive, so A can reach C through B
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Peering is non-transitive. Even though A→B and B→C peerings exist, VNet A cannot communicate with VNet C. You must create a direct A↔C peering, or use a hub-spoke architecture with a router/firewall in the hub VNet.')">
+                <span class="option-label">B</span> No — VNet Peering is non-transitive; a direct A↔C peering is required
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "transitive peering" option in Azure — peering is always non-transitive.')">
+                <span class="option-label">C</span> Only if transitive peering is enabled on VNet B
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering is always non-transitive regardless of whether the VNets are in the same subscription.')">
+                <span class="option-label">D</span> Only if all three VNets are in the same subscription
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> You need to create a VNet peering between VNet-A and VNet-B. How many peering connections must you create?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Peering requires creating a peering in BOTH directions — one from VNet-A to VNet-B and one from VNet-B to VNet-A. Without both, the peering will be in a "Initiated" state and will not work.')">
+                <span class="option-label">A</span> 2 — one from A to B, and one from B to A
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single peering only goes one direction — you need peerings in both directions for bidirectional communication.')">
+                <span class="option-label">B</span> 1 — a single peering covers both directions
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Only 2 peering connections are needed — not 4.')">
+                <span class="option-label">C</span> 4 — two in each direction
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The number of peerings depends on the topology, not the subscription. 2 peerings are always needed for a basic A↔B peering.')">
+                <span class="option-label">D</span> Depends on how many subscriptions the VNets are in
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Can two VMs in different subnets of the same VNet communicate with each other by default?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! By default, all subnets within a VNet can communicate with each other — Azure allows all intra-VNet traffic. To restrict communication between subnets, you must explicitly apply Network Security Groups (NSGs) with deny rules.')">
+                <span class="option-label">A</span> Yes — all subnets within a VNet can communicate by default
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Subnets within the same VNet can communicate without peering — peering is only needed between separate VNets.')">
+                <span class="option-label">B</span> No — subnet peering must be configured
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VMs in different subnets of the same VNet can communicate without NSG rules — NSGs are needed to RESTRICT this traffic, not to allow it.')">
+                <span class="option-label">C</span> Only if NSG rules explicitly allow it
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cross-subnet communication within a VNet works without VPN — VPN is for connecting VNets or on-premises networks.')">
+                <span class="option-label">D</span> Only if a VPN is configured between the subnets
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Why is it important that VNet address spaces don't overlap when planning hybrid connectivity?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Overlapping address spaces don\'t cause performance issues — they cause routing failures because Azure cannot determine which network a packet is destined for.')">
+                <span class="option-label">A</span> Overlapping address spaces reduce network performance
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! If two networks (VNets or on-premises) have overlapping IP address ranges, Azure cannot route traffic between them — peering and VPN connections require non-overlapping address spaces. This is why careful IP planning before deployment is essential.')">
+                <span class="option-label">B</span> Overlapping address spaces prevent peering and VPN connections — routing becomes ambiguous
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Overlapping address spaces cause routing failures — not security vulnerabilities per se.')">
+                <span class="option-label">C</span> Overlapping address spaces create security vulnerabilities
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Overlapping address spaces cause routing issues, not billing problems.')">
+                <span class="option-label">D</span> Azure charges more for overlapping address spaces
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="subnets.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Subnets &amp; IP Addressing</span>
+            </a>
+            <a class="related-card" href="nsg.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Network Security Groups</span>
+            </a>
+            <a class="related-card" href="vnet-peering.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">VNet Peering</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="networking-overview.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Networking Overview</span>
+          </a>
+          <a class="nav-card next" href="subnets.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Subnets &amp; IP Addressing</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

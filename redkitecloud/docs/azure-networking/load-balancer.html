@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Load Balancer | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Load Balancer — Layer 4 load balancing, SKUs, frontend IP, backend pools, health probes, load balancing rules, and creating via CLI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Load Balancer</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Load Balancer</h1>
+
+        <p class="page-intro">
+          Azure Load Balancer is a high-performance, low-latency Layer 4 (TCP/UDP) load balancer that distributes incoming traffic across multiple healthy backend VMs. It operates at the transport layer — it doesn't look at HTTP headers or URLs, just IP addresses and ports. It's the right choice for load balancing any TCP or UDP traffic, not just HTTP, and for internal load balancing between application tiers.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Load Balancer does and when to use it · Basic vs Standard SKU · Public vs Internal Load Balancer · Key components — frontend IP, backend pool, health probe, load balancing rules · Distribution algorithms · NAT rules · Creating a Load Balancer via CLI · Load Balancer vs Application Gateway
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-lb">What is Azure Load Balancer?</a></li>
+            <li><a href="#skus">Basic vs Standard SKU</a></li>
+            <li><a href="#public-vs-internal">Public vs Internal Load Balancer</a></li>
+            <li><a href="#components">Key Components</a></li>
+            <li><a href="#health-probes">Health Probes</a></li>
+            <li><a href="#distribution">Distribution Algorithms</a></li>
+            <li><a href="#nat-rules">NAT Rules</a></li>
+            <li><a href="#creating">Creating a Load Balancer</a></li>
+            <li><a href="#lb-vs-appgw">Load Balancer vs Application Gateway</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-lb">What is Azure Load Balancer?</h2>
+          <p>Azure Load Balancer distributes inbound traffic across multiple backend VM instances. When a client connects, the Load Balancer picks one backend VM (based on the distribution algorithm) and forwards all packets for that connection to that VM. The client sees a single IP — the frontend IP of the Load Balancer.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Layer 4 = Transport Layer</strong>
+              Load Balancer operates at Layer 4 (TCP/UDP). It doesn't understand HTTP — it sees only IP addresses and ports. This means it can load balance any TCP or UDP service: web servers, database clusters, game servers, custom protocols. For HTTP-specific features (URL routing, cookie-based affinity, SSL termination), use Application Gateway.
+            </div>
+          </div>
+
+          <h2 id="skus">Basic vs Standard SKU</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Basic SKU</th><th>Standard SKU</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Backend pool size</td><td>Up to 300</td><td>Up to 1,000</td></tr>
+                <tr><td>Availability Zones</td><td>No</td><td>Yes — zone-redundant</td></tr>
+                <tr><td>SLA</td><td>No SLA</td><td>99.99%</td></tr>
+                <tr><td>Outbound rules</td><td>No</td><td>Yes</td></tr>
+                <tr><td>Secure by default</td><td>No — open</td><td>Yes — NSG required</td></tr>
+                <tr><td>HA Ports</td><td>No</td><td>Yes</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>Charged per rule hour + data</td></tr>
+                <tr><td>Recommended?</td><td>Legacy — avoid</td><td>Yes — always use Standard</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Always Use Standard SKU</strong>
+              Basic Load Balancer has no SLA and is being retired. All new load balancers should use Standard SKU. Also, you cannot mix Basic and Standard public IPs — your frontend IP must match the LB SKU.
+            </div>
+          </div>
+
+          <h2 id="public-vs-internal">Public vs Internal Load Balancer</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Public Load Balancer</th><th>Internal Load Balancer</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Frontend IP</td><td>Public IP address</td><td>Private IP from your VNet subnet</td></tr>
+                <tr><td>Traffic from</td><td>Internet</td><td>Within VNet or connected networks</td></tr>
+                <tr><td>Use case</td><td>Web servers facing the internet</td><td>Application tier, databases, internal services</td></tr>
+                <tr><td>Example</td><td>Load balance web servers serving public users</td><td>Load balance app servers accessed only by web servers</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="components">Key Components</h2>
+
+          <h3>Frontend IP Configuration</h3>
+          <p>The IP address that clients connect to. For public LB: a public IP. For internal LB: a private IP from a subnet. You can have multiple frontend IPs on one Load Balancer.</p>
+
+          <h3>Backend Pool</h3>
+          <p>The group of VMs that receive the traffic. You add VMs (via their NICs) to the backend pool. The Load Balancer distributes traffic among healthy VMs in the pool.</p>
+
+          <h3>Load Balancing Rules</h3>
+          <p>Define how frontend traffic maps to the backend pool. A rule specifies: frontend IP + port → backend pool + port. Example: Frontend port 80 → Backend pool port 80.</p>
+
+          <h3>Health Probe</h3>
+          <p>Determines which backend VMs are healthy and should receive traffic. If a VM fails the health probe, it's removed from rotation automatically.</p>
+
+          <h2 id="health-probes">Health Probes</h2>
+          <p>Health probes check if backend VMs are responsive. Three types:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Type</th><th>How It Works</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>HTTP</strong></td><td>GET request to a specified path — expects HTTP 200</td><td>Web apps — most informative</td></tr>
+                <tr><td><strong>HTTPS</strong></td><td>Same as HTTP but encrypted</td><td>Secure web apps</td></tr>
+                <tr><td><strong>TCP</strong></td><td>TCP connection attempt — success if port is open</td><td>Non-HTTP services</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Use HTTP Probes When Possible</strong>
+              An HTTP probe checks that your application is actually responding correctly — not just that the VM's TCP port is open. A VM could have an open port 80 but serve errors. HTTP probes catch this; TCP probes don't.
+            </div>
+          </div>
+
+          <p>Key health probe settings:</p>
+          <ul>
+            <li><strong>Interval</strong> — How often to probe (default: 15 seconds)</li>
+            <li><strong>Unhealthy threshold</strong> — How many failures before removing from rotation (default: 2)</li>
+          </ul>
+
+          <h2 id="distribution">Distribution Algorithms</h2>
+          <p>Load Balancer uses a 5-tuple hash by default to determine which backend VM receives each connection:</p>
+          <ul>
+            <li>Source IP</li>
+            <li>Source port</li>
+            <li>Destination IP</li>
+            <li>Destination port</li>
+            <li>Protocol</li>
+          </ul>
+          <p>This ensures all packets from the same client connection go to the same backend VM (session persistence). You can also configure:</p>
+          <ul>
+            <li><strong>2-tuple (Source IP)</strong> — Same source IP always goes to same backend VM (for protocols that need persistent sessions)</li>
+            <li><strong>3-tuple (Source IP + Protocol)</strong> — Source IP and protocol determine destination</li>
+          </ul>
+
+          <h2 id="nat-rules">NAT Rules</h2>
+          <p>Inbound NAT rules allow you to forward traffic from a specific frontend port to a specific backend VM and port. Useful for accessing individual VMs behind the Load Balancer (e.g., SSH to each VM on a different port).</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">NAT rules for SSH access to individual VMs</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">Frontend port 5001 → VM1 port 22 (SSH to VM1)
+Frontend port 5002 → VM2 port 22 (SSH to VM2)
+Frontend port 5003 → VM3 port 22 (SSH to VM3)
+
+# Connect to VM1: ssh user@public-ip -p 5001
+# Connect to VM2: ssh user@public-ip -p 5002</code></pre>
+          </div>
+
+          <h2 id="creating">Creating a Load Balancer</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Standard public Load Balancer</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create public IP for the LB
+az network public-ip create \
+  --resource-group myRG \
+  --name lb-public-ip \
+  --sku Standard \
+  --allocation-method Static
+
+# Create Load Balancer
+az network lb create \
+  --resource-group myRG \
+  --name myLoadBalancer \
+  --sku Standard \
+  --frontend-ip-name myFrontend \
+  --public-ip-address lb-public-ip \
+  --backend-pool-name myBackendPool
+
+# Create health probe
+az network lb probe create \
+  --resource-group myRG \
+  --lb-name myLoadBalancer \
+  --name myHealthProbe \
+  --protocol Http \
+  --port 80 \
+  --path /health \
+  --interval 15 \
+  --threshold 2
+
+# Create load balancing rule (port 80 → port 80)
+az network lb rule create \
+  --resource-group myRG \
+  --lb-name myLoadBalancer \
+  --name myHTTPRule \
+  --protocol Tcp \
+  --frontend-port 80 \
+  --backend-port 80 \
+  --frontend-ip-name myFrontend \
+  --backend-pool-name myBackendPool \
+  --probe-name myHealthProbe</code></pre>
+          </div>
+
+          <h2 id="lb-vs-appgw">Load Balancer vs Application Gateway</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Factor</th><th>Load Balancer</th><th>Application Gateway</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>OSI Layer</td><td>Layer 4 (TCP/UDP)</td><td>Layer 7 (HTTP/HTTPS)</td></tr>
+                <tr><td>Protocol awareness</td><td>No — any TCP/UDP</td><td>Yes — HTTP headers, URLs, cookies</td></tr>
+                <tr><td>URL-based routing</td><td>No</td><td>Yes — route /api to one pool, /images to another</td></tr>
+                <tr><td>SSL termination</td><td>No</td><td>Yes</td></tr>
+                <tr><td>Web Application Firewall</td><td>No</td><td>Yes (WAF SKU)</td></tr>
+                <tr><td>Cookie-based session affinity</td><td>No (IP-based only)</td><td>Yes</td></tr>
+                <tr><td>Cost</td><td>Cheaper</td><td>More expensive</td></tr>
+                <tr><td>Best for</td><td>Any TCP/UDP, internal LB</td><td>Web applications, API routing</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Load Balancer is Layer 4 (any TCP/UDP), has no SLA on Basic SKU (Standard has 99.99%), requires health probes to detect unhealthy backends, supports public and internal configurations, and cannot do URL-based routing (use Application Gateway for that).
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> At which OSI layer does Azure Load Balancer operate?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Layer 3 is the Network layer — Azure Load Balancer operates at Layer 4 (Transport layer).')">
+                <span class="option-label">A</span> Layer 3 (Network)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Load Balancer operates at Layer 4 (Transport layer). It understands TCP and UDP but not HTTP. It distributes traffic based on IP addresses and ports — not HTTP headers, URLs, or cookies.')">
+                <span class="option-label">B</span> Layer 4 (Transport)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Layer 7 is the Application layer — Application Gateway (not Load Balancer) operates at Layer 7.')">
+                <span class="option-label">C</span> Layer 7 (Application)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Layer 2 is the Data Link layer — Azure Load Balancer operates at Layer 4.')">
+                <span class="option-label">D</span> Layer 2 (Data Link)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the purpose of a health probe in Azure Load Balancer?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Health probes don\'t encrypt traffic — they check backend VM health to determine which VMs should receive traffic.')">
+                <span class="option-label">A</span> To encrypt traffic between the Load Balancer and backend VMs
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Health probes periodically check whether backend VMs are healthy and responsive. If a VM fails the probe (e.g., its web application crashes), the Load Balancer stops sending new connections to that VM — only healthy VMs receive traffic.')">
+                <span class="option-label">B</span> To check if backend VMs are healthy — unhealthy VMs are removed from rotation
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Health probes check availability — not performance metrics like CPU usage.')">
+                <span class="option-label">C</span> To monitor CPU and memory usage of backend VMs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Health probes check application health — they don\'t enforce NSG rules.')">
+                <span class="option-label">D</span> To apply NSG rules to backend pool traffic
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A company needs an internal Load Balancer to distribute traffic between application servers. What type of frontend IP does an internal Load Balancer use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public IP addresses are for public-facing Load Balancers — internal Load Balancers use private IPs that are only reachable within the VNet.')">
+                <span class="option-label">A</span> A public IP address</option>
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! An internal (private) Load Balancer uses a private IP address from a subnet within the VNet as its frontend. This makes it reachable only from within the VNet (and connected networks) — not from the internet.')">
+                <span class="option-label">B</span> A private IP address from a VNet subnet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Internal Load Balancers use private IPs — not the Load Balancer\'s hostname.')">
+                <span class="option-label">C</span> The Load Balancer's hostname
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Internal Load Balancers require an IP address frontend — not an NSG.')">
+                <span class="option-label">D</span> An NSG rule as the frontend
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What SLA does the Standard Azure Load Balancer provide?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 99.9% is the SLA for other services — Standard Load Balancer provides 99.99%.')">
+                <span class="option-label">A</span> 99.9%
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Standard Azure Load Balancer provides a 99.99% uptime SLA. Basic Load Balancer has no SLA at all — which is one of the key reasons to always use Standard SKU for production.')">
+                <span class="option-label">B</span> 99.99%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard Load Balancer provides 99.99% SLA — not 99.95%.')">
+                <span class="option-label">C</span> 99.95%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic Load Balancer has no SLA, but Standard Load Balancer provides 99.99%.')">
+                <span class="option-label">D</span> No SLA
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A web application needs to route traffic to different backend pools based on the URL path — /api to API servers and /images to image servers. Which Azure service should be used?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Load Balancer operates at Layer 4 and cannot inspect URL paths — it cannot route based on URL content.')">
+                <span class="option-label">A</span> Azure Load Balancer
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Application Gateway operates at Layer 7 (HTTP/HTTPS) and supports path-based routing — routing /api requests to one backend pool and /images to another. It understands HTTP headers, URLs, and cookies.')">
+                <span class="option-label">B</span> Azure Application Gateway
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic Manager is a DNS-based routing service — it routes between regions/endpoints but cannot inspect URL paths within a region.')">
+                <span class="option-label">C</span> Azure Traffic Manager
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs control traffic flow based on IP/port — they cannot route traffic to different backends based on URL paths.')">
+                <span class="option-label">D</span> Network Security Groups
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="application-gateway.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Application Gateway</span>
+            </a>
+            <a class="related-card" href="nsg.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Network Security Groups</span>
+            </a>
+            <a class="related-card" href="front-door.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Front Door</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="nsg.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Network Security Groups</span>
+          </a>
+          <a class="nav-card next" href="application-gateway.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Application Gateway</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

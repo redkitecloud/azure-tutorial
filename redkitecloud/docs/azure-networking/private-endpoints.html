@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Private Endpoints | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Private Endpoints — private connectivity to PaaS services, Private Link, DNS integration, and service endpoints comparison." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">Azure Private Endpoints</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Private Endpoints</h1>
+        <p class="page-intro">By default, Azure PaaS services (Storage, SQL, Key Vault, etc.) have public endpoints — accessible from anywhere on the internet. Private Endpoints give these services a private IP address within your VNet, so all traffic between your VNet and the service travels over Microsoft's private backbone — never the public internet. It's the most secure way to access Azure PaaS services.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Private Endpoints are and how they work · Azure Private Link · DNS configuration for private endpoints · Which services support Private Endpoints · Private Endpoints vs Service Endpoints · Creating Private Endpoints · Disabling public access after creating private endpoints
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-pe">What are Private Endpoints?</a></li>
+            <li><a href="#private-link">Azure Private Link</a></li>
+            <li><a href="#dns-integration">DNS Integration</a></li>
+            <li><a href="#supported-services">Supported Services</a></li>
+            <li><a href="#pe-vs-se">Private Endpoints vs Service Endpoints</a></li>
+            <li><a href="#creating">Creating a Private Endpoint</a></li>
+            <li><a href="#disable-public">Disabling Public Access</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-pe">What are Private Endpoints?</h2>
+          <p>A Private Endpoint is a network interface with a private IP address from your VNet subnet. It connects your VNet to an Azure PaaS service using Azure Private Link. Once created:</p>
+          <ul>
+            <li>The PaaS service gets a private IP in your VNet (e.g., 10.0.1.5)</li>
+            <li>Traffic from your VMs to the service uses this private IP</li>
+            <li>Traffic never leaves the Microsoft network — no public internet</li>
+            <li>You can disable the public endpoint entirely for maximum security</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Without Private Endpoint</strong>
+              Your VM's traffic to Azure Storage goes: VM → VNet → Internet → Azure Storage public endpoint. With Private Endpoint: VM → VNet → Private IP → Azure Storage (entirely on Microsoft's network).
+            </div>
+          </div>
+
+          <h2 id="private-link">Azure Private Link</h2>
+          <p>Azure Private Link is the underlying technology that powers Private Endpoints. It also allows you to expose your own services privately — if you have a service in your VNet, you can publish it via Private Link so other VNets or subscriptions can access it via their own Private Endpoints (without VNet peering).</p>
+
+          <h2 id="dns-integration">DNS Integration</h2>
+          <p>DNS configuration is the most complex part of Private Endpoints. When you create a Private Endpoint for a storage account:</p>
+          <ol>
+            <li>The storage account still has a public DNS name: <code>mystorageaccount.blob.core.windows.net</code></li>
+            <li>Without DNS config, this resolves to the public IP — traffic goes over the internet</li>
+            <li>You need a Private DNS Zone: <code>privatelink.blob.core.windows.net</code></li>
+            <li>Add an A record in this zone: <code>mystorageaccount → 10.0.1.5</code> (private IP)</li>
+            <li>Link the Private DNS Zone to your VNet</li>
+            <li>Now VMs in the VNet resolve <code>mystorageaccount.blob.core.windows.net</code> to the private IP</li>
+          </ol>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>DNS Must Be Configured Correctly</strong>
+              A common mistake is creating the Private Endpoint but forgetting to configure DNS. Without proper DNS, your VMs still resolve the service to its public IP and traffic goes over the internet — defeating the purpose.
+            </div>
+          </div>
+
+          <h3>Private DNS Zone Names</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Service</th><th>Private DNS Zone Name</th></tr></thead>
+              <tbody>
+                <tr><td>Azure Storage (Blob)</td><td>privatelink.blob.core.windows.net</td></tr>
+                <tr><td>Azure Storage (File)</td><td>privatelink.file.core.windows.net</td></tr>
+                <tr><td>Azure SQL Database</td><td>privatelink.database.windows.net</td></tr>
+                <tr><td>Azure Key Vault</td><td>privatelink.vaultcore.azure.net</td></tr>
+                <tr><td>Azure Cosmos DB</td><td>privatelink.documents.azure.com</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="supported-services">Supported Services</h2>
+          <p>Private Endpoints are supported by a wide range of Azure services including:</p>
+          <ul>
+            <li>Azure Storage (Blob, File, Queue, Table, Data Lake)</li>
+            <li>Azure SQL Database and SQL Managed Instance</li>
+            <li>Azure Key Vault</li>
+            <li>Azure Cosmos DB</li>
+            <li>Azure App Service and Functions</li>
+            <li>Azure Kubernetes Service (AKS API server)</li>
+            <li>Azure Monitor (Log Analytics)</li>
+            <li>Azure Event Hubs and Service Bus</li>
+          </ul>
+
+          <h2 id="pe-vs-se">Private Endpoints vs Service Endpoints</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Feature</th><th>Service Endpoints</th><th>Private Endpoints</th></tr></thead>
+              <tbody>
+                <tr><td>Traffic path</td><td>Stays on Azure backbone but from public IP</td><td>Fully private — uses private IP</td></tr>
+                <tr><td>Service gets private IP?</td><td>No — service still has public IP only</td><td>Yes — private IP in your subnet</td></tr>
+                <tr><td>Accessible from on-premises?</td><td>No (via VNet only)</td><td>Yes (via VPN/ExpressRoute)</td></tr>
+                <tr><td>DNS changes required?</td><td>No</td><td>Yes</td></tr>
+                <tr><td>Public access can be disabled?</td><td>Via firewall rules</td><td>Yes — fully</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>Per-endpoint charge (~₹500–800/month)</td></tr>
+                <tr><td>Security level</td><td>Good</td><td>Highest</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Which to Choose?</strong>
+              Service Endpoints are free and simpler — good for basic VNet-level access restriction. Private Endpoints provide true private connectivity accessible from on-premises (via VPN/ER), no public IP on the service, and the highest security. For compliance-sensitive workloads, always use Private Endpoints.
+            </div>
+          </div>
+
+          <h2 id="creating">Creating a Private Endpoint</h2>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create private endpoint for Azure Storage</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Get storage account resource ID
+STORAGE_ID=$(az storage account show \
+  --name mystorageaccount2026 \
+  --resource-group myRG \
+  --query id --output tsv)
+
+# Create the private endpoint
+az network private-endpoint create \
+  --name myStoragePrivateEndpoint \
+  --resource-group myRG \
+  --vnet-name myVNet \
+  --subnet app-subnet \
+  --private-connection-resource-id $STORAGE_ID \
+  --group-id blob \
+  --connection-name myStorageConnection
+
+# Create Private DNS Zone
+az network private-dns zone create \
+  --resource-group myRG \
+  --name privatelink.blob.core.windows.net
+
+# Link DNS Zone to VNet
+az network private-dns link vnet create \
+  --resource-group myRG \
+  --zone-name privatelink.blob.core.windows.net \
+  --name myDnsLink \
+  --virtual-network myVNet \
+  --registration-enabled false</code></pre>
+          </div>
+
+          <h2 id="disable-public">Disabling Public Access</h2>
+          <p>After creating a Private Endpoint, disable the public endpoint to ensure all traffic goes through the private route:</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Disable public access on storage account</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code">az storage account update \
+  --name mystorageaccount2026 \
+  --resource-group myRG \
+  --default-action Deny \
+  --bypass None</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Private Endpoints give PaaS services a private IP in your VNet. Know that DNS must be configured (Private DNS Zone) for clients to resolve the service to its private IP. Know the difference from Service Endpoints — Private Endpoints are accessible from on-premises via VPN/ExpressRoute; Service Endpoints are not. Know that Private Endpoints are the more secure option.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What does a Private Endpoint give an Azure PaaS service?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints give a private IP — not a public static IP.')">A — A static public IP address</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Private Endpoint gives a PaaS service (like Azure Storage or SQL Database) a private IP address within your VNet subnet. Traffic to the service uses this private IP — traveling entirely on Microsoft\'s private network, never the public internet.')">B — A private IP address from your VNet subnet</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints don\'t create VNet Peering — they create a network interface with a private IP for the service.')">C — A VNet Peering connection to the service\'s VNet</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints don\'t change DNS naming — the service retains its existing DNS name, but DNS resolution is updated to return the private IP.')">D — A custom DNS name within your VNet</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> You create a Private Endpoint for Azure Storage but VMs still connect to the public endpoint. What is the most likely cause?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSG rules are not needed to use Private Endpoints — DNS is the critical component.')">A — NSG rules are blocking the private endpoint connection</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Without DNS configuration (a Private DNS Zone linked to the VNet with an A record for the service), VMs resolve the storage account\'s DNS name to the public IP. The Private Endpoint exists but traffic bypasses it because DNS still returns the public address.')">B — DNS is not configured — VMs resolve the storage name to the public IP without a Private DNS Zone</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints don\'t require VNet Peering between the VNet and the service.')">C — VNet Peering is missing between the VNet and the storage VNet</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints work with Standard SKU — this is not a SKU limitation.')">D — The storage account SKU doesn\'t support Private Endpoints</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Can Private Endpoints be accessed from on-premises networks connected via VPN Gateway?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Since Private Endpoints give PaaS services a private IP in your VNet, on-premises networks connected via VPN Gateway or ExpressRoute can access those services using the private IP — without going through the public internet. This is a key advantage over Service Endpoints.')">A — Yes — on-premises can reach the private IP via VPN Gateway or ExpressRoute</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints ARE accessible from on-premises via VPN — this is one of their key advantages over Service Endpoints.')">B — No — Private Endpoints only work within the VNet itself</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoints work with both VPN Gateway and ExpressRoute.')">C — Only via ExpressRoute, not VPN Gateway</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. No special configuration beyond having a VPN/ER connection and proper DNS is needed.')">D — Only with special on-premises configuration</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the key difference between Service Endpoints and Private Endpoints?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Service Endpoints are free while Private Endpoints have a per-endpoint cost — not the other way around.')">A — Service Endpoints cost more than Private Endpoints</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Service Endpoints route traffic over the Azure backbone but the service retains its public IP — it\'s not accessible from on-premises via VPN. Private Endpoints give the service a private IP in your VNet, making it accessible from on-premises and allowing you to disable the public endpoint entirely.')">B — Private Endpoints give the service a private IP in your VNet and are accessible from on-premises; Service Endpoints do not</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Service Endpoints don\'t support all PaaS services — the list is limited compared to Private Endpoints.')">C — Service Endpoints support more Azure services than Private Endpoints</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Service Endpoints and Private Endpoints keep traffic on the Microsoft backbone. The difference is whether the service gets a private IP.')">D — Service Endpoints route traffic over the public internet; Private Endpoints don\'t</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What Private DNS Zone name is required for Private Endpoints connecting to Azure SQL Database?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. privatelink.blob.core.windows.net is for Azure Blob Storage — not SQL Database.')">A — privatelink.blob.core.windows.net</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! For Azure SQL Database Private Endpoints, the Private DNS Zone must be named "privatelink.database.windows.net". Each Azure service has its own specific Private DNS Zone name.')">B — privatelink.database.windows.net</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. privatelink.vaultcore.azure.net is for Azure Key Vault — not SQL Database.')">C — privatelink.vaultcore.azure.net</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. privatelink.sql.azure.com is not the correct zone name for Azure SQL Database.')">D — privatelink.sql.azure.com</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="azure-dns.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure DNS</span></a>
+            <a class="related-card" href="vnet.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Virtual Networks (VNet)</span></a>
+            <a class="related-card" href="network-watcher.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure Network Watcher</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="ddos-protection.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure DDoS Protection</span></a>
+          <a class="nav-card next" href="network-watcher.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Network Watcher</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

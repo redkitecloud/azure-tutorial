@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Front Door | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Front Door — global HTTP load balancing, CDN, WAF, SSL offloading, health probes, and routing methods." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Front Door</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Front Door</h1>
+
+        <p class="page-intro">
+          Azure Front Door is Microsoft's global content delivery network (CDN) and intelligent HTTP/HTTPS load balancer. It sits at the edge of Microsoft's global network — routing user requests to the fastest, healthiest backend anywhere in the world. It combines CDN caching, global load balancing, SSL termination, WAF protection, and URL routing into one service.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Azure Front Door is and when to use it · Front Door Standard vs Premium tiers · Global load balancing and routing methods · CDN caching · WAF integration · Health probes and failover · Custom domains and HTTPS · Front Door vs Traffic Manager vs Application Gateway
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-fd">What is Azure Front Door?</a></li>
+            <li><a href="#tiers">Front Door Tiers</a></li>
+            <li><a href="#how-it-works">How Front Door Works</a></li>
+            <li><a href="#routing-methods">Routing Methods</a></li>
+            <li><a href="#cdn-caching">CDN Caching</a></li>
+            <li><a href="#waf">WAF Integration</a></li>
+            <li><a href="#health-probes">Health Probes and Failover</a></li>
+            <li><a href="#custom-domains">Custom Domains and HTTPS</a></li>
+            <li><a href="#comparison">Front Door vs Traffic Manager vs App Gateway</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-fd">What is Azure Front Door?</h2>
+          <p>Azure Front Door is a global, scalable entry point for web applications. It uses Microsoft's global anycast network — with over 100 edge locations worldwide — to bring your application close to users everywhere. Key capabilities:</p>
+          <ul>
+            <li><strong>Global HTTP/HTTPS load balancing</strong> — Route to the best backend globally</li>
+            <li><strong>CDN caching</strong> — Cache content at edge locations near users</li>
+            <li><strong>SSL offloading</strong> — Terminate SSL/TLS at the edge</li>
+            <li><strong>WAF</strong> — Protect against web attacks at the global edge</li>
+            <li><strong>URL routing</strong> — Path and hostname-based routing</li>
+            <li><strong>Instant failover</strong> — Automatically routes around failed backends</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Front Door = Global App Gateway + CDN</strong>
+              Think of Front Door as Application Gateway deployed globally with built-in CDN. Where App Gateway handles HTTP traffic within a single region, Front Door handles it across all regions simultaneously.
+            </div>
+          </div>
+
+          <h2 id="tiers">Front Door Tiers</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tier</th><th>Key Features</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Standard</strong></td>
+                  <td>CDN, custom domains, SSL, URL routing, health probes</td>
+                  <td>Static content delivery, simple load balancing</td>
+                </tr>
+                <tr>
+                  <td><strong>Premium</strong></td>
+                  <td>Standard + WAF, Private Link integration, advanced security, bot protection</td>
+                  <td>Enterprise web apps, security-sensitive applications</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="how-it-works">How Front Door Works</h2>
+          <p>When a user requests your website:</p>
+          <ol>
+            <li>DNS resolves your domain to a Front Door anycast IP</li>
+            <li>The request is routed to the nearest Front Door edge PoP</li>
+            <li>Front Door checks if the response is cached — if so, returns it immediately</li>
+            <li>If not cached, Front Door selects the best backend (lowest latency, healthiest) and proxies the request</li>
+            <li>The response is cached at the edge for future requests</li>
+            <li>Front Door returns the response to the user</li>
+          </ol>
+
+          <p>Because Front Door terminates the connection at the edge (near the user) and maintains a persistent warm connection to the backend, round-trip latency for users worldwide is dramatically reduced.</p>
+
+          <h2 id="routing-methods">Routing Methods</h2>
+          <p>Front Door can route traffic across origins (backends) using different methods:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Method</th><th>How It Works</th><th>Use When</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Latency</strong> (default)</td><td>Route to the backend with lowest latency from the edge PoP</td><td>Best performance for users</td></tr>
+                <tr><td><strong>Priority</strong></td><td>Route to primary backend; failover to secondary if primary fails</td><td>Active-passive failover</td></tr>
+                <tr><td><strong>Weighted</strong></td><td>Distribute traffic by weight (e.g., 80% to prod, 20% to canary)</td><td>Canary releases, blue-green deployments</td></tr>
+                <tr><td><strong>Session affinity</strong></td><td>Same user always goes to same backend</td><td>Stateful applications</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="cdn-caching">CDN Caching</h2>
+          <p>Front Door caches static content (images, CSS, JS, HTML) at edge locations. Subsequent requests for the same content are served from the cache — no round-trip to your origin needed.</p>
+
+          <h3>Caching Rules</h3>
+          <ul>
+            <li>Configure cache duration per route</li>
+            <li>Cache based on query strings</li>
+            <li>Purge specific paths or all cached content when needed</li>
+          </ul>
+
+          <h3>Cache Hit Ratio</h3>
+          <p>Monitor your cache hit ratio in Front Door metrics. A high cache hit ratio (80%+) means most requests are served from cache — reducing origin load and improving latency.</p>
+
+          <h2 id="waf">WAF Integration</h2>
+          <p>Front Door Premium includes a Web Application Firewall at the global edge — protecting all your origins simultaneously. The WAF runs at the edge before traffic reaches your backends — blocking attacks without them ever reaching your servers.</p>
+
+          <h3>WAF Policy</h3>
+          <p>A WAF policy defines managed rule sets (OWASP) and custom rules. The same WAF policy can be shared across multiple Front Door endpoints — centralised security management.</p>
+
+          <h2 id="health-probes">Health Probes and Failover</h2>
+          <p>Front Door continuously probes origin health. When an origin fails health checks:</p>
+          <ol>
+            <li>Front Door detects the failure within ~30 seconds</li>
+            <li>Stops routing new requests to the failed origin</li>
+            <li>Continues routing to healthy origins</li>
+            <li>Automatically resumes routing to the origin when it recovers</li>
+          </ol>
+
+          <p>This gives you automatic multi-region failover — if your primary region goes down, Front Door routes to your secondary region automatically, with near-zero downtime for users.</p>
+
+          <h2 id="custom-domains">Custom Domains and HTTPS</h2>
+          <p>Front Door provides free managed SSL certificates for custom domains. Setup:</p>
+          <ol>
+            <li>Add your custom domain to Front Door</li>
+            <li>Create a CNAME in your DNS: <code>www.contoso.com → contoso.azurefd.net</code></li>
+            <li>Enable HTTPS — Front Door provisions a managed certificate automatically</li>
+            <li>Front Door renews the certificate before expiry</li>
+          </ol>
+
+          <h2 id="comparison">Front Door vs Traffic Manager vs App Gateway</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Front Door</th><th>Traffic Manager</th><th>App Gateway</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>OSI Layer</td><td>Layer 7</td><td>DNS (Layer 3/4)</td><td>Layer 7</td></tr>
+                <tr><td>Scope</td><td>Global</td><td>Global</td><td>Regional</td></tr>
+                <tr><td>Protocol</td><td>HTTP/HTTPS</td><td>Any</td><td>HTTP/HTTPS</td></tr>
+                <tr><td>CDN</td><td>✅ Yes</td><td>❌ No</td><td>❌ No</td></tr>
+                <tr><td>SSL termination</td><td>✅ Yes</td><td>❌ No</td><td>✅ Yes</td></tr>
+                <tr><td>WAF</td><td>✅ Yes (Premium)</td><td>❌ No</td><td>✅ Yes (WAF SKU)</td></tr>
+                <tr><td>URL routing</td><td>✅ Yes</td><td>❌ No</td><td>✅ Yes</td></tr>
+                <tr><td>Failover speed</td><td>Fast (~seconds)</td><td>Slow (~DNS TTL)</td><td>Fast</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Front Door is global (Traffic Manager is also global, App Gateway is regional). Know Front Door supports CDN, WAF, SSL offloading, and URL routing. Know Front Door uses anycast so users connect to the nearest edge PoP. Know the difference between Front Door and Traffic Manager — Front Door is a Layer 7 proxy; Traffic Manager is DNS-based only.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What makes Azure Front Door "global" compared to Application Gateway?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Front Door supports the same protocols as Application Gateway — the difference is geographic scope.')">
+                <span class="option-label">A</span> Front Door supports more protocols than Application Gateway
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Front Door is deployed across 100+ edge PoPs worldwide using Microsoft\'s global anycast network. Users connect to the nearest edge location. Application Gateway is deployed in a single Azure region — it handles regional load balancing, not global.')">
+                <span class="option-label">B</span> Front Door operates from 100+ edge locations worldwide; Application Gateway is deployed in one region
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Front Door and Application Gateway support WAF. The difference is geographic scope.')">
+                <span class="option-label">C</span> Front Door includes WAF; Application Gateway does not
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both services support custom domains with HTTPS — this is not what makes Front Door "global".')">
+                <span class="option-label">D</span> Front Door supports custom domains; Application Gateway does not
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company wants to route 80% of traffic to production backends and 20% to a canary release. Which Front Door routing method should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Latency routing sends traffic to the lowest-latency backend — it does not support percentage-based distribution.')">
+                <span class="option-label">A</span> Latency routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Priority routing sends all traffic to the primary backend, failing over to secondary when the primary is unhealthy — not for percentage splits.')">
+                <span class="option-label">B</span> Priority routing
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Weighted routing distributes traffic according to configured weights. Setting production weight to 80 and canary weight to 20 means 80% of traffic goes to production and 20% to the canary — perfect for canary releases and blue-green deployments.')">
+                <span class="option-label">C</span> Weighted routing
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Session affinity ensures the same user always hits the same backend — it does not distribute traffic by percentage.')">
+                <span class="option-label">D</span> Session affinity routing
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> How does Azure Front Door provide automatic failover when a backend region fails?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Front Door does not require manual intervention — failover is automatic based on health probe results.')">
+                <span class="option-label">A</span> Administrators must manually update DNS records to point to the secondary region
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Front Door continuously monitors backend health via health probes. When a backend fails health checks, Front Door automatically stops routing new requests to it within ~30 seconds and routes to healthy backends — transparently, without any DNS changes or manual intervention.')">
+                <span class="option-label">B</span> Health probes detect failure automatically and Front Door routes to healthy backends within ~30 seconds
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Front Door detects failures within ~30 seconds via health probes — not after a 5-minute delay.')">
+                <span class="option-label">C</span> After a 5-minute timeout, Azure automatically redirects traffic
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Front Door does not require users to reconnect — failover is seamless from the user\'s perspective.')">
+                <span class="option-label">D</span> Users must reconnect — Front Door cannot redirect existing connections
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which Azure Front Door tier includes Web Application Firewall (WAF) and Private Link integration?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Front Door Standard provides CDN and load balancing — WAF and Private Link are Premium features.')">
+                <span class="option-label">A</span> Standard tier
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Front Door Premium includes WAF (with managed rule sets and bot protection), Private Link integration for connecting to private backends, and advanced security analytics — in addition to all Standard tier features.')">
+                <span class="option-label">B</span> Premium tier
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Enterprise" tier for Azure Front Door — the two tiers are Standard and Premium.')">
+                <span class="option-label">C</span> Enterprise tier
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both tiers provide basic load balancing — WAF is specifically a Premium feature.')">
+                <span class="option-label">D</span> Both Standard and Premium tiers
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the key difference between Azure Front Door and Azure Traffic Manager?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Front Door and Traffic Manager are global services — scope is not the key difference.')">
+                <span class="option-label">A</span> Front Door is regional; Traffic Manager is global
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Front Door is a Layer 7 HTTP/HTTPS proxy — it terminates connections, inspects HTTP content, provides CDN, WAF, and SSL termination. Traffic Manager is DNS-based — it only resolves DNS to the best endpoint IP. Traffic Manager doesn\'t touch HTTP traffic at all.')">
+                <span class="option-label">B</span> Front Door is a Layer 7 HTTP proxy with CDN and WAF; Traffic Manager is DNS-based routing only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both services support HTTP traffic routing — the key difference is how they route (Layer 7 proxy vs DNS).')">
+                <span class="option-label">C</span> Front Door only supports HTTPS; Traffic Manager supports all protocols
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Front Door and Traffic Manager support failover routing — the difference is the mechanism (health probe-based proxy vs DNS TTL-based).')">
+                <span class="option-label">D</span> Front Door does not support failover; Traffic Manager does
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="traffic-manager.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Traffic Manager</span>
+            </a>
+            <a class="related-card" href="application-gateway.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Application Gateway</span>
+            </a>
+            <a class="related-card" href="load-balancer.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure Load Balancer</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="application-gateway.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Application Gateway</span>
+          </a>
+          <a class="nav-card next" href="traffic-manager.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Traffic Manager</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

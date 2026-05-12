@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subnets & IP Addressing | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure subnets and IP addressing — subnet design, public vs private IPs, static vs dynamic, service delegation, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Networking</a>
+          <span class="sep">›</span>
+          <span class="current">Subnets &amp; IP Addressing</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Subnets &amp; IP Addressing</h1>
+
+        <p class="page-intro">
+          Subnets divide your VNet into smaller network segments — letting you organise resources, apply security policies at different levels, and control traffic flow between tiers. IP addressing determines how resources identify and find each other. Getting subnet design right from the start saves a lot of pain later — you can't change a subnet's address range while resources are deployed in it.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What subnets are and why they matter · Subnet sizing and planning · Private IP addresses — dynamic vs static · Public IP addresses — Basic vs Standard SKU · Public IP prefixes · Service-dedicated subnets (Bastion, Gateway, Firewall) · Subnet delegation · Creating subnets via CLI
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-are-subnets">What Are Subnets?</a></li>
+            <li><a href="#subnet-sizing">Subnet Sizing</a></li>
+            <li><a href="#private-ips">Private IP Addresses</a></li>
+            <li><a href="#public-ips">Public IP Addresses</a></li>
+            <li><a href="#public-ip-prefix">Public IP Prefixes</a></li>
+            <li><a href="#dedicated-subnets">Service-Dedicated Subnets</a></li>
+            <li><a href="#subnet-delegation">Subnet Delegation</a></li>
+            <li><a href="#managing-subnets">Creating and Managing Subnets</a></li>
+            <li><a href="#design-patterns">Subnet Design Patterns</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-are-subnets">What Are Subnets?</h2>
+          <p>A subnet is a range of IP addresses within a VNet. You deploy resources into subnets — every VM NIC, every PaaS service that integrates with a VNet, must go into a subnet. Subnets serve two purposes:</p>
+          <ul>
+            <li><strong>Organisation</strong> — Group related resources (web tier, app tier, data tier) into separate subnets</li>
+            <li><strong>Security</strong> — Apply NSGs to control traffic between subnets</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Subnets Must Be Contiguous</strong>
+              Each subnet's address range must be within the VNet's address space and cannot overlap with other subnets. If your VNet is 10.0.0.0/16, valid subnets include 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24, etc.
+            </div>
+          </div>
+
+          <h2 id="subnet-sizing">Subnet Sizing</h2>
+          <p>Remember Azure reserves 5 IPs per subnet. Here's a quick guide for common subnet sizes:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>CIDR</th><th>Total IPs</th><th>Usable IPs</th><th>Suitable For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>/24</td><td>256</td><td>251</td><td>General-purpose subnet, most workloads</td></tr>
+                <tr><td>/25</td><td>128</td><td>123</td><td>Medium workload subnet</td></tr>
+                <tr><td>/26</td><td>64</td><td>59</td><td>Small subnet, Azure Bastion minimum</td></tr>
+                <tr><td>/27</td><td>32</td><td>27</td><td>Very small subnet</td></tr>
+                <tr><td>/28</td><td>16</td><td>11</td><td>Minimal subnet — VPN Gateway minimum</td></tr>
+                <tr><td>/29</td><td>8</td><td>3</td><td>Extremely limited — avoid</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Size Generously</strong>
+              Always size subnets larger than you think you need. You cannot expand a subnet while resources are in it (without redeployment). A /24 costs nothing extra and gives you room to grow.
+            </div>
+          </div>
+
+          <h2 id="private-ips">Private IP Addresses</h2>
+          <p>Every resource in a subnet gets a private IP from the subnet's address range. Private IPs are used for communication within the VNet (and connected networks).</p>
+
+          <h3>Dynamic vs Static Private IPs</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Dynamic</th><th>Static</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Assignment</td><td>Azure assigns next available IP</td><td>You specify the IP address</td></tr>
+                <tr><td>Changes on restart?</td><td>No — stays the same (but not guaranteed forever)</td><td>Never changes</td></tr>
+                <tr><td>Changes on delete/recreate?</td><td>May change</td><td>Must be reassigned</td></tr>
+                <tr><td>Best for</td><td>Most VMs and resources</td><td>DNS servers, domain controllers, load balancers</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a VM NIC with static private IP</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create NIC with static private IP
+az network nic create \
+  --resource-group myRG \
+  --name myNIC \
+  --vnet-name myVNet \
+  --subnet web-subnet \
+  --private-ip-address 10.0.1.10</code></pre>
+          </div>
+
+          <h2 id="public-ips">Public IP Addresses</h2>
+          <p>Resources that need to be reachable from the internet require a public IP. Public IPs are separate resources that are attached to NICs, load balancers, or gateways.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Basic SKU</th><th>Standard SKU</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Assignment</td><td>Dynamic or static</td><td>Static only</td></tr>
+                <tr><td>Security</td><td>Open by default</td><td>Closed by default — NSG required</td></tr>
+                <tr><td>Zone support</td><td>No</td><td>Yes — zone-redundant or zonal</td></tr>
+                <tr><td>Load Balancer support</td><td>Basic LB only</td><td>Standard LB only</td></tr>
+                <tr><td>Recommended?</td><td>Legacy — avoid for new</td><td>Yes — always use Standard</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Always Use Standard SKU</strong>
+              Basic public IPs are being retired. Always create Standard SKU public IPs for new resources. Standard IPs are closed by default (more secure) and support Availability Zones.
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a Standard public IP (static)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create a Standard SKU static public IP
+az network public-ip create \
+  --resource-group myRG \
+  --name myPublicIP \
+  --sku Standard \
+  --allocation-method Static \
+  --zone 1 2 3 \
+  --location centralindia</code></pre>
+          </div>
+
+          <h2 id="public-ip-prefix">Public IP Prefixes</h2>
+          <p>A Public IP Prefix is a reserved contiguous block of Standard public IP addresses. Useful when you need multiple public IPs from the same range (for whitelisting in firewalls).</p>
+
+          <h2 id="dedicated-subnets">Service-Dedicated Subnets</h2>
+          <p>Some Azure services require their own dedicated subnet with a specific name:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Service</th><th>Required Subnet Name</th><th>Minimum Size</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Azure Bastion</td><td><strong>AzureBastionSubnet</strong></td><td>/26</td></tr>
+                <tr><td>VPN Gateway</td><td><strong>GatewaySubnet</strong></td><td>/27 (recommend /26)</td></tr>
+                <tr><td>Azure Firewall</td><td><strong>AzureFirewallSubnet</strong></td><td>/26</td></tr>
+                <tr><td>Azure Firewall Management</td><td><strong>AzureFirewallManagementSubnet</strong></td><td>/26</td></tr>
+                <tr><td>App Gateway v2</td><td>Any name</td><td>/24 recommended</td></tr>
+                <tr><td>Azure Route Server</td><td><strong>RouteServerSubnet</strong></td><td>/27</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Reserve These Subnets Early</strong>
+              If you ever plan to add Bastion, VPN Gateway, or Azure Firewall to a VNet, pre-create their subnets immediately — even if you don't deploy the service yet. It's much easier than trying to carve out space later when the VNet is already populated.
+            </div>
+          </div>
+
+          <h2 id="subnet-delegation">Subnet Delegation</h2>
+          <p>Subnet delegation allows you to designate a subnet for a specific Azure service — allowing that service to create resources in the subnet and manage certain configurations. Common delegated services:</p>
+          <ul>
+            <li>Azure App Service (for VNet Integration)</li>
+            <li>Azure Kubernetes Service (for AKS node pools)</li>
+            <li>Azure NetApp Files</li>
+            <li>Azure SQL Managed Instance</li>
+          </ul>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Delegation is Exclusive</strong>
+              A delegated subnet can only contain resources from the delegated service — you cannot mix regular VMs with a delegated subnet's resources.
+            </div>
+          </div>
+
+          <h2 id="managing-subnets">Creating and Managing Subnets</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Common subnet management commands</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Add a subnet
+az network vnet subnet create \
+  --name data-subnet \
+  --resource-group myRG \
+  --vnet-name myVNet \
+  --address-prefix 10.0.3.0/24
+
+# List subnets
+az network vnet subnet list \
+  --resource-group myRG \
+  --vnet-name myVNet \
+  --output table
+
+# Show subnet details
+az network vnet subnet show \
+  --resource-group myRG \
+  --vnet-name myVNet \
+  --name data-subnet
+
+# Update subnet (e.g., add NSG)
+az network vnet subnet update \
+  --resource-group myRG \
+  --vnet-name myVNet \
+  --name data-subnet \
+  --network-security-group myNSG</code></pre>
+          </div>
+
+          <h2 id="design-patterns">Subnet Design Patterns</h2>
+          <p>A typical 3-tier application subnet layout:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Subnet</th><th>CIDR</th><th>Resources</th><th>NSG</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>AzureBastionSubnet</td><td>10.0.0.0/26</td><td>Azure Bastion</td><td>Bastion NSG</td></tr>
+                <tr><td>GatewaySubnet</td><td>10.0.0.64/27</td><td>VPN Gateway</td><td>None (required)</td></tr>
+                <tr><td>web-subnet</td><td>10.0.1.0/24</td><td>Web VMs, App Gateway</td><td>Allow 80/443 inbound</td></tr>
+                <tr><td>app-subnet</td><td>10.0.2.0/24</td><td>Application VMs</td><td>Allow only from web-subnet</td></tr>
+                <tr><td>data-subnet</td><td>10.0.3.0/24</td><td>SQL, databases</td><td>Allow only from app-subnet</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the required subnet names for Bastion (AzureBastionSubnet /26), VPN Gateway (GatewaySubnet /27+), and Azure Firewall (AzureFirewallSubnet /26). Know the difference between Basic and Standard SKU public IPs. Know that Azure reserves 5 IPs per subnet.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the minimum subnet size required for Azure Bastion?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A /28 provides only 16 IPs (11 usable) — too small for Azure Bastion. The minimum is /26.')">
+                <span class="option-label">A</span> /28
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A /27 provides 32 IPs — also too small for Azure Bastion. The minimum is /26.')">
+                <span class="option-label">B</span> /27
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Bastion requires a subnet named exactly "AzureBastionSubnet" with a minimum size of /26 (64 IP addresses). Microsoft recommends /26 for current needs and /25 for future Bastion features.')">
+                <span class="option-label">C</span> /26
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A /24 works but is larger than the minimum requirement. The minimum is /26.')">
+                <span class="option-label">D</span> /24
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the key difference between Basic and Standard SKU public IP addresses?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard SKU public IPs support both dynamic and static assignments — but Standard only supports static. It is Basic that supports both.')">
+                <span class="option-label">A</span> Basic supports static only; Standard supports both dynamic and static
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Standard SKU public IPs are closed by default (require NSG to allow traffic) and support Availability Zones. Basic SKU IPs are open by default and do not support zones. Standard is the recommended SKU for all new deployments.')">
+                <span class="option-label">B</span> Standard is closed by default (more secure) and zone-redundant; Basic is open and no zone support
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Basic and Standard SKU public IPs can be static. The key differences are security defaults and zone support.')">
+                <span class="option-label">C</span> Only Standard supports static assignment
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Basic and Standard public IPs can be used globally — the key differences are security model and zone support.')">
+                <span class="option-label">D</span> Basic is regional; Standard is global
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the required subnet name for a VPN Gateway?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AzureBastionSubnet is the required name for Azure Bastion — not VPN Gateway.')">
+                <span class="option-label">A</span> AzureBastionSubnet
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VPN Gateway requires a subnet named exactly "GatewaySubnet" with a minimum size of /27 (Microsoft recommends /26 or larger). No other resources should be deployed in this subnet.')">
+                <span class="option-label">B</span> GatewaySubnet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AzureFirewallSubnet is the required name for Azure Firewall — not VPN Gateway.')">
+                <span class="option-label">C</span> AzureFirewallSubnet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VPNGatewaySubnet is not the correct name — the required name is exactly "GatewaySubnet".')">
+                <span class="option-label">D</span> VPNGatewaySubnet
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A VM has a dynamic private IP. What happens to this IP when the VM is stopped and deallocated?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dynamic private IPs are retained when a VM is deallocated — unlike dynamic public IPs which can change.')">
+                <span class="option-label">A</span> The IP is released and a different IP may be assigned on restart
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Unlike dynamic public IPs, dynamic private IPs are retained when a VM is deallocated. The private IP is held for the NIC and reassigned to the same VM when it restarts. Only deleting and recreating the NIC would change the private IP.')">
+                <span class="option-label">B</span> The IP is retained — dynamic private IPs persist through stop/start cycles
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dynamic private IPs are not converted to static automatically — you must explicitly configure static assignment.')">
+                <span class="option-label">C</span> The IP is automatically converted to static
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dynamic private IPs are not permanently deleted when a VM is deallocated.')">
+                <span class="option-label">D</span> The IP is permanently deleted
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is subnet delegation used for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Subnet delegation is not about assigning administrative permissions to users — it designates a subnet for a specific Azure service.')">
+                <span class="option-label">A</span> Assigning administrative permissions to manage a subnet
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Subnet delegation designates a subnet for exclusive use by a specific Azure service (like App Service, AKS, or SQL Managed Instance). The service can then create and manage resources in that subnet. Delegated subnets cannot contain other resource types.')">
+                <span class="option-label">B</span> Designating a subnet for exclusive use by a specific Azure service
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs handle traffic filtering — not subnet delegation. Delegation is about service integration, not security rules.')">
+                <span class="option-label">C</span> Allowing public internet traffic into a private subnet
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cross-VNet routing is handled by VNet Peering or VPN — not subnet delegation.')">
+                <span class="option-label">D</span> Enabling cross-VNet routing between subnets
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vnet.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Virtual Networks (VNet)</span>
+            </a>
+            <a class="related-card" href="nsg.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Network Security Groups</span>
+            </a>
+            <a class="related-card" href="vpn-gateway.html">
+              <span class="related-card-label">Azure Networking</span>
+              <span class="related-card-title">Azure VPN Gateway</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="vnet.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Virtual Networks (VNet)</span>
+          </a>
+          <a class="nav-card next" href="nsg.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Network Security Groups</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

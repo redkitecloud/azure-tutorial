@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VNet Peering | Azure Networking | RedKiteCloud</title>
+  <meta name="description" content="Deep dive into Azure VNet Peering — regional and global peering, hub-spoke topology, transit routing, service chaining, and troubleshooting." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Networking</a><span class="sep">›</span><span class="current">VNet Peering</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Networking</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">VNet Peering</h1>
+        <p class="page-intro">VNet Peering connects two Azure VNets so resources in each can communicate using private IP addresses. Traffic travels over Microsoft's backbone — never the public internet. It's the fastest, simplest, and cheapest way to connect Azure VNets. Understanding peering deeply — including its non-transitive nature, hub-spoke patterns, and transit routing — is essential for AZ-104 and real-world networking.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Regional vs global peering · Non-transitive routing · Peering settings and what they do · Hub-spoke topology · Transit routing via NVA · Service chaining · Cross-subscription and cross-tenant peering · Troubleshooting peering issues
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#types">Regional vs Global Peering</a></li>
+            <li><a href="#non-transitive">Non-Transitive Routing</a></li>
+            <li><a href="#peering-settings">Peering Settings</a></li>
+            <li><a href="#hub-spoke">Hub-Spoke Topology</a></li>
+            <li><a href="#transit-routing">Transit Routing via NVA</a></li>
+            <li><a href="#cross-sub">Cross-Subscription and Cross-Tenant Peering</a></li>
+            <li><a href="#troubleshooting">Troubleshooting Peering</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="types">Regional vs Global Peering</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th></th><th>Regional Peering</th><th>Global Peering</th></tr></thead>
+              <tbody>
+                <tr><td>VNet locations</td><td>Same Azure region</td><td>Different Azure regions</td></tr>
+                <tr><td>Latency</td><td>Very low (&lt;1ms)</td><td>Cross-region (depends on distance)</td></tr>
+                <tr><td>Bandwidth</td><td>Full VNet bandwidth</td><td>Full VNet bandwidth</td></tr>
+                <tr><td>Cost</td><td>Per GB both directions</td><td>Per GB (higher rate)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="non-transitive">Non-Transitive Routing</h2>
+          <p>VNet Peering is <strong>non-transitive</strong> — the most important concept to understand. If VNet-A peers with VNet-B, and VNet-B peers with VNet-C:</p>
+          <ul>
+            <li>A can reach B ✅</li>
+            <li>B can reach C ✅</li>
+            <li>A CANNOT reach C ❌ — no direct peering exists</li>
+          </ul>
+          <p>To connect A to C, you must either: create a direct A↔C peering, or use a hub VNet with Azure Firewall/NVA that routes traffic between spokes.</p>
+
+          <h2 id="peering-settings">Peering Settings</h2>
+          <p>When creating a peering, key options to configure:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Setting</th><th>What It Does</th><th>Default</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Allow VNet access</strong></td><td>Allows resources in peered VNet to communicate</td><td>Enabled</td></tr>
+                <tr><td><strong>Allow forwarded traffic</strong></td><td>Allows traffic that originated outside the peered VNet to be forwarded through</td><td>Disabled</td></tr>
+                <tr><td><strong>Allow gateway transit</strong></td><td>Allow peered VNet to use this VNet's VPN/ExpressRoute gateway</td><td>Disabled</td></tr>
+                <tr><td><strong>Use remote gateways</strong></td><td>Use the peered VNet's gateway instead of your own</td><td>Disabled</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Gateway Transit in Hub-Spoke</strong>
+              In a hub-spoke design: enable <strong>Allow gateway transit</strong> on the hub, and <strong>Use remote gateways</strong> on each spoke. This lets all spoke VNets share the hub's VPN Gateway to reach on-premises — without each spoke needing its own gateway.
+            </div>
+          </div>
+
+          <h2 id="hub-spoke">Hub-Spoke Topology</h2>
+          <p>The most common enterprise Azure network design. A central <strong>hub VNet</strong> contains shared services — VPN Gateway, ExpressRoute gateway, Azure Firewall, Bastion. <strong>Spoke VNets</strong> contain workloads and peer to the hub.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Hub VNet Contains</th><th>Spoke VNets Contain</th></tr></thead>
+              <tbody>
+                <tr><td>VPN Gateway / ExpressRoute</td><td>Production workloads</td></tr>
+                <tr><td>Azure Firewall</td><td>Development workloads</td></tr>
+                <tr><td>Azure Bastion</td><td>Test workloads</td></tr>
+                <tr><td>Shared services (DNS, AD)</td><td>Application tiers</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Benefits: shared gateway reduces cost, centralised security policy, spokes are isolated from each other.</p>
+
+          <h2 id="transit-routing">Transit Routing via NVA</h2>
+          <p>Since peering is non-transitive, spoke-to-spoke traffic by default cannot flow through the hub. To enable it:</p>
+          <ol>
+            <li>Deploy Azure Firewall or NVA (Network Virtual Appliance) in the hub</li>
+            <li>Create UDRs (User Defined Routes) in each spoke pointing to the NVA as next hop for other spoke traffic</li>
+            <li>Enable <strong>Allow forwarded traffic</strong> on all peerings</li>
+            <li>Now all spoke-to-spoke traffic routes through the hub firewall for inspection</li>
+          </ol>
+
+          <h2 id="cross-sub">Cross-Subscription and Cross-Tenant Peering</h2>
+          <p>VNet Peering works across subscriptions and even across Azure AD tenants:</p>
+          <ul>
+            <li><strong>Cross-subscription</strong> — Both subscriptions must be in the same tenant. User creating the peering needs Network Contributor role on both VNets (or custom permissions).</li>
+            <li><strong>Cross-tenant</strong> — Requires a service principal with appropriate permissions in the remote tenant. More complex but fully supported.</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create cross-subscription peering</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Get remote VNet resource ID
+REMOTE_VNET_ID=$(az network vnet show \
+  --name RemoteVNet \
+  --resource-group RemoteRG \
+  --subscription RemoteSubscriptionId \
+  --query id --output tsv)
+
+# Create peering from local VNet to remote VNet
+az network vnet peering create \
+  --name LocalToRemote \
+  --resource-group LocalRG \
+  --vnet-name LocalVNet \
+  --remote-vnet $REMOTE_VNET_ID \
+  --allow-vnet-access</code></pre>
+          </div>
+
+          <h2 id="troubleshooting">Troubleshooting Peering</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Problem</th><th>Likely Cause</th><th>Fix</th></tr></thead>
+              <tbody>
+                <tr><td>Peering stuck in "Initiated" state</td><td>Peering not created in both directions</td><td>Create the reverse peering</td></tr>
+                <tr><td>Peering shows "Disconnected"</td><td>Remote VNet was deleted or peering removed</td><td>Delete and recreate peering</td></tr>
+                <tr><td>Address space overlap error</td><td>Both VNets have overlapping CIDR ranges</td><td>Change address space of one VNet</td></tr>
+                <tr><td>Spoke VMs can't reach on-premises</td><td>Gateway transit not configured</td><td>Enable allow gateway transit on hub, use remote gateways on spoke</td></tr>
+                <tr><td>Spokes can't reach each other</td><td>Peering is non-transitive</td><td>Add UDRs pointing to hub NVA, enable forwarded traffic</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              The most tested peering concepts: non-transitive routing, bidirectional creation requirement, address space overlap prevents peering, gateway transit for hub-spoke. The exam frequently tests scenarios like "VNet A can't reach VNet C" — the answer is always that A↔C needs its own direct peering.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> In a hub-spoke topology, a spoke VM cannot communicate with another spoke VM by default. Why?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs may restrict traffic, but the root cause in a hub-spoke design is peering non-transitivity — spoke-to-spoke traffic has no path without UDRs/NVA.')">A — NSG rules block inter-spoke traffic by default</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Peering is non-transitive. Spoke A peers with Hub, Hub peers with Spoke B — but Spoke A CANNOT reach Spoke B because there is no direct peering between them. Traffic must be routed through the hub using UDRs and an NVA/Firewall.')">B — VNet Peering is non-transitive — there is no direct path between spokes without UDRs through the hub</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. All VNets in a hub-spoke design are in the same region — region restriction is not the issue.')">C — Spoke VNets must be in the same region to communicate</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ExpressRoute is for on-premises connectivity — not needed for spoke-to-spoke communication.')">D — ExpressRoute is required for spoke-to-spoke communication</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What peering setting must be enabled on the hub VNet to allow spoke VNets to use the hub's VPN Gateway?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Allow forwarded traffic" enables routing traffic that originated outside the VNet — not gateway sharing.')">A — Allow forwarded traffic</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! "Allow gateway transit" must be enabled on the hub VNet\'s peering. The spoke VNets must then enable "Use remote gateways" on their peering to the hub. This allows all spoke VNets to use the hub\'s VPN Gateway without needing their own gateway.')">B — Allow gateway transit (on hub) + Use remote gateways (on spokes)</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Allow VNet access" enables basic connectivity between peered VNets — not gateway sharing.')">C — Allow VNet access</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. BGP is a routing protocol — it is not a peering configuration setting.')">D — Enable BGP on all peerings</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> You try to create a VNet Peering but get an error about address space overlap. What does this mean?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Overlapping address spaces do not cause a performance issue — they make routing impossible, which is why Azure prevents the peering.')">A — The VNets are in different regions</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Peering requires non-overlapping address spaces. If VNet-A uses 10.0.0.0/16 and VNet-B also uses 10.0.0.0/16, Azure cannot create a peering because routing would be ambiguous — it wouldn\'t know which VNet owns the 10.0.x.x addresses.')">B — Both VNets have the same or overlapping IP address ranges — routing would be ambiguous</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Peering works across subscriptions and tenants — this is not the address space overlap error.')">C — The VNets are in different subscriptions</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Running out of peering slots gives a different error — address space overlap means the CIDRs conflict.')">D — The VNet has reached its maximum number of peerings</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A peering shows status "Initiated" instead of "Connected". What is the most likely cause?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Network issues would cause connectivity problems after peering — "Initiated" specifically means the peering is not yet established from the other VNet\'s side.')">A — Network connectivity issues between Azure regions</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! "Initiated" status means you\'ve created the peering from one side but the reverse peering (from the remote VNet back) hasn\'t been created yet. VNet Peering requires a peering to be created in both directions for the status to become "Connected".')">B — The reverse peering (from the remote VNet) hasn\'t been created yet</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cost billing starts after peering is connected — it is not related to the "Initiated" status.')">C — The subscription payment is overdue</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Address space overlap prevents peering creation entirely — it wouldn\'t create and show as "Initiated".')">D — The address spaces overlap</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Does VNet Peering encrypt traffic between VNets?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Peering uses the Microsoft backbone but does NOT encrypt traffic. The backbone is trusted but not encrypted.')">A — Yes — all peered VNet traffic is encrypted with AES-256</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Peering does NOT encrypt traffic. Traffic between peered VNets travels over Microsoft\'s private backbone which is trusted — but not encrypted. If you require encryption between VNets, use VPN Gateway (VNet-to-VNet) instead of peering.')">B — No — peering traffic is private (Microsoft backbone) but not encrypted</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium peering is not a thing — all VNet peering uses the same backbone without encryption.')">C — Only with the Premium peering SKU</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Global peering also does not encrypt traffic — neither regional nor global peering encrypts.')">D — Only for global (cross-region) peering</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="vnet.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Virtual Networks (VNet)</span></a>
+            <a class="related-card" href="vpn-gateway.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure VPN Gateway</span></a>
+            <a class="related-card" href="azure-firewall.html"><span class="related-card-label">Azure Networking</span><span class="related-card-title">Azure Firewall</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="expressroute.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure ExpressRoute</span></a>
+          <a class="nav-card next" href="azure-dns.html"><span class="nav-label">Next →</span><span class="nav-title">Azure DNS</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
