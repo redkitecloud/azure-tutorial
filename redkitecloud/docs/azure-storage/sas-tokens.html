@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared Access Signatures (SAS) | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Storage Shared Access Signatures — SAS types, creating SAS tokens, permissions, expiry, and security best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Shared Access Signatures</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Shared Access Signatures (SAS)</h1>
+
+        <p class="page-intro">
+          Your storage account is private by default — only you can access it using your account keys. But sometimes you need to give a third party, a customer, or an application time-limited access to specific resources without sharing your master keys. Shared Access Signatures (SAS) are the solution — cryptographically signed URLs that grant precisely scoped, time-limited access to storage resources.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What SAS tokens are and how they work · Three SAS types (Service, Account, User Delegation) · SAS parameters — permissions, expiry, IP restriction · Generating SAS via Portal and CLI · Stored Access Policies · When SAS tokens get compromised · Security best practices
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-sas">What is a SAS Token?</a></li>
+            <li><a href="#sas-types">Three Types of SAS</a></li>
+            <li><a href="#sas-parameters">SAS Parameters</a></li>
+            <li><a href="#generating-sas">Generating SAS Tokens</a></li>
+            <li><a href="#stored-policies">Stored Access Policies</a></li>
+            <li><a href="#revoking">Revoking a SAS Token</a></li>
+            <li><a href="#best-practices">Security Best Practices</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-sas">What is a SAS Token?</h2>
+          <p>A SAS token is a query string appended to a storage resource URL that contains:</p>
+          <ul>
+            <li>Which resources can be accessed</li>
+            <li>What operations are permitted (read, write, delete, list)</li>
+            <li>When access expires</li>
+            <li>Which IP addresses can use it (optional)</li>
+            <li>A cryptographic signature to prevent tampering</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Example</span>
+              <span class="code-label">A SAS URL for a blob</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>https://mystorageaccount.blob.core.windows.net/images/photo.jpg
+  ?sv=2022-11-02
+  &ss=b
+  &srt=o
+  &sp=r
+  &se=2026-05-08T18:00:00Z
+  &st=2026-05-07T18:00:00Z
+  &spr=https
+  &sig=abc123xyz...</code></pre>
+          </div>
+
+          <p>Anyone with this URL can read <code>photo.jpg</code> until the expiry time — no storage account key needed.</p>
+
+          <h2 id="sas-types">Three Types of SAS</h2>
+
+          <h3>1. Service SAS</h3>
+          <p>Grants access to a specific resource in one storage service (Blob, File, Queue, or Table). Signed with the storage account key.</p>
+          <ul>
+            <li>Scope: Single service and resource</li>
+            <li>Signed by: Storage account key</li>
+            <li>Limitation: If account key is rotated, all Service SAS tokens are invalidated</li>
+          </ul>
+
+          <h3>2. Account SAS</h3>
+          <p>Grants access to resources in one or more storage services. Can access service-level operations that Service SAS cannot (e.g., creating containers, listing queues). Also signed with the storage account key.</p>
+          <ul>
+            <li>Scope: Multiple services and resource types</li>
+            <li>Signed by: Storage account key</li>
+          </ul>
+
+          <h3>3. User Delegation SAS (Recommended)</h3>
+          <p>Grants access to Blob Storage only, but is signed with an Azure AD credential (managed identity or service principal) instead of the account key. Most secure option.</p>
+          <ul>
+            <li>Scope: Blob Storage only</li>
+            <li>Signed by: Azure AD credentials</li>
+            <li>Advantage: Can be revoked without rotating the storage account key</li>
+            <li>Advantage: Auditable via Azure AD audit logs</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Use User Delegation SAS for new workloads</strong>
+              Microsoft recommends User Delegation SAS over Service/Account SAS wherever possible — it's more secure and doesn't depend on the storage account key.
+            </div>
+          </div>
+
+          <h2 id="sas-parameters">SAS Parameters</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Parameter</th><th>Purpose</th><th>Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>sp</code> (permissions)</td><td>What operations are allowed</td><td>r=read, w=write, d=delete, l=list, c=create</td></tr>
+                <tr><td><code>st</code> (start time)</td><td>When SAS becomes valid</td><td>2026-05-07T00:00:00Z</td></tr>
+                <tr><td><code>se</code> (expiry time)</td><td>When SAS expires</td><td>2026-05-08T00:00:00Z</td></tr>
+                <tr><td><code>sip</code> (IP range)</td><td>Restrict to specific IPs</td><td>203.0.113.0-203.0.113.255</td></tr>
+                <tr><td><code>spr</code> (protocol)</td><td>Allowed protocol</td><td>https (recommended, never http only)</td></tr>
+                <tr><td><code>sv</code> (version)</td><td>Storage service version</td><td>2022-11-02</td></tr>
+                <tr><td><code>sig</code> (signature)</td><td>Cryptographic signature</td><td>Generated automatically</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="generating-sas">Generating SAS Tokens</h2>
+
+          <h3>Via Azure Portal</h3>
+          <ol>
+            <li>Go to your Storage Account → Containers → select container or blob</li>
+            <li>Click <strong>Generate SAS</strong></li>
+            <li>Configure permissions, start/expiry time, allowed protocols</li>
+            <li>Click <strong>Generate SAS token and URL</strong></li>
+            <li>Copy the SAS token or full SAS URL</li>
+          </ol>
+
+          <h3>Via Azure CLI</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Generate SAS for a blob (read-only, expires in 1 hour)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># Get the expiry time (1 hour from now)
+EXPIRY=$(date -u -d "1 hour" '+%Y-%m-%dT%H:%MZ')
+
+# Generate blob SAS token
+az storage blob generate-sas \
+  --account-name mystorageaccount2026 \
+  --container-name images \
+  --name photo.jpg \
+  --permissions r \
+  --expiry $EXPIRY \
+  --https-only \
+  --output tsv</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Generate Account SAS (read/write access to blobs)</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az storage account generate-sas \
+  --account-name mystorageaccount2026 \
+  --permissions rwdlac \
+  --resource-types sco \
+  --services b \
+  --expiry 2026-05-08T00:00:00Z \
+  --https-only \
+  --output tsv</code></pre>
+          </div>
+
+          <h2 id="stored-policies">Stored Access Policies</h2>
+          <p>A Stored Access Policy (SAP) is a named policy stored on a container that groups SAS parameters. SAS tokens can reference a SAP instead of embedding permissions directly. This gives you one critical capability: <strong>revocation</strong>.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a stored access policy</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create a stored access policy
+az storage container policy create \
+  --container-name images \
+  --name readpolicy \
+  --permissions r \
+  --expiry 2026-12-31 \
+  --account-name mystorageaccount2026 \
+  --auth-mode login
+
+# Generate SAS using the stored policy
+az storage blob generate-sas \
+  --container-name images \
+  --name photo.jpg \
+  --policy-name readpolicy \
+  --account-name mystorageaccount2026 \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="revoking">Revoking a SAS Token</h2>
+          <p>SAS tokens without a stored access policy <strong>cannot be revoked</strong> — they are valid until expiry. This is the biggest risk. Your options when a SAS is compromised:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>SAS Type</th><th>Revocation Method</th><th>Downside</th></tr></thead>
+              <tbody>
+                <tr><td>Ad-hoc SAS (no policy)</td><td>Rotate the storage account key</td><td>Invalidates ALL SAS tokens signed with that key</td></tr>
+                <tr><td>SAS with Stored Access Policy</td><td>Delete or modify the policy</td><td>Only invalidates SAS tokens referencing that policy</td></tr>
+                <tr><td>User Delegation SAS</td><td>Revoke the Azure AD credential</td><td>May affect other resources using the same credential</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="best-practices">Security Best Practices</h2>
+          <ul>
+            <li><strong>Use the shortest possible expiry time</strong> — minutes or hours, not days or months</li>
+            <li><strong>Grant minimum required permissions</strong> — read-only if the user only needs to read</li>
+            <li><strong>Use HTTPS only</strong> — never allow HTTP-only SAS tokens</li>
+            <li><strong>Use Stored Access Policies</strong> — enables revocation without rotating account keys</li>
+            <li><strong>Prefer User Delegation SAS</strong> — signed by Azure AD, auditable, revocable</li>
+            <li><strong>Restrict by IP</strong> — if you know the client's IP, restrict the SAS to that IP</li>
+            <li><strong>Never log SAS tokens</strong> — treat them like passwords</li>
+            <li><strong>Never embed SAS in client-side code</strong> — generate them server-side and pass to clients</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the three SAS types (Service, Account, User Delegation). Know that User Delegation SAS is most secure. Know that ad-hoc SAS tokens cannot be revoked without rotating the account key. Know that Stored Access Policies enable per-policy revocation.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which SAS type is considered most secure and is recommended by Microsoft?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Service SAS is signed with the storage account key — if the key is compromised, all Service SAS tokens are at risk.')">
+                <span class="option-label">A</span> Service SAS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Account SAS is also signed with the storage account key and grants broader access than Service SAS — it is not the most secure option.')">
+                <span class="option-label">B</span> Account SAS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! User Delegation SAS is signed with Azure AD credentials instead of the storage account key. It can be revoked without rotating the account key, is auditable via Azure AD logs, and is the recommended approach for Blob Storage access.')">
+                <span class="option-label">C</span> User Delegation SAS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Container SAS" type — the three types are Service SAS, Account SAS, and User Delegation SAS.')">
+                <span class="option-label">D</span> Container SAS
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A SAS token is accidentally exposed publicly. The token was generated without a Stored Access Policy. How can it be revoked?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting the container does not invalidate SAS tokens — and would destroy all the data in the container unnecessarily.')">
+                <span class="option-label">A</span> Delete the container the token was generated for
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Ad-hoc SAS tokens (without a Stored Access Policy) cannot be selectively revoked. The only way to invalidate them is to rotate the storage account key that was used to sign them. This also invalidates ALL other SAS tokens signed with that key.')">
+                <span class="option-label">B</span> Rotate the storage account key used to sign the SAS token
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Portal has no "revoke SAS" button for ad-hoc tokens — the only revocation mechanism is rotating the account key.')">
+                <span class="option-label">C</span> Use the Azure Portal to revoke the specific SAS token
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Waiting for expiry may be acceptable for a short-lived SAS, but for a compromised token with a long expiry, rotating the account key is the correct action.')">
+                <span class="option-label">D</span> Wait for the token to expire naturally
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the advantage of using a Stored Access Policy with SAS tokens?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Stored Access Policies do not improve SAS token performance — they provide revocation capability.')">
+                <span class="option-label">A</span> Faster performance when validating SAS tokens
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SAS tokens linked to a Stored Access Policy can be revoked by deleting or modifying the policy — without rotating the storage account key. This is a much more targeted revocation method that doesn\'t affect other SAS tokens.')">
+                <span class="option-label">B</span> SAS tokens can be revoked by modifying the policy without rotating the account key
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Stored Access Policies do not automatically extend SAS token expiry — expiry is still set when generating the SAS.')">
+                <span class="option-label">C</span> SAS tokens automatically extend their expiry when the policy is updated
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Stored Access Policies do not reduce the cost of SAS token generation — cost is not affected.')">
+                <span class="option-label">D</span> Reduces the cost of generating SAS tokens
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which SAS parameter controls what operations are permitted?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The "sp" (signed permissions) parameter controls what operations are allowed. Values include r=read, w=write, d=delete, l=list, c=create, a=add. For example, sp=r means read-only access.')">
+                <span class="option-label">A</span> sp (signed permissions)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "se" is the signed expiry parameter — it controls when the SAS token expires, not what operations are allowed.')">
+                <span class="option-label">B</span> se (signed expiry)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "sv" is the signed version parameter — it specifies the storage service API version, not permissions.')">
+                <span class="option-label">C</span> sv (signed version)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "sig" is the cryptographic signature that proves the token was signed by the account key — it does not control permissions.')">
+                <span class="option-label">D</span> sig (signature)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A developer needs to allow a mobile app to upload photos directly to Blob Storage for 24 hours. What is the correct approach?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Sharing the storage account key gives permanent full access — far more than needed. Never share storage account keys with client apps.')">
+                <span class="option-label">A</span> Share the storage account key with the mobile app
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Making the container public allows anyone to read, not just upload — and it cannot control who can write.')">
+                <span class="option-label">B</span> Make the blob container publicly accessible
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Generate a SAS token with write permission (sp=w), expiring in 24 hours, HTTPS-only. Pass this to the mobile app. The app can upload directly to Blob Storage using the SAS URL without ever having the account key. After 24 hours, the token expires automatically.')">
+                <span class="option-label">C</span> Generate a write-only SAS token expiring in 24 hours and pass it to the app
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating a new storage account per user is wasteful, complex, and expensive — SAS tokens are the correct solution for scoped, time-limited access.')">
+                <span class="option-label">D</span> Create a separate storage account for each mobile app user
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="storage-security.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Account Security</span>
+            </a>
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="storage-redundancy.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Redundancy</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="storage-redundancy.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Storage Redundancy</span>
+          </a>
+          <a class="nav-card next" href="storage-security.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Storage Account Security</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

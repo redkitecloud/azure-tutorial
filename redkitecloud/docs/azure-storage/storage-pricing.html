@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Storage Pricing | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Storage pricing — all cost components, real price examples, and actionable tips to reduce your storage bill." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Storage Pricing</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Storage Pricing</h1>
+
+        <p class="page-intro">
+          Azure Storage is one of the cheapest Azure services — storing 1 TB of data can cost as little as ₹1,000–2,000 per month. But storage bills can grow unexpectedly if you don't understand all the cost components. Data egress, transactions, and the wrong tier choice can multiply your costs. This page covers everything you pay for and how to minimise it.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          All storage cost components · Blob tier pricing comparison · Redundancy cost impact · Transaction costs · Data egress costs · File share and queue pricing · Real-world cost examples · Top 8 cost-saving tips · Using the Azure Pricing Calculator for storage
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#cost-components">Storage Cost Components</a></li>
+            <li><a href="#blob-pricing">Blob Storage Pricing by Tier</a></li>
+            <li><a href="#redundancy-cost">Redundancy Cost Impact</a></li>
+            <li><a href="#transactions">Transaction Costs</a></li>
+            <li><a href="#egress">Data Egress Costs</a></li>
+            <li><a href="#other-services">File Share and Queue Pricing</a></li>
+            <li><a href="#real-examples">Real-World Cost Examples</a></li>
+            <li><a href="#cost-tips">Top 8 Cost-Saving Tips</a></li>
+            <li><a href="#calculator">Using the Pricing Calculator</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="cost-components">Storage Cost Components</h2>
+          <p>Azure Storage billing has several components — understanding all of them prevents bill shock:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Component</th><th>What It Is</th><th>Billed How</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Capacity</strong></td><td>How much data you store</td><td>Per GB per month</td></tr>
+                <tr><td><strong>Transactions</strong></td><td>API calls — reads, writes, lists, deletes</td><td>Per 10,000 operations</td></tr>
+                <tr><td><strong>Data retrieval</strong></td><td>Reading data from Cool/Cold/Archive tiers</td><td>Per GB retrieved</td></tr>
+                <tr><td><strong>Data egress</strong></td><td>Outbound data to internet or other regions</td><td>Per GB (first 15 GB/month free)</td></tr>
+                <tr><td><strong>Early deletion</strong></td><td>Deleting/moving data before minimum retention period</td><td>Per GB for remaining days</td></tr>
+                <tr><td><strong>Rehydration</strong></td><td>Retrieving data from Archive tier</td><td>Per GB rehydrated</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Inbound is Free</strong>
+              Data uploaded TO Azure Storage (inbound/ingress) is always free. You only pay for outbound data (egress) going from Azure to the internet or to other regions.
+            </div>
+          </div>
+
+          <h2 id="blob-pricing">Blob Storage Pricing by Tier</h2>
+          <p>Approximate prices for Blob Storage in Central India (Standard LRS, pay-as-you-go):</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tier</th><th>Storage/GB/Month</th><th>Read Cost/GB</th><th>Write Cost/10K ops</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Hot</strong></td><td>~₹1.60</td><td>Free</td><td>~₹4.20</td></tr>
+                <tr><td><strong>Cool</strong></td><td>~₹0.90</td><td>~₹0.85/GB</td><td>~₹1.05</td></tr>
+                <tr><td><strong>Cold</strong></td><td>~₹0.36</td><td>~₹2.50/GB</td><td>~₹1.05</td></tr>
+                <tr><td><strong>Archive</strong></td><td>~₹0.17</td><td>~₹17/GB (std) or ₹60/GB (high)</td><td>~₹5.25</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>The Trade-Off</strong>
+              Archive stores data at ~1/10 the cost of Hot, but reads cost ~17x more per GB. For data that's never read, Archive saves massively. For data read occasionally, do the maths — at high read volume, Hot can be cheaper overall.
+            </div>
+          </div>
+
+          <h2 id="redundancy-cost">Redundancy Cost Impact</h2>
+          <p>Redundancy option significantly affects your storage cost. Approximate multipliers vs LRS:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Redundancy</th><th>Cost vs LRS</th><th>Example: 1 TB Hot</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>LRS</td><td>1x (baseline)</td><td>~₹1,600/month</td></tr>
+                <tr><td>ZRS</td><td>~1.25x</td><td>~₹2,000/month</td></tr>
+                <tr><td>GRS</td><td>~2x</td><td>~₹3,200/month</td></tr>
+                <tr><td>GZRS</td><td>~2.5x</td><td>~₹4,000/month</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="transactions">Transaction Costs</h2>
+          <p>Every API call to Azure Storage costs a small amount. For high-volume applications, transaction costs can exceed storage capacity costs.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Operation Type</th><th>Hot Tier (per 10K)</th><th>Cool Tier (per 10K)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Write operations (PUT, POST)</td><td>~₹4.20</td><td>~₹1.05</td></tr>
+                <tr><td>Read operations (GET)</td><td>~₹0.34</td><td>~₹0.85</td></tr>
+                <tr><td>List operations</td><td>~₹4.20</td><td>~₹1.05</td></tr>
+                <tr><td>Delete operations</td><td>Free</td><td>Free</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Watch Out for Listing Operations</strong>
+              List operations (listing blobs in a container) are charged at the same rate as write operations. If your application lists containers frequently, this can add up quickly. Cache directory listings in your application rather than calling list repeatedly.
+            </div>
+          </div>
+
+          <h2 id="egress">Data Egress Costs</h2>
+          <p>Outbound data from Azure Storage to the internet:</p>
+          <ul>
+            <li><strong>First 15 GB/month:</strong> Free</li>
+            <li><strong>15 GB – 10 TB/month:</strong> ~₹6/GB</li>
+            <li><strong>Next 40 TB:</strong> ~₹5.50/GB</li>
+          </ul>
+
+          <h3>Egress Exemptions (Free)</h3>
+          <ul>
+            <li>Data transferred between storage accounts in the same region</li>
+            <li>Data read by Azure services in the same region (e.g., an Azure VM reading a blob in the same region)</li>
+            <li>Data transferred to Azure CDN (egress to CDN from storage is free)</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Keep Storage and Compute in the Same Region</strong>
+              If your VMs read data from Blob Storage, put both in the same region. Egress within the same region is free. Cross-region egress costs ₹6/GB+.
+            </div>
+          </div>
+
+          <h2 id="other-services">File Share and Queue Pricing</h2>
+
+          <h3>Azure File Storage</h3>
+          <ul>
+            <li>Standard (Transaction Optimised): ~₹0.80/GB/month</li>
+            <li>Standard (Hot): ~₹0.60/GB/month</li>
+            <li>Standard (Cool): ~₹0.20/GB/month</li>
+            <li>Premium SSD: ~₹6.30/GB provisioned/month</li>
+          </ul>
+
+          <h3>Queue Storage</h3>
+          <ul>
+            <li>Storage: ~₹0.04/GB/month (very cheap — messages are tiny)</li>
+            <li>Operations: ~₹0.034/10,000 operations</li>
+          </ul>
+
+          <h3>Table Storage</h3>
+          <ul>
+            <li>Storage: ~₹0.72/GB/month</li>
+            <li>Operations: ~₹0.034/10,000 operations</li>
+          </ul>
+
+          <h2 id="real-examples">Real-World Cost Examples</h2>
+
+          <h3>Example 1 — Small Web Application</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Component</th><th>Usage</th><th>Monthly Cost</th></tr></thead>
+              <tbody>
+                <tr><td>Blob storage (images, assets)</td><td>50 GB Hot, LRS</td><td>~₹80</td></tr>
+                <tr><td>Blob transactions</td><td>5 million reads/month</td><td>~₹170</td></tr>
+                <tr><td>Egress</td><td>100 GB to internet</td><td>~₹510</td></tr>
+                <tr><td><strong>Total</strong></td><td></td><td><strong>~₹760/month</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Example 2 — Backup Solution</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Component</th><th>Usage</th><th>Monthly Cost</th></tr></thead>
+              <tbody>
+                <tr><td>Recent backups (30 days)</td><td>500 GB Cool, LRS</td><td>~₹450</td></tr>
+                <tr><td>Archive (7 years)</td><td>5 TB Archive, LRS</td><td>~₹870</td></tr>
+                <tr><td>Transactions</td><td>Low (backup write once)</td><td>~₹50</td></tr>
+                <tr><td><strong>Total</strong></td><td></td><td><strong>~₹1,370/month</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="cost-tips">Top 8 Cost-Saving Tips</h2>
+
+          <h3>1. Use the Right Tier</h3>
+          <p>Don't store infrequently accessed data in Hot tier. Use lifecycle management to automate tier transitions.</p>
+
+          <h3>2. Use Lifecycle Management</h3>
+          <p>Automate transitions from Hot → Cool → Archive → Delete based on age. Saves money continuously without manual work.</p>
+
+          <h3>3. Delete Unused Data</h3>
+          <p>Run regular audits to find orphaned blobs, old snapshots, and unused containers. Azure Advisor can help identify waste.</p>
+
+          <h3>4. Use LRS for Non-Critical Data</h3>
+          <p>Dev/test environments and easily reconstructed data don't need GRS. LRS saves ~50% vs GRS.</p>
+
+          <h3>5. Keep Storage and Compute in the Same Region</h3>
+          <p>Eliminates cross-region egress costs (₹6+/GB).</p>
+
+          <h3>6. Use Azure CDN for Public Content</h3>
+          <p>CDN cache hits don't cost storage egress. Dramatically reduces egress for popular content.</p>
+
+          <h3>7. Enable Blob Soft Delete Carefully</h3>
+          <p>Soft delete is great for recovery but retains deleted blobs, adding to storage costs. Set a short retention period for non-critical data.</p>
+
+          <h3>8. Monitor with Azure Cost Analysis</h3>
+          <p>Set up Azure Cost Management budgets and alerts. Regular reviews prevent bill surprises.</p>
+
+          <h2 id="calculator">Using the Pricing Calculator</h2>
+          <p>Always estimate costs before deploying at <strong>azure.microsoft.com/pricing/calculator</strong>. For storage:</p>
+          <ul>
+            <li>Select <strong>Storage Accounts</strong></li>
+            <li>Choose region (Central India)</li>
+            <li>Select storage type (Block Blob, File Storage, etc.)</li>
+            <li>Choose redundancy tier</li>
+            <li>Enter estimated capacity (GB), transactions, and egress</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that inbound data is free, outbound egress is charged. Know that transaction costs vary by tier — Cool/Archive have higher read costs per operation. Know that egress within the same region is free. Know that lifecycle management reduces costs by automating tier transitions.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Which data transfer scenario incurs no egress charges in Azure Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Transferring data from Azure Storage to users in Europe does incur egress charges — international internet egress is billed per GB.')">
+                <span class="option-label">A</span> Transferring data from Blob Storage to users in Europe
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Data transferred between Azure resources in the same region incurs no egress charges. This includes VMs reading from Blob Storage in the same region, making it important to keep storage and compute in the same region.')">
+                <span class="option-label">B</span> An Azure VM reading data from a Blob Storage account in the same region
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Data transferred between regions (e.g., Central India to UK South) incurs inter-region egress charges.')">
+                <span class="option-label">C</span> Transferring data from Central India to UK South storage account
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Data uploaded from on-premises to Azure is inbound (free). But data downloaded FROM Azure to on-premises is egress (charged). This question is about egress, not ingress.')">
+                <span class="option-label">D</span> Uploading data from on-premises to Azure Blob Storage
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A company stores 10 TB of compliance data that is almost never read but must be retained for 7 years. Which approach minimises storage cost?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hot tier with GRS would be extremely expensive for 10 TB of rarely accessed data — the highest storage cost tier with the highest redundancy cost.')">
+                <span class="option-label">A</span> Hot tier with GRS redundancy
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Archive tier has the lowest storage cost (~₹0.17/GB/month) — ideal for data that is almost never read. LRS is sufficient if the data is not critical for regional disaster recovery. Combined, this saves ~90% vs Hot tier with GRS.')">
+                <span class="option-label">B</span> Archive tier with LRS redundancy
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cool tier is cheaper than Hot but more expensive than Archive for data that is almost never accessed.')">
+                <span class="option-label">C</span> Cool tier with ZRS redundancy
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium SSD is the most expensive storage option — completely wrong for archival compliance data.')">
+                <span class="option-label">D</span> Premium SSD with GZRS redundancy
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> Is inbound data transfer (uploading data to Azure Storage) free?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Inbound data transfer (uploading to Azure Storage) is always free. You are only charged for outbound/egress data — data leaving Azure Storage going to the internet or to other regions.')">
+                <span class="option-label">A</span> Yes — inbound data transfer to Azure Storage is always free
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Inbound data is free — there is no per-GB charge for uploading data to Azure Storage.')">
+                <span class="option-label">B</span> No — inbound transfer is charged at the same rate as egress
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Inbound is free regardless of storage tier — the tier affects storage capacity cost and access cost, not inbound transfer.')">
+                <span class="option-label">C</span> Only free for Hot tier — Cool and Archive charge for inbound
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Inbound is always free — there is no monthly free allowance cap for inbound data.')">
+                <span class="option-label">D</span> Free only up to 15 GB/month
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Why might transaction costs exceed storage capacity costs for some applications?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Transaction costs are based on number of API calls — not data size. Even small blobs generate full transaction costs.')">
+                <span class="option-label">A</span> Because transactions are charged per byte of data processed
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! High-volume applications (e.g., a website serving millions of image requests per day) can generate tens of millions of GET operations monthly. At ₹0.34 per 10,000 reads on Hot tier, 100 million reads = ₹3,400/month in transaction costs alone — potentially exceeding the storage capacity cost.')">
+                <span class="option-label">B</span> High-frequency API calls (millions of reads/writes/lists per day) accumulate significant transaction fees
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Transaction costs are not related to file size — they are charged per operation regardless of how large or small the blob is.')">
+                <span class="option-label">C</span> Because large files cost more per transaction
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GRS does not double transaction costs — it doubles storage capacity costs but transactions are priced per operation regardless of redundancy level.')">
+                <span class="option-label">D</span> Because GRS charges double for all transactions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the most cost-effective way to reduce egress costs for a popular website serving images globally from Azure Blob Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Moving images to a cheaper tier would reduce storage costs but not egress costs — egress is charged regardless of the storage tier.')">
+                <span class="option-label">A</span> Move images to the Archive tier
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure CDN caches images at edge PoPs globally. Cache hits serve from CDN at lower cost than storage egress, and data transferred from storage to CDN origin is free. For a popular website, 90%+ cache hit rates dramatically reduce egress costs.')">
+                <span class="option-label">B</span> Use Azure CDN — cache hits don't cost storage egress and CDN egress is cheaper
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Changing redundancy affects storage capacity cost — not egress cost.')">
+                <span class="option-label">C</span> Switch from GRS to LRS redundancy
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disabling public access would make the images inaccessible to website users — not a valid cost optimisation.')">
+                <span class="option-label">D</span> Disable public access on the storage account
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="blob-access-tiers.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Blob Access Tiers</span>
+            </a>
+            <a class="related-card" href="lifecycle-management.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Blob Lifecycle Management</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="storage-explorer.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Storage Explorer</span>
+          </a>
+          <a class="nav-card next" href="../../index.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Back to All Modules</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

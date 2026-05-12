@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure CDN with Storage | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Integrate Azure CDN with Blob Storage — fast global delivery, custom domains, HTTPS, caching rules, and cost savings." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure CDN with Storage</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 11 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure CDN with Storage</h1>
+
+        <p class="page-intro">
+          A storage account in Central India serves users in Mumbai in milliseconds — but users in London or New York get much slower responses. Azure CDN (Content Delivery Network) solves this by caching your storage content at edge locations around the world, so every user gets fast responses from a nearby server. CDN also adds custom domain support, HTTPS, and reduces your storage egress costs.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What a CDN does and why it matters · Azure CDN profiles and tiers · Creating a CDN endpoint for Blob Storage · Custom domain setup · Enabling HTTPS with managed certificates · Caching rules · Purging the CDN cache · Cost comparison — with and without CDN
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-cdn">What is a CDN?</a></li>
+            <li><a href="#cdn-tiers">Azure CDN Tiers</a></li>
+            <li><a href="#creating-endpoint">Creating a CDN Endpoint for Blob Storage</a></li>
+            <li><a href="#custom-domain">Adding a Custom Domain</a></li>
+            <li><a href="#https">Enabling HTTPS</a></li>
+            <li><a href="#caching">Caching Rules</a></li>
+            <li><a href="#purging">Purging the Cache</a></li>
+            <li><a href="#cost">Cost Savings with CDN</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-cdn">What is a CDN?</h2>
+          <p>A CDN is a global network of servers (called Points of Presence, or PoPs) that cache copies of your content close to users worldwide. When a user requests a file:</p>
+          <ol>
+            <li>The CDN routes the request to the nearest PoP</li>
+            <li>If the PoP has the file cached, it returns it immediately (cache hit)</li>
+            <li>If not, it fetches from your storage account (origin), caches it, and returns it</li>
+            <li>Subsequent requests from that region are served from the cache</li>
+          </ol>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Why CDN Matters</strong>
+              Without CDN: A user in London requests an image stored in Central India. The request travels ~7,000 km to India and back — perhaps 150–200ms latency. With CDN: The image is cached at a London PoP — the user gets it in 5–10ms.
+            </div>
+          </div>
+
+          <h2 id="cdn-tiers">Azure CDN Tiers</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tier</th><th>Provider</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Azure CDN Standard from Microsoft</strong></td><td>Microsoft</td><td>General use, integrated with Azure services</td></tr>
+                <tr><td><strong>Azure CDN Standard from Edgio</strong></td><td>Edgio (formerly Verizon)</td><td>Broad coverage, good performance</td></tr>
+                <tr><td><strong>Azure CDN Premium from Edgio</strong></td><td>Edgio</td><td>Advanced rules engine, analytics</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Recommendation</strong>
+              For most use cases, <strong>Azure CDN Standard from Microsoft</strong> is the best choice — it integrates seamlessly with Azure services, supports custom rules, and is well-supported. Note: Microsoft is migrating to Azure Front Door for advanced CDN scenarios.
+            </div>
+          </div>
+
+          <h2 id="creating-endpoint">Creating a CDN Endpoint for Blob Storage</h2>
+
+          <h3>Via Azure Portal</h3>
+          <ol>
+            <li>Go to your Storage Account → <strong>Security + networking</strong> → <strong>Azure CDN</strong></li>
+            <li>Click <strong>+ New endpoint</strong></li>
+            <li>Select your CDN profile (or create new)</li>
+            <li>Set endpoint name (must be globally unique — becomes <code>[name].azureedge.net</code>)</li>
+            <li>Set Origin type: <strong>Storage</strong></li>
+            <li>Set Origin hostname: your storage account's blob endpoint</li>
+            <li>Click <strong>Create</strong></li>
+          </ol>
+
+          <h3>Via Azure CLI</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create CDN profile and endpoint for Blob Storage</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Create CDN profile
+az cdn profile create \
+  --name mycdnprofile \
+  --resource-group myResourceGroup \
+  --sku Standard_Microsoft \
+  --location global
+
+# Create CDN endpoint pointing to blob storage
+az cdn endpoint create \
+  --name mysite-cdn \
+  --profile-name mycdnprofile \
+  --resource-group myResourceGroup \
+  --origin mystorageaccount2026.blob.core.windows.net \
+  --origin-host-header mystorageaccount2026.blob.core.windows.net \
+  --location global</code></pre>
+          </div>
+
+          <p>Your content is now accessible at: <code>https://mysite-cdn.azureedge.net</code></p>
+
+          <h2 id="custom-domain">Adding a Custom Domain</h2>
+          <ol>
+            <li>In your DNS provider, create a CNAME record: <code>www.yoursite.com</code> → <code>mysite-cdn.azureedge.net</code></li>
+            <li>In the Azure Portal, go to your CDN endpoint → <strong>Custom domains</strong> → <strong>+ Custom domain</strong></li>
+            <li>Enter <code>www.yoursite.com</code></li>
+            <li>Azure validates the CNAME record</li>
+            <li>Click <strong>Add</strong></li>
+          </ol>
+
+          <h2 id="https">Enabling HTTPS</h2>
+          <p>Azure CDN provides a free managed SSL certificate for custom domains — no need to purchase or manage certificates yourself.</p>
+          <ol>
+            <li>Go to your CDN endpoint → Custom domains → click on your domain</li>
+            <li>Toggle <strong>Custom domain HTTPS</strong> to <strong>On</strong></li>
+            <li>Select <strong>CDN managed</strong> certificate</li>
+            <li>Click <strong>Save</strong></li>
+            <li>Azure automatically provisions and renews the certificate (takes a few hours first time)</li>
+          </ol>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Enable HTTPS for custom domain</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az cdn custom-domain enable-https \
+  --endpoint-name mysite-cdn \
+  --profile-name mycdnprofile \
+  --resource-group myResourceGroup \
+  --name www-yoursite-com</code></pre>
+          </div>
+
+          <h2 id="caching">Caching Rules</h2>
+          <p>By default, CDN caches content based on the Cache-Control headers from your origin. You can override this with caching rules:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rule Type</th><th>Use Case</th></tr></thead>
+              <tbody>
+                <tr><td>Global caching rule</td><td>Default TTL for all content (e.g., cache everything for 1 day)</td></tr>
+                <tr><td>Custom caching rule</td><td>Different TTL for specific paths (e.g., images cached 30 days, HTML cached 1 hour)</td></tr>
+                <tr><td>Query string caching</td><td>Cache differently based on query parameters</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="purging">Purging the Cache</h2>
+          <p>When you update content in your storage account, the CDN cache still serves the old version until it expires. Purge the cache to force CDN to fetch fresh content:</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Purge CDN cache</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Purge specific path
+az cdn endpoint purge \
+  --name mysite-cdn \
+  --profile-name mycdnprofile \
+  --resource-group myResourceGroup \
+  --content-paths "/images/logo.png"
+
+# Purge everything
+az cdn endpoint purge \
+  --name mysite-cdn \
+  --profile-name mycdnprofile \
+  --resource-group myResourceGroup \
+  --content-paths "/*"</code></pre>
+          </div>
+
+          <h2 id="cost">Cost Savings with CDN</h2>
+          <p>CDN can actually <strong>reduce</strong> your total storage costs despite its own fees:</p>
+          <ul>
+            <li>Storage egress (outbound data) costs ~₹6/GB from Azure Storage</li>
+            <li>CDN egress is cheaper — ~₹4–5/GB depending on region</li>
+            <li>Cache hits don't cost storage egress at all — only the first request to origin</li>
+            <li>If 90% of requests are cache hits, you've reduced storage egress by 90%</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that CDN caches content at edge PoPs for faster global delivery. Know that CDN enables custom domains with HTTPS for Blob static websites. Know that purging removes cached content and forces CDN to fetch fresh from origin. Know the CDN endpoint URL format: <code>[name].azureedge.net</code>.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the primary benefit of using Azure CDN with Blob Storage?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CDN does not increase storage capacity — it caches content at edge locations for faster delivery.')">
+                <span class="option-label">A</span> Increases storage account capacity
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! CDN caches content at edge Points of Presence (PoPs) around the world, so users get content from a nearby server rather than the storage account\'s region. This dramatically reduces latency for global users.')">
+                <span class="option-label">B</span> Caches content at global edge locations for faster delivery to users worldwide
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CDN does not provide additional data redundancy — redundancy is handled by the storage account\'s replication settings (LRS, ZRS, GRS).')">
+                <span class="option-label">C</span> Provides additional data redundancy for the storage account
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CDN does not encrypt data — storage data is already encrypted at rest and in transit by default.')">
+                <span class="option-label">D</span> Encrypts blob data in transit
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What format does an Azure CDN endpoint URL follow?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure CDN endpoint URLs follow the format [endpointname].azureedge.net. The endpoint name must be globally unique across all Azure CDN endpoints.')">
+                <span class="option-label">A</span> [endpointname].azureedge.net
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. [endpointname].cdn.azure.com is not the correct CDN endpoint format — it is [endpointname].azureedge.net.')">
+                <span class="option-label">B</span> [endpointname].cdn.azure.com
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. [accountname].blob.core.windows.net is the Blob Storage endpoint — not the CDN endpoint.')">
+                <span class="option-label">C</span> [accountname].blob.core.windows.net/cdn
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. [endpointname].azurecdn.net is not the correct format — the correct domain is azureedge.net.')">
+                <span class="option-label">D</span> [endpointname].azurecdn.net
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> You updated an image in your Blob Storage but users are still seeing the old image via CDN. What should you do?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Restarting the storage account is not possible and would not affect the CDN cache.')">
+                <span class="option-label">A</span> Restart the storage account
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Purging the CDN cache removes the cached old version and forces the CDN edge nodes to fetch the updated content from the origin (Blob Storage) on the next request.')">
+                <span class="option-label">B</span> Purge the CDN cache for that content path
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting and recreating the CDN endpoint is disruptive and unnecessary — a cache purge is the correct solution.')">
+                <span class="option-label">C</span> Delete and recreate the CDN endpoint
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While waiting for cache expiry will eventually work, it could take hours or days depending on the TTL setting. Purging is the immediate solution.')">
+                <span class="option-label">D</span> Wait for the cache TTL to expire naturally
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Does Azure CDN provide free SSL/TLS certificates for custom domains?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure CDN provides free CDN-managed SSL/TLS certificates for custom domains. Azure automatically provisions and renews the certificates — no cost and no manual certificate management required.')">
+                <span class="option-label">A</span> Yes — Azure provides free CDN-managed certificates that auto-renew
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CDN certificates are free — you do not need to purchase separate SSL certificates.')">
+                <span class="option-label">B</span> No — you must purchase an SSL certificate separately
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free certificates are available for all Azure CDN tiers — not just Premium.')">
+                <span class="option-label">C</span> Only for the Premium CDN tier
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure CDN does support HTTPS for custom domains with free managed certificates.')">
+                <span class="option-label">D</span> No — custom domains only support HTTP, not HTTPS
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> How can Azure CDN reduce your Azure Storage costs?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CDN does not reduce storage capacity costs — it reduces egress (outbound transfer) costs by serving cached content from edge nodes.')">
+                <span class="option-label">A</span> By reducing the storage capacity needed
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage egress (outbound data) costs ~₹6/GB. CDN egress is cheaper (~₹4-5/GB) and — more importantly — cache hits don\'t incur storage egress at all. If 90% of requests hit the CDN cache, you save 90% on storage egress costs.')">
+                <span class="option-label">B</span> By reducing storage egress costs — cache hits don't cost storage egress
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CDN does not reduce storage replication costs — redundancy settings are independent of CDN.')">
+                <span class="option-label">C</span> By eliminating storage replication costs
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CDN does not reduce storage transaction costs — reads and writes to the storage account are billed normally.')">
+                <span class="option-label">D</span> By reducing the cost of storage transactions
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="static-website.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Static Website Hosting</span>
+            </a>
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="storage-explorer.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Explorer</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="static-website.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Static Website Hosting</span>
+          </a>
+          <a class="nav-card next" href="storage-explorer.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Storage Explorer</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>
