@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Static Website Hosting | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Host a static website on Azure Blob Storage — enable static hosting, deploy HTML/CSS/JS, configure custom domains, and integrate with Azure CDN." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Static Website Hosting</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 10 min read</span>
+        </div>
+
+        <h1 class="page-title">Static Website Hosting on Azure Blob Storage</h1>
+
+        <p class="page-intro">
+          Azure Blob Storage can serve a complete static website directly — HTML, CSS, JavaScript, images — with no web server required. It's one of the cheapest and simplest ways to host a website, costing fractions of a rupee per GB per month. This is exactly how many modern frontend frameworks (React, Vue, Angular) are deployed at scale.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Enabling static website hosting · The special $web container · Deploying website files · The static website endpoint · Custom error pages · Limitations of blob static hosting · Combining with Azure CDN for custom domains and HTTPS · Azure Static Web Apps vs Blob hosting
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-static">What is Static Website Hosting?</a></li>
+            <li><a href="#enabling">Enabling Static Website Hosting</a></li>
+            <li><a href="#web-container">The $web Container</a></li>
+            <li><a href="#deploying">Deploying Your Website</a></li>
+            <li><a href="#endpoint">The Static Website Endpoint</a></li>
+            <li><a href="#error-pages">Custom Error Pages</a></li>
+            <li><a href="#limitations">Limitations</a></li>
+            <li><a href="#cdn-integration">Adding CDN for Custom Domain + HTTPS</a></li>
+            <li><a href="#blob-vs-swa">Blob Hosting vs Azure Static Web Apps</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-static">What is Static Website Hosting?</h2>
+          <p>A static website consists of files that are served exactly as-is — HTML, CSS, JavaScript, images. There's no server-side processing, no database queries, no backend logic executed on the server. The browser downloads the files and runs everything client-side.</p>
+          <p>Modern frontend frameworks like React and Vue produce static builds — a folder of HTML, JS, and CSS files that can be served from any web server or object storage service like Azure Blob Storage.</p>
+
+          <h2 id="enabling">Enabling Static Website Hosting</h2>
+
+          <h3>Via Azure Portal</h3>
+          <ol>
+            <li>Go to your Storage Account</li>
+            <li>In the left menu → <strong>Data management</strong> → <strong>Static website</strong></li>
+            <li>Toggle to <strong>Enabled</strong></li>
+            <li>Set <strong>Index document name</strong> → <code>index.html</code></li>
+            <li>Set <strong>Error document path</strong> → <code>404.html</code> (optional)</li>
+            <li>Click <strong>Save</strong></li>
+            <li>Azure creates the <code>$web</code> container and shows you the endpoint URL</li>
+          </ol>
+
+          <h3>Via Azure CLI</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Enable static website hosting</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az storage blob service-properties update \
+  --account-name mystorageaccount2026 \
+  --static-website \
+  --index-document index.html \
+  --404-document 404.html \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="web-container">The $web Container</h2>
+          <p>When you enable static website hosting, Azure automatically creates a special container named <strong>$web</strong>. All website files must be uploaded to this container. The container is publicly readable — any file in $web can be accessed via the static website endpoint.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>$web vs Regular Containers</strong>
+              Files in $web are served with proper MIME types and HTTP headers by the static website engine. Regular blob containers don't have this — if you put an HTML file in a regular public container, it downloads instead of rendering.
+            </div>
+          </div>
+
+          <h2 id="deploying">Deploying Your Website</h2>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Deploy a React/Vue/Angular build to Azure Storage</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Build your frontend app first
+# npm run build  (creates a /dist or /build folder)
+
+# Upload all files to $web container
+az storage blob upload-batch \
+  --account-name mystorageaccount2026 \
+  --destination '$web' \
+  --source ./dist \
+  --auth-mode login
+
+# Set correct content types (important for JS/CSS)
+# Azure CLI usually handles this automatically
+
+# Delete old files not in the new build (clean deploy)
+az storage blob upload-batch \
+  --account-name mystorageaccount2026 \
+  --destination '$web' \
+  --source ./dist \
+  --overwrite \
+  --auth-mode login</code></pre>
+          </div>
+
+          <h2 id="endpoint">The Static Website Endpoint</h2>
+          <p>After enabling, your website is accessible at a URL like:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Format</span>
+              <span class="code-label">Static website endpoint</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">https://[accountname].z[N].web.core.windows.net
+
+# Example:
+https://mystorageaccount2026.z13.web.core.windows.net</code></pre>
+          </div>
+
+          <p>Note: The zone number (z13, z30, etc.) depends on your region. This is different from the blob storage endpoint.</p>
+
+          <h2 id="error-pages">Custom Error Pages</h2>
+          <p>Set a custom 404 page to handle requests for files that don't exist. This is particularly important for single-page applications (SPAs) where the router handles navigation — all routes should serve <code>index.html</code>.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>SPA Routing Trick</strong>
+              For React Router, Vue Router, etc.: set both the index document AND the 404 document to <code>index.html</code>. This ensures all routes (like <code>/about</code>, <code>/products/123</code>) serve the app, and the JS router handles the navigation client-side.
+            </div>
+          </div>
+
+          <h2 id="limitations">Limitations</h2>
+          <p>Blob static hosting has some important limitations:</p>
+          <ul>
+            <li><strong>No custom domain with HTTPS out of the box</strong> — The default endpoint uses Azure's domain. Custom domain requires Azure CDN.</li>
+            <li><strong>No server-side logic</strong> — Only static files. No PHP, Node.js, Python. Use Azure Functions for APIs.</li>
+            <li><strong>No HTTP headers customisation</strong> — Can't add custom Cache-Control, CORS headers, etc. without CDN.</li>
+            <li><strong>No HTTP to HTTPS redirect</strong> — Requires CDN to enforce HTTPS.</li>
+            <li><strong>Single region</strong> — The storage account is in one region. Use CDN to add global distribution.</li>
+          </ul>
+
+          <h2 id="cdn-integration">Adding CDN for Custom Domain + HTTPS</h2>
+          <p>To use a custom domain (like <code>www.yoursite.com</code>) with HTTPS, you add Azure CDN in front of your static website:</p>
+          <ol>
+            <li>Create an Azure CDN profile and endpoint pointing to your static website origin</li>
+            <li>Add your custom domain to the CDN endpoint</li>
+            <li>Enable HTTPS (free managed certificate from CDN)</li>
+            <li>Update your DNS to point to the CDN endpoint</li>
+          </ol>
+          <p>See the Azure CDN with Storage page for the full setup guide.</p>
+
+          <h2 id="blob-vs-swa">Blob Hosting vs Azure Static Web Apps</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Feature</th><th>Blob Static Hosting</th><th>Azure Static Web Apps</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Setup</td><td>Manual</td><td>GitHub/DevOps integrated CI/CD</td></tr>
+                <tr><td>Custom domain + HTTPS</td><td>Requires CDN</td><td>Built-in (free SSL)</td></tr>
+                <tr><td>API integration</td><td>Separate Azure Functions</td><td>Built-in managed Functions</td></tr>
+                <tr><td>Staging environments</td><td>Separate storage accounts</td><td>Built-in preview environments per PR</td></tr>
+                <tr><td>Auth integration</td><td>Manual</td><td>Built-in (GitHub, Azure AD, etc.)</td></tr>
+                <tr><td>Cost</td><td>~₹0.10–1/month (storage only)</td><td>Free tier available; paid from ~₹700/month</td></tr>
+                <tr><td>Best for</td><td>Simple sites, full manual control</td><td>Modern web apps with CI/CD and APIs</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>This site uses Azure Static Web Apps</strong>
+              RedKiteCloud.com is hosted on Azure Static Web Apps — which builds and deploys automatically from GitHub on every push. For a new project, Azure Static Web Apps is the recommended approach. Blob static hosting is useful when you need maximum control or are integrating into an existing pipeline.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What special container is automatically created when static website hosting is enabled on a storage account?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "$static" is not the container created — the correct container name is "$web".')">
+                <span class="option-label">A</span> $static
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When static website hosting is enabled, Azure creates a special container called "$web". All website files must be uploaded to this container to be served by the static website endpoint.')">
+                <span class="option-label">B</span> $web
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "$public" is not the container created — the correct container name is "$web".')">
+                <span class="option-label">C</span> $public
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "website" is not the container created — the correct container name is "$web" with the dollar sign prefix.')">
+                <span class="option-label">D</span> website
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What additional Azure service is required to use a custom domain with HTTPS on a Blob-hosted static website?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure App Service is for hosting web applications with server-side code — not for adding custom domains to Blob static websites.')">
+                <span class="option-label">A</span> Azure App Service
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure CDN is required to add a custom domain with HTTPS to a Blob-hosted static website. CDN provides the custom domain mapping, free managed SSL certificates, and HTTPS enforcement that Blob static hosting alone cannot provide.')">
+                <span class="option-label">B</span> Azure CDN
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure DNS provides DNS management but cannot by itself add HTTPS to a Blob static website — CDN is also required.')">
+                <span class="option-label">C</span> Azure DNS only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Load Balancer distributes traffic across multiple backend VMs — it is not used for adding custom domains to static websites.')">
+                <span class="option-label">D</span> Azure Load Balancer
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A developer is hosting a React single-page application on Azure Blob Storage. Users get 404 errors when navigating directly to routes like /about. What is the fix?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating separate HTML files for each route defeats the purpose of a SPA and is impractical for dynamic routes.')">
+                <span class="option-label">A</span> Create a separate HTML file for each route in the $web container
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! For SPAs, set both the index document AND the 404 error document to "index.html". When /about is requested and the file doesn\'t exist, Azure serves index.html (the SPA shell). React Router then handles the /about route client-side.')">
+                <span class="option-label">B</span> Set both the index document and the 404 error document to index.html
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disabling static website hosting would make the site inaccessible entirely — it does not fix SPA routing.')">
+                <span class="option-label">C</span> Disable static website hosting and use a regular blob container
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Adding a server-side proxy requires a web server — Blob static hosting has no server-side processing capability.')">
+                <span class="option-label">D</span> Add a server-side proxy to handle route redirects
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the main advantage of Azure Static Web Apps over Blob-hosted static websites?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob-hosted static websites are generally cheaper for simple storage — Azure Static Web Apps has a free tier but adds managed services on top.')">
+                <span class="option-label">A</span> Azure Static Web Apps is cheaper for simple storage
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Static Web Apps provides built-in CI/CD from GitHub/DevOps, built-in HTTPS and custom domains, integrated Azure Functions for APIs, built-in authentication, and preview environments per PR — all without manual configuration needed for Blob hosting.')">
+                <span class="option-label">B</span> Built-in CI/CD, HTTPS, authentication, and API integration without manual configuration
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Static Web Apps does not support server-side rendering (SSR) for all frameworks — it is primarily for static sites and SPAs.')">
+                <span class="option-label">C</span> Supports server-side rendering for all frameworks
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Blob hosting and Azure Static Web Apps serve static files — there is no significant performance difference for the static content itself.')">
+                <span class="option-label">D</span> Significantly faster page load times for static content
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Can server-side code (like Node.js or PHP) be executed on Azure Blob static website hosting?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob static hosting cannot execute server-side code at all — it only serves static files.')">
+                <span class="option-label">A</span> Yes — Node.js is supported natively
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "server-side processing" tier for Blob static hosting — it is always static files only.')">
+                <span class="option-label">B</span> Yes — but only with the Premium storage tier
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Blob static website hosting serves files only — HTML, CSS, JavaScript, images. No server-side code execution. For backend APIs, use Azure Functions alongside the static site.')">
+                <span class="option-label">C</span> No — Blob static hosting is files-only. Use Azure Functions for backend logic.
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Python is not supported for server-side execution on Blob static hosting — no server-side language is supported.')">
+                <span class="option-label">D</span> Yes — Python is supported via Azure Functions integration
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="cdn-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure CDN with Storage</span>
+            </a>
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="storage-security.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Account Security</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="storage-security.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Storage Account Security</span>
+          </a>
+          <a class="nav-card next" href="cdn-storage.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure CDN with Storage</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

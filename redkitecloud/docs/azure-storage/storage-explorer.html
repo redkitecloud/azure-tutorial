@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Storage Explorer | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Storage Explorer — the free desktop tool to manage Azure Storage accounts, upload/download files, manage queues, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Azure Storage Explorer</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 8 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Storage Explorer</h1>
+
+        <p class="page-intro">
+          Azure Storage Explorer is a free, standalone desktop application that lets you manage Azure Storage accounts visually — browse containers, upload and download files, manage queues, view table data, and more. It's the easiest way to work with Azure Storage without writing CLI commands or navigating the Azure Portal. Available for Windows, macOS, and Linux.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          What Storage Explorer is and when to use it · Downloading and installing · Connecting to storage accounts · Browsing and managing blobs · Uploading and downloading files · Managing file shares, queues, and tables · Generating SAS tokens from Explorer · Connecting via connection string
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#what-is-explorer">What is Azure Storage Explorer?</a></li>
+            <li><a href="#installing">Installing Storage Explorer</a></li>
+            <li><a href="#connecting">Connecting to Storage Accounts</a></li>
+            <li><a href="#blob-management">Managing Blobs</a></li>
+            <li><a href="#file-management">Managing File Shares</a></li>
+            <li><a href="#queue-management">Managing Queues</a></li>
+            <li><a href="#table-management">Managing Tables</a></li>
+            <li><a href="#sas-from-explorer">Generating SAS Tokens</a></li>
+            <li><a href="#vs-portal">Storage Explorer vs Azure Portal vs CLI</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="what-is-explorer">What is Azure Storage Explorer?</h2>
+          <p>Azure Storage Explorer is a free desktop GUI tool built by Microsoft for managing Azure Storage. Think of it as a File Explorer / Finder for your Azure Storage accounts. Key capabilities:</p>
+          <ul>
+            <li>Browse, upload, download, and delete blobs visually</li>
+            <li>Manage file shares — browse the directory structure like a local file system</li>
+            <li>View, add, and delete queue messages</li>
+            <li>Query and edit Table Storage entities</li>
+            <li>Generate SAS tokens with a UI</li>
+            <li>Connect to Azure Data Lake Storage, Cosmos DB, and emulators</li>
+            <li>Works with multiple subscriptions and accounts simultaneously</li>
+          </ul>
+
+          <h2 id="installing">Installing Storage Explorer</h2>
+          <p>Download from: <strong>azure.microsoft.com/features/storage-explorer</strong></p>
+          <p>Available for:</p>
+          <ul>
+            <li>Windows (x64, x86, ARM)</li>
+            <li>macOS (Intel, Apple Silicon)</li>
+            <li>Linux (AppImage, Snap, .deb)</li>
+          </ul>
+          <p>No Azure subscription required to install. Free to use.</p>
+
+          <h2 id="connecting">Connecting to Storage Accounts</h2>
+          <p>Storage Explorer supports multiple connection methods:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Method</th><th>How</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Azure Account (Sign In)</strong></td><td>Sign in with your Azure AD credentials</td><td>Access all accounts in your subscriptions</td></tr>
+                <tr><td><strong>Connection String</strong></td><td>Paste the storage account connection string</td><td>Quick access without full sign-in</td></tr>
+                <tr><td><strong>Account Name + Key</strong></td><td>Enter account name and one of the keys</td><td>Direct access with known credentials</td></tr>
+                <tr><td><strong>SAS URL</strong></td><td>Paste a SAS token URL</td><td>Limited/scoped access</td></tr>
+                <tr><td><strong>Local Emulator</strong></td><td>Connect to Azurite (local storage emulator)</td><td>Local development without Azure</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Recommended: Sign In with Azure Account</h3>
+          <ol>
+            <li>Open Storage Explorer</li>
+            <li>Click <strong>Connect to Azure resources</strong> or the plug icon</li>
+            <li>Select <strong>Azure subscription</strong></li>
+            <li>Sign in with your Microsoft account</li>
+            <li>All your storage accounts appear in the left panel organised by subscription</li>
+          </ol>
+
+          <h2 id="blob-management">Managing Blobs</h2>
+          <p>In the left panel, expand: <strong>Storage Accounts → [your account] → Blob Containers → [container name]</strong></p>
+          <p>You can then:</p>
+          <ul>
+            <li><strong>Upload</strong> — Drag and drop files from your desktop, or click Upload</li>
+            <li><strong>Download</strong> — Select blobs and click Download</li>
+            <li><strong>Delete</strong> — Select and press Delete</li>
+            <li><strong>Copy URL</strong> — Right-click → Copy URL to get the blob's direct URL</li>
+            <li><strong>Set access tier</strong> — Right-click → Set Access Tier (Hot/Cool/Archive)</li>
+            <li><strong>View properties</strong> — Size, content type, ETag, last modified</li>
+            <li><strong>Set metadata</strong> — Add custom key-value metadata to blobs</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Batch Operations</strong>
+              Select multiple blobs using Shift+Click or Ctrl+Click for batch download, delete, or tier changes. Much faster than doing them one by one in the portal.
+            </div>
+          </div>
+
+          <h2 id="file-management">Managing File Shares</h2>
+          <p>Expand: <strong>Storage Accounts → [account] → File Shares → [share name]</strong></p>
+          <p>Storage Explorer shows file shares with a familiar folder tree — browse directories, upload files to specific folders, download folders, and manage file permissions. It's the closest experience to managing a traditional file server.</p>
+
+          <h2 id="queue-management">Managing Queues</h2>
+          <p>Expand: <strong>Storage Accounts → [account] → Queues → [queue name]</strong></p>
+          <p>You can:</p>
+          <ul>
+            <li>View messages in the queue (shows content, insertion time, expiry time, dequeue count)</li>
+            <li>Add new messages manually — useful for testing</li>
+            <li>Clear the entire queue</li>
+            <li>View the approximate message count</li>
+          </ul>
+
+          <h2 id="table-management">Managing Tables</h2>
+          <p>Expand: <strong>Storage Accounts → [account] → Tables → [table name]</strong></p>
+          <p>Storage Explorer shows table entities in a spreadsheet-like view. You can:</p>
+          <ul>
+            <li>Query entities using OData filters</li>
+            <li>Add new entities with custom properties</li>
+            <li>Edit entity values directly in the grid</li>
+            <li>Delete entities</li>
+            <li>Export table data to CSV</li>
+          </ul>
+
+          <h2 id="sas-from-explorer">Generating SAS Tokens</h2>
+          <p>Right-click any container, blob, file share, queue, or table → <strong>Get Shared Access Signature</strong></p>
+          <p>A dialog appears where you configure:</p>
+          <ul>
+            <li>Permissions (read, write, delete, list, create, add)</li>
+            <li>Start time and expiry time</li>
+            <li>Allowed protocols (HTTPS only recommended)</li>
+          </ul>
+          <p>Storage Explorer generates the SAS token and full URL — ready to copy and share.</p>
+
+          <h2 id="vs-portal">Storage Explorer vs Azure Portal vs CLI</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Task</th><th>Best Tool</th><th>Why</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Browse and manage files visually</td><td>Storage Explorer</td><td>Familiar GUI, drag-and-drop</td></tr>
+                <tr><td>Upload/download large batches of files</td><td>CLI or Storage Explorer</td><td>Both support batch operations</td></tr>
+                <tr><td>Create storage accounts</td><td>Portal or CLI</td><td>Explorer doesn't create accounts</td></tr>
+                <tr><td>Configure redundancy, firewall</td><td>Portal or CLI</td><td>Explorer is data management only</td></tr>
+                <tr><td>Automate/script operations</td><td>CLI or SDKs</td><td>Explorer is GUI only</td></tr>
+                <tr><td>Quick one-off file management</td><td>Storage Explorer</td><td>Fastest for ad-hoc tasks</td></tr>
+                <tr><td>Local development testing</td><td>Storage Explorer + Azurite</td><td>Connect to local emulator</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that Azure Storage Explorer is a free standalone desktop tool for managing storage accounts. Know it supports Windows, macOS, and Linux. Know it can connect via Azure AD sign-in, connection string, account key, or SAS URL. Know it supports all four storage services — blobs, files, queues, and tables.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is Azure Storage Explorer?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is a standalone desktop application — not a web browser extension.')">
+                <span class="option-label">A</span> A browser extension for managing storage accounts
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage Explorer is a free standalone desktop application available for Windows, macOS, and Linux that provides a visual GUI for managing Azure Storage accounts — blobs, file shares, queues, and tables.')">
+                <span class="option-label">B</span> A free standalone desktop application for managing Azure Storage visually
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is a desktop app — not an Azure portal feature. It is installed separately.')">
+                <span class="option-label">C</span> A feature built into the Azure Portal
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is a GUI desktop tool — not a command-line interface.')">
+                <span class="option-label">D</span> A command-line tool similar to Azure CLI
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Which operating systems does Azure Storage Explorer support?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is cross-platform — not limited to Windows only.')">
+                <span class="option-label">A</span> Windows only
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer supports Linux too — it is available for Windows, macOS, and Linux.')">
+                <span class="option-label">B</span> Windows and macOS only
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage Explorer is available for all three major platforms — Windows, macOS (Intel and Apple Silicon), and Linux (AppImage, Snap, .deb). It is completely free on all platforms.')">
+                <span class="option-label">C</span> Windows, macOS, and Linux
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Storage Explorer is a desktop application — it does not have a mobile app.')">
+                <span class="option-label">D</span> Windows, macOS, Linux, iOS, and Android
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> A developer wants to quickly test their application's queue by adding some test messages and viewing the results. What is the quickest approach?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Writing CLI commands for each test message is slower and less convenient than using Storage Explorer\'s queue management interface.')">
+                <span class="option-label">A</span> Write Azure CLI commands to add and view messages
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage Explorer provides a queue management interface where you can add messages, view their contents and metadata (dequeue count, expiry), and clear the queue — all with a few clicks. It\'s the fastest approach for ad-hoc queue testing.')">
+                <span class="option-label">B</span> Use Azure Storage Explorer — add messages and view them in the queue panel
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Azure Portal has limited queue management capabilities compared to Storage Explorer.')">
+                <span class="option-label">C</span> Use the Azure Portal queue management blade
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Writing a test application just to test messages is unnecessarily complex when Storage Explorer can do it directly.')">
+                <span class="option-label">D</span> Write a test application that enqueues and dequeues messages
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> How much does Azure Storage Explorer cost?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage Explorer is completely free to download and use. There are no licensing fees. You still pay for Azure Storage usage (storage capacity, transactions, egress), but the tool itself is free.')">
+                <span class="option-label">A</span> Free — no licensing cost
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is completely free — there is no monthly fee.')">
+                <span class="option-label">B</span> Part of Azure subscription — charged monthly
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is free for all tiers — there is no paid version with extra features.')">
+                <span class="option-label">C</span> Free for basic, paid for advanced features
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer is free for both personal and enterprise use.')">
+                <span class="option-label">D</span> Free for personal use, paid for enterprise
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which storage services does Azure Storage Explorer support?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer supports all four storage services — not just Blob Storage.')">
+                <span class="option-label">A</span> Only Blob Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer supports all four services — not just Blob and File Storage.')">
+                <span class="option-label">B</span> Blob and File Storage only
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage Explorer supports all four Azure Storage services — Blob Storage, File Storage, Queue Storage, and Table Storage. It also supports Azure Data Lake Storage, Cosmos DB Table API, and local emulators like Azurite.')">
+                <span class="option-label">C</span> All four — Blob, File, Queue, and Table Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Explorer does not support SQL databases — it is specifically for Azure Storage services (Blob, File, Queue, Table) and compatible services like Cosmos DB Table API.')">
+                <span class="option-label">D</span> Blob, File, Queue, Table, and Azure SQL databases
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="blob-storage.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Blob Storage</span>
+            </a>
+            <a class="related-card" href="storage-pricing.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Pricing</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="cdn-storage.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure CDN with Storage</span>
+          </a>
+          <a class="nav-card next" href="storage-pricing.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Storage Pricing</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

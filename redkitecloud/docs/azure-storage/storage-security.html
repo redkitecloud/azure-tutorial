@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage Account Security | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to securing Azure Storage accounts — access keys, Azure AD auth, firewalls, private endpoints, encryption, and threat protection." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Storage Account Security</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Storage Account Security</h1>
+
+        <p class="page-intro">
+          Azure Storage is secure by default — encrypted at rest, encrypted in transit, private access only. But "secure by default" is just the baseline. Production storage accounts need additional layers: network restrictions, proper authentication, key rotation policies, and threat detection. This page covers every security layer available for Azure Storage accounts.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Storage account access keys and their risks · Azure AD authentication (recommended) · Storage firewall and virtual network rules · Private endpoints · Encryption at rest — Microsoft-managed vs customer-managed keys · Secure transfer (HTTPS enforcement) · Microsoft Defender for Storage · Key rotation
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#access-keys">Access Keys</a></li>
+            <li><a href="#azure-ad-auth">Azure AD Authentication</a></li>
+            <li><a href="#firewall">Storage Firewall and Network Rules</a></li>
+            <li><a href="#private-endpoints">Private Endpoints</a></li>
+            <li><a href="#encryption">Encryption at Rest</a></li>
+            <li><a href="#secure-transfer">Secure Transfer (HTTPS Only)</a></li>
+            <li><a href="#defender">Microsoft Defender for Storage</a></li>
+            <li><a href="#key-rotation">Access Key Rotation</a></li>
+            <li><a href="#security-checklist">Security Checklist</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="access-keys">Access Keys</h2>
+          <p>Every storage account has two 512-bit access keys (key1 and key2). These give <strong>full unrestricted access</strong> to everything in the storage account — all services, all containers, all data. Anyone with an access key can read, write, and delete everything.</p>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Access Keys Are Extremely Sensitive</strong>
+              Treat storage account access keys like root passwords. Never commit them to source code, never include them in client-side applications, never share them unnecessarily. Use Azure AD authentication or SAS tokens instead.
+            </div>
+          </div>
+
+          <p>Two keys exist so you can rotate one at a time without downtime — update your applications to use key2, then rotate key1, then switch back to key1, then rotate key2.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Get and rotate storage account keys</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code># List storage account keys
+az storage account keys list \
+  --account-name mystorageaccount2026 \
+  --resource-group myResourceGroup
+
+# Rotate key1
+az storage account keys renew \
+  --account-name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --key key1</code></pre>
+          </div>
+
+          <h2 id="azure-ad-auth">Azure AD Authentication</h2>
+          <p>The recommended authentication method. Instead of using storage account keys, use Azure AD identities (users, service principals, managed identities) with RBAC roles:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Role</th><th>Access Level</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Storage Blob Data Owner</td><td>Full access including ACL management</td></tr>
+                <tr><td>Storage Blob Data Contributor</td><td>Read, write, delete blobs</td></tr>
+                <tr><td>Storage Blob Data Reader</td><td>Read blobs only</td></tr>
+                <tr><td>Storage Queue Data Contributor</td><td>Read, write, delete queue messages</td></tr>
+                <tr><td>Storage Table Data Contributor</td><td>Read, write, delete table entities</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Disable Access Keys for Tightest Security</strong>
+              You can disable access key authentication entirely on a storage account — forcing all access to use Azure AD. This is the most secure configuration for sensitive data.
+            </div>
+          </div>
+
+          <h2 id="firewall">Storage Firewall and Network Rules</h2>
+          <p>By default, storage accounts accept connections from all networks. The storage firewall lets you restrict access to specific networks:</p>
+
+          <h3>Firewall Options</h3>
+          <ul>
+            <li><strong>Allow all networks</strong> — Default, accessible from anywhere on internet</li>
+            <li><strong>Selected networks</strong> — Only specific VNets and IP ranges</li>
+            <li><strong>Disabled (private endpoint only)</strong> — No public internet access at all</li>
+          </ul>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Restrict storage account to specific IPs and VNet</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code"># Deny all public access by default
+az storage account update \
+  --name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --default-action Deny
+
+# Allow a specific IP range
+az storage account network-rule add \
+  --account-name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --ip-address 203.0.113.0/24
+
+# Allow a specific VNet subnet
+az storage account network-rule add \
+  --account-name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --vnet-name myVNet \
+  --subnet mySubnet</code></pre>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Trusted Microsoft Services</strong>
+              When you enable the firewall, some Azure services (like Azure Backup, Azure Monitor) may lose access. Enable "Allow trusted Microsoft services to access this storage account" to maintain access for these services.
+            </div>
+          </div>
+
+          <h2 id="private-endpoints">Private Endpoints</h2>
+          <p>A Private Endpoint gives your storage account a private IP address within your VNet. Traffic between your VNet and the storage account travels over the Microsoft backbone — never over the public internet.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th></th><th>Firewall Rules</th><th>Private Endpoint</th></tr></thead>
+              <tbody>
+                <tr><td>Public internet access</td><td>Restricted but possible</td><td>Fully disabled</td></tr>
+                <tr><td>Traffic path</td><td>Public internet (TLS encrypted)</td><td>Private Microsoft backbone</td></tr>
+                <tr><td>DNS</td><td>Public DNS</td><td>Private DNS zone</td></tr>
+                <tr><td>Cost</td><td>Free</td><td>~₹500–800/month per endpoint</td></tr>
+                <tr><td>Best for</td><td>Restricting access</td><td>Maximum security, compliance requirements</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="encryption">Encryption at Rest</h2>
+          <p>All data in Azure Storage is encrypted at rest using AES-256 — automatically, by default, with no configuration required. You choose who manages the encryption keys:</p>
+
+          <h3>Microsoft-Managed Keys (Default)</h3>
+          <p>Azure manages the encryption keys automatically. No configuration needed. Suitable for most workloads.</p>
+
+          <h3>Customer-Managed Keys (CMK)</h3>
+          <p>You provide your own encryption keys stored in Azure Key Vault. You control key rotation and can revoke access by deleting the key. Required for some compliance frameworks (HIPAA, PCI-DSS).</p>
+
+          <h3>Customer-Provided Keys</h3>
+          <p>You provide the encryption key with every request — Azure never stores your key. Maximum control but complex to implement.</p>
+
+          <h2 id="secure-transfer">Secure Transfer (HTTPS Only)</h2>
+          <p>Enable "Secure transfer required" to reject any HTTP connections — only HTTPS allowed. This should always be enabled for production accounts.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Enforce HTTPS-only access</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code">az storage account update \
+  --name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --https-only true</code></pre>
+          </div>
+
+          <h2 id="defender">Microsoft Defender for Storage</h2>
+          <p>Microsoft Defender for Storage provides threat detection for your storage accounts — it analyses access patterns and alerts you to suspicious activity:</p>
+          <ul>
+            <li>Access from unusual locations or Tor exit nodes</li>
+            <li>Unusual data extraction (potential data exfiltration)</li>
+            <li>Upload of malware or suspicious files</li>
+            <li>Anonymous access to previously private data</li>
+            <li>Brute-force attempts on access keys</li>
+          </ul>
+
+          <h2 id="key-rotation">Access Key Rotation</h2>
+          <p>Access keys should be rotated regularly. Best practice:</p>
+          <ul>
+            <li>Rotate keys every 90 days (or per your security policy)</li>
+            <li>Always rotate both keys over two cycles to avoid downtime</li>
+            <li>Use Azure Key Vault to automate key rotation</li>
+            <li>Store keys in Key Vault, not in application config files</li>
+          </ul>
+
+          <h2 id="security-checklist">Security Checklist</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Control</th><th>Recommended Setting</th></tr></thead>
+              <tbody>
+                <tr><td>Authentication</td><td>Azure AD (disable shared keys for sensitive data)</td></tr>
+                <tr><td>Network access</td><td>Selected networks or Private Endpoint only</td></tr>
+                <tr><td>Public blob access</td><td>Disabled (unless explicitly needed)</td></tr>
+                <tr><td>Secure transfer</td><td>Enabled (HTTPS only)</td></tr>
+                <tr><td>Minimum TLS version</td><td>TLS 1.2</td></tr>
+                <tr><td>Encryption</td><td>Microsoft-managed (or CMK for compliance)</td></tr>
+                <tr><td>Defender for Storage</td><td>Enabled</td></tr>
+                <tr><td>Key rotation</td><td>Every 90 days, automated via Key Vault</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know that all data is encrypted at rest by default. Know the difference between Microsoft-managed keys and Customer-Managed Keys. Know that "Secure transfer required" enforces HTTPS. Know that storage firewall restricts network access. Know that Private Endpoints provide private-only access.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> Are Azure Storage accounts encrypted at rest by default?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! All data in Azure Storage is automatically encrypted at rest using AES-256 encryption. This is enabled by default for all storage accounts — no configuration is required. You cannot disable this encryption.')">
+                <span class="option-label">A</span> Yes — all storage data is automatically encrypted at rest using AES-256
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage encryption is automatic and always on — it is not an optional feature that must be enabled.')">
+                <span class="option-label">B</span> No — encryption must be explicitly enabled
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption is not limited to Premium storage accounts — all storage tiers are encrypted at rest by default.')">
+                <span class="option-label">C</span> Only for Premium storage accounts
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption is not limited to GRS — all redundancy options include encryption at rest.')">
+                <span class="option-label">D</span> Only when GRS redundancy is enabled
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> Why does Azure provide two access keys instead of one for each storage account?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The two keys are identical in terms of access level — they both provide full access. The reason is for zero-downtime rotation.')">
+                <span class="option-label">A</span> One key is for read-only and one is for read/write access
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Two keys exist to enable zero-downtime key rotation. You update your applications to use key2, rotate key1, switch applications back to key1, then rotate key2. This way there is always a valid key and no downtime during rotation.')">
+                <span class="option-label">B</span> To enable zero-downtime key rotation — update apps to key2, rotate key1, switch back
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both keys work for all storage services — they are not divided by service type.')">
+                <span class="option-label">C</span> One key is for Blob Storage and the other is for File/Queue/Table Storage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both keys can be used simultaneously — having two keys is for rotation purposes, not for backup.')">
+                <span class="option-label">D</span> One is a backup that activates only if the primary key is compromised
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What does enabling "Secure transfer required" on a storage account do?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Secure transfer required" enforces HTTPS — it does not affect encryption at rest, which is always enabled.')">
+                <span class="option-label">A</span> Enables encryption at rest for all data
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! "Secure transfer required" rejects all HTTP connections — only HTTPS connections are accepted. This ensures data is always encrypted in transit. It should always be enabled for production accounts.')">
+                <span class="option-label">B</span> Rejects all HTTP connections — only HTTPS is allowed
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Secure transfer required" enforces HTTPS but does not require SAS tokens — regular Azure AD authentication or account key authentication still works over HTTPS.')">
+                <span class="option-label">C</span> Requires all access to use SAS tokens
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. "Secure transfer required" enables HTTPS enforcement — it does not enable Customer-Managed Keys.')">
+                <span class="option-label">D</span> Enables Customer-Managed Key encryption
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> What is the benefit of using a Private Endpoint for a storage account over firewall rules?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private endpoints are not cheaper than firewall rules — they cost approximately ₹500–800/month per endpoint. Firewall rules are free.')">
+                <span class="option-label">A</span> Private endpoints are cheaper than firewall rules
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Private Endpoint gives the storage account a private IP in your VNet and completely disables public internet access. Traffic travels over the Microsoft private backbone — never the public internet. Firewall rules restrict access but the storage account still has a public endpoint.')">
+                <span class="option-label">B</span> Traffic never traverses the public internet — the storage account has no public endpoint
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both private endpoints and firewall rules provide authentication — the difference is network path and public internet exposure.')">
+                <span class="option-label">C</span> Private endpoints automatically enable Azure AD authentication
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private endpoints do not improve storage performance significantly — the benefit is network security, not speed.')">
+                <span class="option-label">D</span> Private endpoints improve storage performance by 10x
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A compliance regulation requires the company to control and audit their own encryption keys for storage. What should they configure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft-managed keys are the default — the company does not control or audit them. Compliance requirements often mandate customer-controlled keys.')">
+                <span class="option-label">A</span> Microsoft-managed keys (default)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Customer-Managed Keys (CMK) allow the company to provide their own encryption keys stored in Azure Key Vault. They control key rotation, can audit key access, and can revoke access by disabling the key. This satisfies compliance requirements like HIPAA and PCI-DSS.')">
+                <span class="option-label">B</span> Customer-Managed Keys (CMK) stored in Azure Key Vault
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disabling encryption is not possible for Azure Storage — all data is always encrypted at rest. This would also be a terrible security decision.')">
+                <span class="option-label">C</span> Disable encryption for this storage account
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SAS tokens are for access control — they are not an encryption key management solution.')">
+                <span class="option-label">D</span> Use SAS tokens for all access
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="sas-tokens.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Shared Access Signatures</span>
+            </a>
+            <a class="related-card" href="storage-redundancy.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Redundancy</span>
+            </a>
+            <a class="related-card" href="static-website.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Static Website Hosting</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="sas-tokens.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Shared Access Signatures</span>
+          </a>
+          <a class="nav-card next" href="static-website.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Static Website Hosting</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>

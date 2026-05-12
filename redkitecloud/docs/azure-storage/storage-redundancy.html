@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage Redundancy — LRS, ZRS, GRS, GZRS | Azure Storage | RedKiteCloud</title>
+  <meta name="description" content="Deep dive into Azure Storage redundancy options — LRS, ZRS, GRS, GZRS, RA-GRS — what each protects against, how to choose, and failover explained." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Storage</a>
+          <span class="sep">›</span>
+          <span class="current">Storage Redundancy</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Storage</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 13 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Storage Redundancy — LRS, ZRS, GRS, GZRS</h1>
+
+        <p class="page-intro">
+          Azure Storage always keeps multiple copies of your data to protect against failures. But how many copies, where they're stored, and what failures they protect against varies significantly across the four redundancy options. Choosing the wrong one means either overpaying for protection you don't need, or under-protecting data that could be catastrophically lost.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          LRS, ZRS, GRS, GZRS and RA variants explained in depth · What each option protects against · Durability figures · Cost comparison · Changing redundancy after creation · Geo-failover explained · Choosing the right option for each scenario
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#lrs">LRS — Locally Redundant Storage</a></li>
+            <li><a href="#zrs">ZRS — Zone Redundant Storage</a></li>
+            <li><a href="#grs">GRS — Geo Redundant Storage</a></li>
+            <li><a href="#gzrs">GZRS — Geo-Zone Redundant Storage</a></li>
+            <li><a href="#ra-variants">RA-GRS and RA-GZRS</a></li>
+            <li><a href="#comparison">Full Comparison Table</a></li>
+            <li><a href="#changing">Changing Redundancy</a></li>
+            <li><a href="#failover">Geo-Failover</a></li>
+            <li><a href="#choosing">Choosing the Right Option</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="lrs">LRS — Locally Redundant Storage</h2>
+          <p>LRS replicates your data <strong>3 times within a single data centre</strong> in your chosen region. All three copies are in the same physical building, on different racks.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Property</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Number of copies</td><td>3</td></tr>
+                <tr><td>Locations</td><td>Same data centre, different racks</td></tr>
+                <tr><td>Protects against</td><td>Hardware failures, drive failures, rack failures</td></tr>
+                <tr><td>Does NOT protect against</td><td>Data centre fire/flood, regional disaster</td></tr>
+                <tr><td>Durability</td><td>99.999999999% (11 nines)</td></tr>
+                <tr><td>Cost</td><td>Lowest</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>LRS Risk</strong>
+              If the entire data centre is destroyed (fire, flood, power loss), all 3 copies are lost. Microsoft recommends LRS only for data that can be reconstructed easily or for non-critical scenarios.
+            </div>
+          </div>
+
+          <h2 id="zrs">ZRS — Zone Redundant Storage</h2>
+          <p>ZRS replicates your data <strong>synchronously across 3 Availability Zones</strong> in the same region. Each copy is in a physically separate data centre with independent power, cooling, and networking.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Property</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Number of copies</td><td>3</td></tr>
+                <tr><td>Locations</td><td>3 Availability Zones in same region</td></tr>
+                <tr><td>Protects against</td><td>Hardware failures + entire data centre (zone) failure</td></tr>
+                <tr><td>Does NOT protect against</td><td>Regional disaster (all zones affected)</td></tr>
+                <tr><td>Durability</td><td>99.9999999999% (12 nines)</td></tr>
+                <tr><td>Cost</td><td>~25% more than LRS</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>ZRS is the recommended default for production</strong>
+              For most production workloads in regions that support AZs (like Central India), ZRS is the best balance of protection and cost. It protects against data centre failures — the most common serious failure — without the cost and complexity of geo-redundancy.
+            </div>
+          </div>
+
+          <h2 id="grs">GRS — Geo Redundant Storage</h2>
+          <p>GRS replicates data to a <strong>paired region hundreds of kilometres away</strong>. Within each region, it uses LRS (3 copies). Total copies: 6.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Property</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Number of copies</td><td>6 (3 primary + 3 secondary)</td></tr>
+                <tr><td>Locations</td><td>Primary region (LRS) + paired secondary region (LRS)</td></tr>
+                <tr><td>Protects against</td><td>Hardware failures + regional disasters</td></tr>
+                <tr><td>Secondary readable?</td><td>Only after failover (not by default)</td></tr>
+                <tr><td>Durability</td><td>99.99999999999999% (16 nines)</td></tr>
+                <tr><td>Cost</td><td>~2x LRS</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Replication is Asynchronous</strong>
+              GRS replication to the secondary region is asynchronous — there may be a lag of minutes to hours. If the primary region fails before all data is replicated, some recent writes may be lost (RPO is not zero).
+            </div>
+          </div>
+
+          <h3>Azure Region Pairs</h3>
+          <p>GRS always replicates to the designated paired region — you cannot choose the secondary region:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Primary Region</th><th>Paired Secondary</th></tr></thead>
+              <tbody>
+                <tr><td>Central India (Pune)</td><td>South India (Chennai)</td></tr>
+                <tr><td>East US</td><td>West US</td></tr>
+                <tr><td>UK South</td><td>UK West</td></tr>
+                <tr><td>West Europe</td><td>North Europe</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="gzrs">GZRS — Geo-Zone Redundant Storage</h2>
+          <p>GZRS combines the best of ZRS and GRS — ZRS in the primary region, LRS in the paired secondary region. Maximum protection.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Property</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Number of copies</td><td>6 (3 across AZs primary + 3 LRS secondary)</td></tr>
+                <tr><td>Locations</td><td>3 AZs in primary + LRS in paired secondary</td></tr>
+                <tr><td>Protects against</td><td>Zone failures + regional disasters</td></tr>
+                <tr><td>Durability</td><td>99.99999999999999% (16 nines)</td></tr>
+                <tr><td>Cost</td><td>Highest</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="ra-variants">RA-GRS and RA-GZRS</h2>
+          <p>The <strong>RA (Read-Access)</strong> variants allow reading from the secondary region at any time — even when the primary is healthy. This is useful for globally distributed read workloads.</p>
+          <ul>
+            <li>Secondary endpoint: <code>https://[accountname]-secondary.blob.core.windows.net</code></li>
+            <li>Secondary data may be slightly stale (asynchronous replication lag)</li>
+            <li>Cannot write to the secondary — read-only</li>
+          </ul>
+
+          <h2 id="comparison">Full Comparison Table</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Option</th><th>Copies</th><th>Zone Failure</th><th>Regional Disaster</th><th>Secondary Readable</th><th>Cost</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>LRS</strong></td><td>3</td><td>❌ No</td><td>❌ No</td><td>—</td><td>$</td></tr>
+                <tr><td><strong>ZRS</strong></td><td>3</td><td>✅ Yes</td><td>❌ No</td><td>—</td><td>$$</td></tr>
+                <tr><td><strong>GRS</strong></td><td>6</td><td>❌ No</td><td>✅ Yes</td><td>After failover only</td><td>$$$</td></tr>
+                <tr><td><strong>GZRS</strong></td><td>6</td><td>✅ Yes</td><td>✅ Yes</td><td>After failover only</td><td>$$$$</td></tr>
+                <tr><td><strong>RA-GRS</strong></td><td>6</td><td>❌ No</td><td>✅ Yes</td><td>✅ Always</td><td>$$$+</td></tr>
+                <tr><td><strong>RA-GZRS</strong></td><td>6</td><td>✅ Yes</td><td>✅ Yes</td><td>✅ Always</td><td>$$$$+</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="changing">Changing Redundancy</h2>
+          <p>You can change redundancy on an existing storage account without downtime. Some transitions are instant, others require a data migration:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Transition</th><th>Method</th></tr></thead>
+              <tbody>
+                <tr><td>LRS → ZRS</td><td>Live migration (request via support) or manual</td></tr>
+                <tr><td>LRS/ZRS → GRS/GZRS</td><td>Instant — portal or CLI</td></tr>
+                <tr><td>GRS → LRS</td><td>Instant — but loses geo-redundancy</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Change storage account redundancy</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az storage account update \
+  --name mystorageaccount2026 \
+  --resource-group myResourceGroup \
+  --sku Standard_GRS</code></pre>
+          </div>
+
+          <h2 id="failover">Geo-Failover</h2>
+          <p>If the primary region becomes unavailable with GRS/GZRS, you can initiate a <strong>failover</strong> — the secondary region becomes the primary. After failover:</p>
+          <ul>
+            <li>Your storage account DNS points to the secondary (now primary) region</li>
+            <li>The account becomes LRS in the new region (only 3 copies until geo-replication is re-established)</li>
+            <li>Some recent data may be lost (async replication lag)</li>
+            <li>Microsoft can also initiate failover on your behalf in a major outage</li>
+          </ul>
+
+          <h2 id="choosing">Choosing the Right Option</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Scenario</th><th>Recommended</th></tr></thead>
+              <tbody>
+                <tr><td>Dev/test, easily reconstructable data</td><td>LRS</td></tr>
+                <tr><td>Production data in AZ-supported region</td><td>ZRS</td></tr>
+                <tr><td>Data requiring regional DR, no AZ requirement</td><td>GRS</td></tr>
+                <tr><td>Critical data needing both zone + regional DR</td><td>GZRS</td></tr>
+                <tr><td>Global read performance + regional DR</td><td>RA-GRS or RA-GZRS</td></tr>
+                <tr><td>Regulatory compliance requiring geo-redundancy</td><td>GRS or GZRS</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              This is one of the most heavily tested storage topics. Know what each option protects against, how many copies each stores, that GRS replication is asynchronous (not zero RPO), that RA-GRS allows reading the secondary without failover, and the Azure region pairs.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-104 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company stores critical financial records and needs protection against both data centre (zone) failures and regional disasters. Which redundancy option should they choose?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. LRS only protects within one data centre — it does not protect against zone or regional failures.')">
+                <span class="option-label">A</span> LRS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ZRS protects against zone failures but NOT regional disasters — all zones in a region could be affected by a large-scale disaster.')">
+                <span class="option-label">B</span> ZRS
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GRS protects against regional disasters but uses LRS in the primary region — it does NOT protect against zone failures within the primary region.')">
+                <span class="option-label">C</span> GRS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! GZRS combines ZRS (zone protection in the primary region) with geo-replication to a paired secondary region. It provides the highest level of protection — against both zone failures and regional disasters.')">
+                <span class="option-label">D</span> GZRS
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the difference between GRS and RA-GRS?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both GRS and RA-GRS replicate to the same paired secondary region — RA-GRS does not replicate to more regions.')">
+                <span class="option-label">A</span> RA-GRS replicates to two secondary regions instead of one
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! GRS replicates to the secondary region but you can only read from it after a failover. RA-GRS (Read-Access GRS) allows reading from the secondary region at all times — even when the primary is healthy — via a secondary endpoint.')">
+                <span class="option-label">B</span> RA-GRS allows reading from the secondary region at any time; GRS only after failover
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RA-GRS does not replicate faster than GRS — the replication mechanism is the same, asynchronous.')">
+                <span class="option-label">C</span> RA-GRS replicates data faster to the secondary region
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RA-GRS stores the same number of copies as GRS (6 total) — the difference is read access, not copy count.')">
+                <span class="option-label">D</span> RA-GRS stores more copies of data than GRS
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> If a storage account using GRS fails over to the secondary region, what redundancy level does it temporarily have?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! After a geo-failover, the storage account becomes LRS in the new primary region (formerly secondary). It only has 3 local copies until geo-replication is re-established to a new secondary region, which can take some time.')">
+                <span class="option-label">A</span> LRS — only 3 local copies until geo-replication is re-established
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. After failover, the account does not maintain full GRS — it temporarily becomes LRS in the new region.')">
+                <span class="option-label">B</span> GRS — it automatically establishes a new secondary immediately
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. After failover it does not become ZRS — it becomes LRS until geo-replication is re-established.')">
+                <span class="option-label">C</span> ZRS — Azure automatically distributes across zones
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The account is not left without redundancy — it becomes LRS with 3 local copies in the new primary region.')">
+                <span class="option-label">D</span> No redundancy — single copy only
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> How many total copies of data does GRS store?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. LRS stores 3 copies — not GRS. GRS stores more copies across two regions.')">
+                <span class="option-label">A</span> 3
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! GRS stores 6 total copies — 3 copies using LRS in the primary region, and 3 copies using LRS in the paired secondary region.')">
+                <span class="option-label">B</span> 6
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GRS stores 6 copies — not 9.')">
+                <span class="option-label">C</span> 9
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GRS stores 6 copies — not 12.')">
+                <span class="option-label">D</span> 12
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which Azure region is the designated pair for Central India (Pune)?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. West India is not the designated pair for Central India. West India is actually a one-directional pair.')">
+                <span class="option-label">A</span> West India (Mumbai)
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! South India (Chennai) is the designated region pair for Central India (Pune). GRS from Central India replicates data to South India.')">
+                <span class="option-label">B</span> South India (Chennai)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Southeast Asia is not the paired region for Central India.')">
+                <span class="option-label">C</span> Southeast Asia (Singapore)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. East Asia is not the paired region for Central India.')">
+                <span class="option-label">D</span> East Asia (Hong Kong)
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="storage-overview.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Azure Storage Overview</span>
+            </a>
+            <a class="related-card" href="storage-security.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Storage Account Security</span>
+            </a>
+            <a class="related-card" href="sas-tokens.html">
+              <span class="related-card-label">Azure Storage</span>
+              <span class="related-card-title">Shared Access Signatures</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="table-storage.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Table Storage</span>
+          </a>
+          <a class="nav-card next" href="sas-tokens.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Shared Access Signatures</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js"
+            data-repo="redkitecloud/azure-tutorial"
+            data-repo-id="R_kgDOSUIK8A"
+            data-category="General"
+            data-category-id="DIC_kwDOSUIK8M4C8YmM"
+            data-mapping="pathname" data-strict="0" data-reactions-enabled="1"
+            data-emit-metadata="0" data-input-position="bottom"
+            data-theme="dark" data-lang="en" crossorigin="anonymous" async>
+          </script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+</body>
+</html>
