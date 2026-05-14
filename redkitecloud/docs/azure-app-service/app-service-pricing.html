@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Service Pricing | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure App Service pricing — plan tier costs, reserved instances, cost comparison, and top tips for reducing your App Service bill." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">App Service Pricing</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Azure App Service Pricing</h1>
+      <p class="page-intro">App Service pricing is straightforward — you pay for the App Service Plan, not for individual apps. Multiple apps on the same plan share its cost. Understanding the price points for each tier and how to optimise helps you run production apps affordably. This page covers all pricing tiers, real cost examples in Central India, and the top tips to reduce your bill.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        How App Service billing works · Price per tier (Central India approximate costs) · What's included in each tier · Reserved instance discounts (1 and 3 year) · Cost of multiple apps on one plan · App Service Environment pricing · Top 8 cost-saving tips · Using the pricing calculator
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#billing-model">How Billing Works</a></li>
+        <li><a href="#tier-prices">Tier Prices (Central India)</a></li>
+        <li><a href="#reserved-instances">Reserved Instances</a></li>
+        <li><a href="#ase-pricing">App Service Environment Pricing</a></li>
+        <li><a href="#real-examples">Real-World Cost Examples</a></li>
+        <li><a href="#cost-tips">Top 8 Cost-Saving Tips</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="billing-model">How Billing Works</h2>
+        <p>App Service billing is based on the <strong>App Service Plan</strong> — not individual apps:</p>
+        <ul>
+          <li>You pay per hour for each instance in the plan</li>
+          <li>Multiple apps on the same plan = no extra app charge</li>
+          <li>The plan runs 24/7 unless you stop it (compute billing pauses when stopped)</li>
+          <li>Storage, custom domains, SSL certificates — included in plan cost</li>
+          <li>Outbound data transfer — charged separately (first 5 GB/month free)</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Plan = The Meter Running</strong> Unlike serverless Functions (billed per execution), App Service Plans run continuously. A Basic B1 plan at ₹1,200/month charges that amount whether you have 1 request or 1 million. For very low traffic, Functions may be cheaper.</div>
+        </div>
+
+        <h2 id="tier-prices">Tier Prices (Central India)</h2>
+        <p>Approximate monthly costs per instance (Linux, pay-as-you-go):</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>vCPU</th><th>RAM</th><th>Approx. Monthly Cost</th><th>Features</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Free (F1)</strong></td><td>Shared</td><td>1 GB</td><td>₹0</td><td>60 min CPU/day, no custom domain</td></tr>
+            <tr><td><strong>Shared (D1)</strong></td><td>Shared</td><td>1 GB</td><td>~₹400</td><td>240 min CPU/day, custom domain</td></tr>
+            <tr><td><strong>Basic B1</strong></td><td>1</td><td>1.75 GB</td><td>~₹1,200</td><td>Dedicated, SSL, manual scale</td></tr>
+            <tr><td><strong>Basic B2</strong></td><td>2</td><td>3.5 GB</td><td>~₹2,400</td><td>Same as B1, more power</td></tr>
+            <tr><td><strong>Basic B3</strong></td><td>4</td><td>7 GB</td><td>~₹4,800</td><td>Same as B1, more power</td></tr>
+            <tr><td><strong>Standard S1</strong></td><td>1</td><td>1.75 GB</td><td>~₹1,500</td><td>Auto-scale, 5 slots, daily backup</td></tr>
+            <tr><td><strong>Standard S2</strong></td><td>2</td><td>3.5 GB</td><td>~₹3,000</td><td>Same + more power</td></tr>
+            <tr><td><strong>Standard S3</strong></td><td>4</td><td>7 GB</td><td>~₹6,000</td><td>Same + more power</td></tr>
+            <tr><td><strong>Premium P1v3</strong></td><td>2</td><td>8 GB</td><td>~₹5,500</td><td>20 slots, zone redundancy, VNet</td></tr>
+            <tr><td><strong>Premium P2v3</strong></td><td>4</td><td>16 GB</td><td>~₹11,000</td><td>Same + more power</td></tr>
+            <tr><td><strong>Premium P3v3</strong></td><td>8</td><td>32 GB</td><td>~₹22,000</td><td>Same + more power</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Premium P1v3 vs Standard S2</strong> P1v3 costs ~₹5,500 but gives 2 vCPU / 8 GB RAM. Standard S2 costs ~₹3,000 but only 2 vCPU / 3.5 GB RAM. For memory-intensive apps, P1v3 gives 2.3× more RAM for 1.8× the price — often the better choice.</div>
+        </div>
+
+        <h2 id="reserved-instances">Reserved Instances</h2>
+        <p>Commit to 1 or 3 years upfront for significant discounts:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Commitment</th><th>Discount vs PAYG</th><th>Example (P1v3)</th></tr></thead>
+          <tbody>
+            <tr><td>Pay-as-you-go</td><td>—</td><td>~₹5,500/month</td></tr>
+            <tr><td>1-year reserved</td><td>~33% off</td><td>~₹3,700/month</td></tr>
+            <tr><td>3-year reserved</td><td>~55% off</td><td>~₹2,500/month</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="ase-pricing">App Service Environment Pricing</h2>
+        <p>ASE (Isolated tier) has two cost components:</p>
+        <ul>
+          <li><strong>ASE Stamp fee</strong> — Fixed hourly fee for the ASE infrastructure (~₹75,000–100,000/month)</li>
+          <li><strong>Per-instance charge</strong> — Per Isolated plan instance (I1v2: ~₹10,000/month)</li>
+        </ul>
+        <p>Total minimum ASE cost: ~₹85,000–110,000/month. Only justified for compliance, high security, or very large-scale single-tenant deployments.</p>
+
+        <h2 id="real-examples">Real-World Cost Examples</h2>
+
+        <h3>Example 1 — Simple Production App</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Resource</th><th>Monthly Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Standard S1 plan (1 instance, always on)</td><td>~₹1,500</td></tr>
+            <tr><td>Application Insights (moderate traffic)</td><td>~₹200</td></tr>
+            <tr><td>Outbound data (10 GB/month)</td><td>~₹300</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>~₹2,000/month</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Example 2 — High-Traffic App with Auto-Scale</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Resource</th><th>Monthly Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Premium P2v3 plan (avg 3 instances, auto-scale 2–8)</td><td>~₹33,000</td></tr>
+            <tr><td>Application Insights (high traffic)</td><td>~₹2,000</td></tr>
+            <tr><td>Outbound data (100 GB/month)</td><td>~₹1,800</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>~₹36,800/month</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="cost-tips">Top 8 Cost-Saving Tips</h2>
+
+        <h3>1. Share Plans Across Multiple Apps</h3>
+        <p>Multiple low-traffic apps (internal tools, staging) on one plan. No per-app charge.</p>
+
+        <h3>2. Buy Reserved Instances for Production</h3>
+        <p>1-year reservation saves ~33%. 3-year saves ~55%. Only for always-on production plans.</p>
+
+        <h3>3. Stop Plans When Not Needed</h3>
+        <p>Dev/test plans that aren't used nights/weekends — stop them. Compute billing pauses. Storage continues (~₹20/month).</p>
+
+        <h3>4. Right-Size Before Reserving</h3>
+        <p>Monitor CPU and memory for 2–4 weeks before committing. Reservations are for a specific VM size — can't change size without penalty.</p>
+
+        <h3>5. Consider Functions for Very Low Traffic</h3>
+        <p>If your app serves &lt;1 million requests/month, Azure Functions Consumption plan may be cheaper (~₹0 for the first 1 million executions).</p>
+
+        <h3>6. Use Scale-In Rules</h3>
+        <p>Always define scale-in rules alongside scale-out rules. Without them, instances accumulate and costs grow.</p>
+
+        <h3>7. Use Schedule-Based Scaling</h3>
+        <p>Scale to minimum instances overnight and on weekends for predictable savings.</p>
+
+        <h3>8. Monitor with Azure Cost Analysis</h3>
+        <p>Check monthly App Service costs in Azure Cost Management. Look for orphaned plans (plans with no apps running), oversized instances, and unexpected scale-out events.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that App Service Plans are what you pay for (not individual apps). Know Free tier has no SLA and shared CPU. Know that stopping a plan pauses compute billing. Know reserved instances provide 33–55% discounts for committed term. Know ASE has a fixed stamp fee plus per-instance charges.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A team runs 5 small internal web apps. All have low traffic. What is the most cost-effective approach?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 5 separate plans means paying for 5 plans — much more expensive than sharing one plan for all 5 apps.')">A — Create 5 separate Basic B1 App Service Plans</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Multiple apps can share one App Service Plan. You only pay for the plan — not per app. For 5 low-traffic internal apps, one Standard S1 plan shared between all 5 apps costs ~₹1,500/month vs ~₹7,500/month for 5 individual plans.')">B — Run all 5 apps on one shared App Service Plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Functions are serverless — they may be cheaper for very low traffic but require rewriting the apps. For existing web apps, sharing an App Service Plan is simpler.')">C — Move all apps to Azure Functions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free tier has no SLA and limited CPU — not suitable for internal production tools.')">D — Use Free tier for all 5 apps</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> How much can a 3-year reserved instance save compared to pay-as-you-go for App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 3-year reserved instances save more than 10%.')">A — 10%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 3-year reserved instances save more than 33% (that\'s the 1-year discount).')">B — 33%</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A 3-year reserved App Service instance saves approximately 55% compared to pay-as-you-go. A 1-year reservation saves ~33%. Only commit to reserved instances for always-on production plans where you\'re confident in the workload for the full term.')">C — ~55%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum discount for App Service reserved instances is ~55% for 3-year commitments.')">D — 75%</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What happens to billing when you stop an App Service Plan?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Billing does not continue at full rate when stopped — compute billing pauses when the plan is stopped.')">A — Full billing continues — stopping does not affect charges</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When you stop an App Service Plan, compute billing pauses — you only pay for storage (~₹20/month). This is useful for dev/test plans that aren\'t needed outside business hours. Resume the plan to start billing again.')">B — Compute billing pauses — you only pay for storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Stopping an App Service Plan is different from deleting it — stopping pauses billing but retains the plan and apps.')">C — All billing stops including storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. App Service Plans can be stopped and started — stopped plans are not automatically deleted.')">D — The plan is automatically deleted after 24 hours</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What makes App Service Environment (Isolated tier) significantly more expensive than regular App Service Plans?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ASE does support reserved instances — the high cost comes from the fixed stamp fee plus per-instance charges.')">A — Reserved instances are not available for ASE</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ASE has a fixed hourly stamp fee (~₹75,000–100,000/month) for the dedicated infrastructure, PLUS per-instance charges for each Isolated plan instance. This makes the minimum ASE cost ~₹85,000+/month — justified only for compliance or very large workloads.')">B — Fixed stamp fee for the ASE infrastructure (~₹75,000+/month) plus per-instance charges</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSL certificates are included in App Service Plans — they don\'t cause the high ASE cost.')">C — Mandatory SSL certificates cost significantly more</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Outbound data charges are the same for ASE as regular plans — the high cost comes from the stamp fee.')">D — Higher outbound data transfer charges</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> For a web application with very low traffic (under 100,000 requests/month), what might be cheaper than App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Kubernetes Service would be more expensive for low-traffic apps due to cluster management costs.')">A — Azure Kubernetes Service</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Functions Consumption plan charges per execution — the first 1 million executions per month are free, and additional executions cost fractions of a rupee. For very low traffic apps, Functions can cost nearly ₹0/month vs ₹1,200+/month for the minimum App Service Basic plan.')">B — Azure Functions Consumption plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure VMs are more expensive than App Service for low-traffic apps due to always-on compute costs.')">C — Azure Virtual Machines</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Instances charge per CPU-second of use — for persistent web apps they can be comparable but not necessarily cheaper.')">D — Azure Container Instances</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="app-service-plans.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Plans</span></a>
+        <a class="related-card" href="scaling-app-service.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Scaling App Service</span></a>
+        <a class="related-card" href="app-service-overview.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Overview</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="app-service-monitoring.html"><span class="nav-label">← Previous</span><span class="nav-title">Monitoring &amp; Diagnostics</span></a>
+        <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

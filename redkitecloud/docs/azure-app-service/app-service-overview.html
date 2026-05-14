@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure App Service Overview | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete overview of Azure App Service — what it is, supported runtimes, Web Apps vs API Apps vs WebJobs, and how it fits in your architecture." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">App Service Overview</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure App Service Overview</h1>
+      <p class="page-intro">Azure App Service is a fully managed Platform-as-a-Service (PaaS) for hosting web applications, REST APIs, and mobile backends. You bring your code — Azure handles the infrastructure: OS patching, load balancing, auto-scaling, SSL certificates, and high availability. It supports .NET, Node.js, Python, Java, PHP, Ruby, and custom containers — making it the most versatile web hosting service in Azure.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What App Service is and what it handles for you · Supported runtimes and OS options · App Service components — Web Apps, API Apps, Mobile Apps, WebJobs · The App Service Plan concept · Key features overview · App Service vs alternatives (VMs, AKS, Azure Functions) · When to choose App Service
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-app-service">What is App Service?</a></li>
+        <li><a href="#supported-runtimes">Supported Runtimes</a></li>
+        <li><a href="#app-types">App Service App Types</a></li>
+        <li><a href="#key-features">Key Features</a></li>
+        <li><a href="#app-service-vs-alternatives">App Service vs Alternatives</a></li>
+        <li><a href="#when-to-choose">When to Choose App Service</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-app-service">What is App Service?</h2>
+        <p>App Service is HTTP-based hosting for web applications. When you deploy to App Service, Microsoft manages:</p>
+        <ul>
+          <li>Physical and virtual servers</li>
+          <li>Operating system updates and security patches</li>
+          <li>Load balancing across instances</li>
+          <li>Network infrastructure</li>
+          <li>SSL/TLS certificate management</li>
+          <li>Built-in availability (99.95% SLA on Standard and above)</li>
+        </ul>
+        <p>You manage only your application code and configuration.</p>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>App Service Plan = The Server</strong> Every App Service app runs on an App Service Plan — which defines the underlying compute (VM size and count). Multiple apps can share the same plan. The plan is what you pay for — apps themselves are free.</div>
+        </div>
+
+        <h2 id="supported-runtimes">Supported Runtimes</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Runtime</th><th>Windows</th><th>Linux</th><th>Versions</th></tr></thead>
+          <tbody>
+            <tr><td>.NET</td><td>✅</td><td>✅</td><td>.NET 6, 7, 8, Framework 4.8</td></tr>
+            <tr><td>Node.js</td><td>✅</td><td>✅</td><td>18, 20, 22</td></tr>
+            <tr><td>Python</td><td>✅</td><td>✅</td><td>3.9, 3.10, 3.11, 3.12</td></tr>
+            <tr><td>Java</td><td>✅</td><td>✅</td><td>Java 8, 11, 17, 21</td></tr>
+            <tr><td>PHP</td><td>✅</td><td>✅</td><td>8.0, 8.1, 8.2, 8.3</td></tr>
+            <tr><td>Ruby</td><td>❌</td><td>✅</td><td>3.2, 3.3</td></tr>
+            <tr><td>Custom container</td><td>✅ (Windows containers)</td><td>✅ (Docker)</td><td>Any</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="app-types">App Service App Types</h2>
+
+        <h3>Web Apps</h3>
+        <p>The core offering — host any web application or REST API. The most commonly used App Service type. Supports all runtimes listed above.</p>
+
+        <h3>API Apps</h3>
+        <p>Specialised for REST APIs — same infrastructure as Web Apps but with built-in Swagger/OpenAPI support and CORS configuration. Most teams just use Web Apps for APIs too.</p>
+
+        <h3>Mobile Apps</h3>
+        <p>Backend for mobile applications — provides data sync, push notifications, and authentication for iOS/Android apps. Less commonly used today (most use Web Apps with a REST API instead).</p>
+
+        <h3>WebJobs</h3>
+        <p>Background task runner attached to a Web App. Run scripts or programs (shell scripts, .NET, Node, Python) continuously, on a schedule (cron), or triggered. WebJobs share the same App Service Plan as the parent Web App.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>WebJobs vs Azure Functions</strong> WebJobs run alongside a Web App and share its compute. Azure Functions are serverless — billed per execution. Use WebJobs for background tasks tightly coupled to your web app. Use Functions for event-driven, independently scalable tasks.</div>
+        </div>
+
+        <h2 id="key-features">Key Features</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Deployment slots</strong></td><td>Staging environments — deploy to staging, test, then swap to production with zero downtime</td></tr>
+            <tr><td><strong>Auto-scaling</strong></td><td>Scale out to more instances based on CPU, memory, or custom metrics</td></tr>
+            <tr><td><strong>Custom domains</strong></td><td>Map your own domain (contoso.com) to the app</td></tr>
+            <tr><td><strong>Managed TLS/SSL</strong></td><td>Free managed certificates for custom domains</td></tr>
+            <tr><td><strong>Authentication</strong></td><td>Built-in auth with Azure AD, Google, Facebook, GitHub — no code changes</td></tr>
+            <tr><td><strong>VNet Integration</strong></td><td>Connect app to private VNet for database/service access</td></tr>
+            <tr><td><strong>Deployment Center</strong></td><td>CI/CD from GitHub, Azure DevOps, Bitbucket, or local Git</td></tr>
+            <tr><td><strong>Application Insights</strong></td><td>Performance monitoring, request tracing, error tracking</td></tr>
+            <tr><td><strong>App Service Environment (ASE)</strong></td><td>Fully isolated, private deployment within your VNet</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="app-service-vs-alternatives">App Service vs Alternatives</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Service</th><th>What You Manage</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>App Service</strong></td><td>Code + config</td><td>Web apps, APIs, standard web workloads</td></tr>
+            <tr><td><strong>Azure Functions</strong></td><td>Code only</td><td>Event-driven, serverless, short tasks</td></tr>
+            <tr><td><strong>Azure Container Apps</strong></td><td>Container + config</td><td>Microservices, containerised apps</td></tr>
+            <tr><td><strong>Azure Kubernetes Service</strong></td><td>Containers + cluster config</td><td>Complex microservices, full control</td></tr>
+            <tr><td><strong>Azure VM</strong></td><td>OS + runtime + code</td><td>Full control, legacy apps, specific OS</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="when-to-choose">When to Choose App Service</h2>
+        <ul>
+          <li>Building or migrating a web application or REST API</li>
+          <li>Team doesn't want to manage servers or containers</li>
+          <li>Need built-in CI/CD, deployment slots, scaling, and SSL</li>
+          <li>Running standard runtimes (.NET, Node, Python, Java, PHP)</li>
+          <li>Need predictable pricing (always-on vs serverless Functions)</li>
+          <li>WordPress or other CMS on PHP</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that App Service is PaaS — Microsoft manages the OS, patching, and infrastructure. Know that the App Service Plan defines the compute and is what you pay for. Know that multiple apps can share one plan. Know the key features: deployment slots, auto-scaling, VNet integration, custom domains.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> In Azure App Service, what resource defines the underlying compute (VM size, instance count) that apps run on?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Web App is the application itself — compute is defined by the App Service Plan.')">A — The Web App</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The App Service Plan defines the compute — the VM size, OS type, region, and number of instances. The plan is what you pay for. Multiple Web Apps can share one App Service Plan.')">B — The App Service Plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Resource Group is an organisational container — it does not define compute.')">C — The Resource Group</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Deployment Slot is a staging environment — not the compute definition.')">D — The Deployment Slot</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Which App Service feature allows you to deploy to a staging environment and then swap to production with zero downtime?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Integration connects the app to a VNet — it has nothing to do with staging environments.')">A — VNet Integration</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deployment Slots provide staging environments. You deploy to the staging slot, test it, then "swap" staging with production. The swap is instant — both slots exchange their content and settings, providing zero-downtime deployments.')">B — Deployment Slots</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. WebJobs are for background tasks — not staging deployments.')">C — WebJobs</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Insights is for monitoring — not deployment management.')">D — Application Insights</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Does Azure App Service support Linux as an OS for running Python applications?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure App Service supports Python on both Windows and Linux. Linux is actually the recommended OS for Python workloads on App Service — it provides better performance and is the preferred deployment target for Python web frameworks like Django and Flask.')">A — Yes — Python is fully supported on Linux App Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Python is supported on both Windows and Linux — not Windows only.')">B — No — Python is only supported on Windows App Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Python is a fully supported runtime on App Service — it does not require a custom container.')">C — Only via custom container on Linux</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Python support on Linux App Service does not require the Premium tier.')">D — Only on Premium tier Linux plans</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the difference between a WebJob and Azure Functions for background processing?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both WebJobs and Azure Functions support scheduled execution — this is not a differentiator.')">A — WebJobs support scheduling; Azure Functions do not</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! WebJobs run inside an App Service Plan and share the plan\'s compute with the Web App. Azure Functions are serverless — they scale independently and bill per execution. Use WebJobs for background tasks tightly coupled to your web app; use Functions for independently scalable event-driven tasks.')">B — WebJobs share the App Service Plan compute; Functions are serverless and scale independently</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both WebJobs and Functions support multiple languages — this is not the key difference.')">C — WebJobs only support .NET; Functions support all languages</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both WebJobs and Functions can be triggered by events — the key difference is the compute model.')">D — WebJobs cannot be triggered by events</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which service should you choose for a containerised microservices application requiring Kubernetes orchestration?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. App Service is for web apps and APIs — it does not provide Kubernetes orchestration for complex microservices.')">A — Azure App Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Functions are serverless event-driven functions — not for full Kubernetes microservices orchestration.')">B — Azure Functions</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Kubernetes Service (AKS) provides full Kubernetes orchestration for complex containerised microservices applications. App Service is simpler and better for standard web apps — AKS is for teams that need full Kubernetes control and complex container orchestration.')">C — Azure Kubernetes Service (AKS)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure VMs provide the least managed option — you would need to install and manage Kubernetes yourself.')">D — Azure Virtual Machines</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="app-service-plans.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Plans</span></a>
+        <a class="related-card" href="deploy-web-app.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Deploying a Web App</span></a>
+        <a class="related-card" href="deployment-slots.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Deployment Slots</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <div></div>
+        <a class="nav-card next" href="app-service-plans.html"><span class="nav-label">Next →</span><span class="nav-title">App Service Plans</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

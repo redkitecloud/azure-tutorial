@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Domains & SSL | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to custom domains and SSL certificates in Azure App Service — mapping domains, managed certificates, SNI SSL, IP-based SSL, and HTTPS enforcement." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">Custom Domains &amp; SSL</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Custom Domains &amp; SSL in App Service</h1>
+      <p class="page-intro">By default, every App Service app gets a free hostname like <code>myapp.azurewebsites.net</code>. For production, you'll want your own domain (contoso.com) with HTTPS. Azure App Service makes this straightforward — map your domain with a DNS record, and get a free managed SSL certificate with one click. This page covers the complete setup.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Mapping a custom domain — CNAME vs A record · Domain verification (TXT record) · Free App Service managed certificates · Bringing your own certificate (BYOC) · SNI SSL vs IP-based SSL · Enforcing HTTPS · Wildcard certificates · Managed certificate limitations
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#mapping-domain">Mapping a Custom Domain</a></li>
+        <li><a href="#cname-vs-a">CNAME vs A Record</a></li>
+        <li><a href="#domain-verification">Domain Verification</a></li>
+        <li><a href="#free-cert">Free App Service Managed Certificates</a></li>
+        <li><a href="#byoc">Bring Your Own Certificate</a></li>
+        <li><a href="#ssl-types">SNI SSL vs IP-Based SSL</a></li>
+        <li><a href="#https-enforcement">Enforcing HTTPS</a></li>
+        <li><a href="#tls-versions">Minimum TLS Version</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="mapping-domain">Mapping a Custom Domain</h2>
+        <p>High-level process:</p>
+        <ol>
+          <li>In Azure Portal → App Service → Custom domains → Add custom domain</li>
+          <li>Enter your domain name (e.g., www.contoso.com)</li>
+          <li>Azure tells you which DNS records to create</li>
+          <li>Create those records in your DNS provider</li>
+          <li>Azure verifies the records and maps the domain</li>
+          <li>Add an SSL certificate for the domain</li>
+        </ol>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Minimum Tier for Custom Domains</strong> Custom domain mapping requires Basic tier or above. Free and Shared tiers do NOT support custom domains (Free has no domain support at all; Shared supports it with limitations).</div>
+        </div>
+
+        <h2 id="cname-vs-a">CNAME vs A Record</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>CNAME Record</th><th>A Record</th></tr></thead>
+          <tbody>
+            <tr><td>Maps</td><td>Hostname → another hostname</td><td>Hostname → IP address</td></tr>
+            <tr><td>Usage</td><td>www.contoso.com → myapp.azurewebsites.net</td><td>@ (root domain) → App Service IP</td></tr>
+            <tr><td>Zone apex?</td><td>❌ Not allowed at zone apex (contoso.com)</td><td>✅ Required for zone apex</td></tr>
+            <tr><td>IP changes?</td><td>Follows automatically</td><td>Must update if IP changes</td></tr>
+            <tr><td>Recommended for</td><td>www subdomain and all subdomains</td><td>Root domain only</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Avoid A Records When Possible</strong> App Service IP addresses can change (e.g., when scaling or migrating). CNAME records automatically follow the hostname — A records need manual updating. Use CNAME for www and subdomains. Only use A records when you must point the root domain (and keep the IP backed up).</div>
+        </div>
+
+        <h2 id="domain-verification">Domain Verification</h2>
+        <p>To prove you own the domain, Azure requires you to create a <strong>TXT verification record</strong> in addition to the CNAME/A record:</p>
+        <ul>
+          <li>Record type: TXT</li>
+          <li>Name: <code>asuid.www</code> (for www.contoso.com)</li>
+          <li>Value: App Service's unique Domain Verification ID (shown in the portal)</li>
+        </ul>
+
+        <h2 id="free-cert">Free App Service Managed Certificates</h2>
+        <p>App Service provides free SSL certificates for custom domains — provisioned and renewed automatically by Microsoft. No cost, no manual renewal.</p>
+
+        <h3>Getting a Free Certificate</h3>
+        <ol>
+          <li>App Service → TLS/SSL settings → Private Key Certificates → Create App Service Managed Certificate</li>
+          <li>Select the custom domain</li>
+          <li>Certificate is provisioned automatically (takes a few minutes)</li>
+          <li>Bind the certificate to the domain</li>
+        </ol>
+
+        <h3>Managed Certificate Limitations</h3>
+        <ul>
+          <li>Only for custom subdomains (www.contoso.com) — NOT root domains (contoso.com)</li>
+          <li>Cannot be exported</li>
+          <li>Not available on Free or Shared tiers</li>
+          <li>Does not support wildcard certificates (*.contoso.com)</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Root Domain + Managed Cert Workaround</strong> Managed certs don't work for root domains. Options: (1) Use Azure Front Door or CDN in front — these support root domain HTTPS. (2) Buy a certificate from a CA. (3) Use App Service Domain (Azure-managed domain) which includes a wildcard cert.</div>
+        </div>
+
+        <h2 id="byoc">Bring Your Own Certificate</h2>
+        <p>Upload your own SSL certificate (PFX format) when you need:</p>
+        <ul>
+          <li>Wildcard certificate (*.contoso.com) for all subdomains</li>
+          <li>Root domain certificate</li>
+          <li>Extended Validation (EV) certificate</li>
+          <li>Certificate from a specific CA for compliance</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Upload and bind a custom certificate</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Upload PFX certificate
+az webapp config ssl upload \
+  --certificate-file mycert.pfx \
+  --certificate-password "CertPassword123!" \
+  --name mywebapp-2026 \
+  --resource-group myRG
+
+# Bind to custom domain
+az webapp config ssl bind \
+  --certificate-thumbprint <thumbprint> \
+  --ssl-type SNI \
+  --name mywebapp-2026 \
+  --resource-group myRG</code></pre>
+        </div>
+
+        <h2 id="ssl-types">SNI SSL vs IP-Based SSL</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>SNI SSL</th><th>IP-Based SSL</th></tr></thead>
+          <tbody>
+            <tr><td>How</td><td>Uses TLS Server Name Indication — no dedicated IP</td><td>Assigns a dedicated inbound IP</td></tr>
+            <tr><td>Cost</td><td>Included in plan cost</td><td>Additional charge per binding</td></tr>
+            <tr><td>Multiple certs</td><td>✅ Multiple certificates on same IP</td><td>One certificate per IP</td></tr>
+            <tr><td>Recommended?</td><td>✅ Yes — for almost all use cases</td><td>Only if you need a dedicated IP</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="https-enforcement">Enforcing HTTPS</h2>
+        <p>Enable "HTTPS Only" to redirect all HTTP traffic to HTTPS automatically. This should always be enabled for production apps.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enforce HTTPS</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Force HTTPS redirect
+az webapp update \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --https-only true</code></pre>
+        </div>
+
+        <h2 id="tls-versions">Minimum TLS Version</h2>
+        <p>Configure the minimum TLS version to reject older, less secure connections. TLS 1.2 is the recommended minimum — TLS 1.0 and 1.1 are deprecated.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Set minimum TLS version to 1.2</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Set minimum TLS to 1.2
+az webapp config set \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --min-tls-version 1.2</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that Free managed certificates don't work for root domains or wildcards. Know that CNAME cannot be used at the zone apex. Know that SNI SSL is recommended over IP-based SSL. Know that HTTPS Only redirects HTTP to HTTPS. Know minimum TLS 1.2 is best practice.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What DNS record type should you use to map www.contoso.com to an Azure App Service app?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A CNAME record maps www.contoso.com → myapp.azurewebsites.net. It automatically follows the App Service hostname if the IP changes. CNAME is preferred for subdomains (www, api, etc.) over A records.')">A — CNAME record pointing to myapp.azurewebsites.net</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. An A record maps to an IP address — App Service IPs can change, making CNAME more reliable for subdomains.')">B — A record pointing to the App Service IP address</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. MX records are for email routing — not for web app domain mapping.')">C — MX record</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NS records are nameserver records — not for mapping web app hostnames.')">D — NS record</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Can the App Service free managed certificate be used for a root domain (contoso.com)?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free managed certificates do NOT support root domains — they are for subdomains only (like www.contoso.com).')">A — Yes — managed certificates support both root domains and subdomains</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! App Service free managed certificates only work for custom subdomains (e.g., www.contoso.com). They cannot be used for root/apex domains (contoso.com), wildcard domains, or exported for use elsewhere.')">B — No — managed certificates only support subdomains, not root domains</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Managed certificates work on Standard tier and above — but they don\'t support root domains regardless of tier.')">C — Only on Premium tier and above</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Managed certificates are not available on Free tier, and even on paid tiers they don\'t support root domains.')">D — Yes, but only on the Free tier</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the advantage of SNI SSL over IP-based SSL in App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SNI SSL does not require a dedicated IP — it shares an IP with other apps using TLS Server Name Indication. IP-based SSL requires a dedicated IP.')">A — SNI SSL assigns a dedicated IP address to the app</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SNI SSL does not require a dedicated IP address — it uses TLS Server Name Indication, allowing multiple SSL certificates on the same IP. It\'s included in the plan cost. IP-based SSL assigns a dedicated IP per binding and has an additional charge. SNI is recommended for almost all scenarios.')">B — SNI SSL doesn\'t need a dedicated IP and is included in plan cost; IP-based SSL requires dedicated IP at extra cost</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SNI SSL is not more secure than IP-based SSL — both use TLS encryption. The difference is how the IP is allocated.')">C — SNI SSL provides stronger encryption than IP-based SSL</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free managed certificates support SNI SSL — the difference between SNI and IP-based is about IP allocation, not certificate type.')">D — SNI SSL is required for free managed certificates</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What setting should you enable to automatically redirect all HTTP requests to HTTPS?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The "HTTPS Only" setting in App Service automatically redirects all incoming HTTP requests to HTTPS with a 301 redirect. This is a best practice for all production web apps — enable it immediately after configuring SSL.')">A — HTTPS Only (in App Service TLS/SSL settings)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Always On keeps the app warm to prevent cold starts — it has nothing to do with HTTPS redirection.')">B — Always On</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Custom domain settings map the domain — HTTPS enforcement is a separate setting.')">C — Custom domain settings</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deployment slots are for staging environments — not HTTPS enforcement.')">D — Deployment slot configuration</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What minimum App Service Plan tier is required to add a custom domain?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free tier does not support custom domains at all.')">A — Free (F1)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Basic tier is the minimum that supports custom domain mapping (along with SSL certificates). Free tier has no custom domain support. Shared (D1) has limited custom domain support but is not recommended for production.')">B — Basic (B1)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While Standard supports custom domains, Basic is the minimum — not Standard.')">C — Standard (S1)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium supports custom domains but is not the minimum tier — Basic is the minimum.')">D — Premium (P1v3)</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="app-service-plans.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Plans</span></a>
+        <a class="related-card" href="app-service-networking.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Networking</span></a>
+        <a class="related-card" href="deployment-slots.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Deployment Slots</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="deployment-slots.html"><span class="nav-label">← Previous</span><span class="nav-title">Deployment Slots</span></a>
+        <a class="nav-card next" href="scaling-app-service.html"><span class="nav-label">Next →</span><span class="nav-title">Scaling App Service</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Service Networking | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure App Service networking — VNet Integration, Private Endpoints, access restrictions, hybrid connections, and service endpoints." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">App Service Networking</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">App Service Networking</h1>
+      <p class="page-intro">By default, App Service apps are internet-accessible. But production apps often need to communicate with private databases, internal APIs, and on-premises systems — and to restrict who can access the app itself. App Service has multiple networking features to control both inbound access (who can reach the app) and outbound access (what the app can reach).</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Inbound vs outbound networking concepts · Access Restrictions (IP allowlisting) · Private Endpoints for App Service (inbound) · VNet Integration (outbound) · Hybrid Connections (on-premises) · Service Endpoints · App Service Environment (fully isolated) · Default domain and custom domain networking
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#inbound-outbound">Inbound vs Outbound</a></li>
+        <li><a href="#access-restrictions">Access Restrictions</a></li>
+        <li><a href="#private-endpoints">Private Endpoints (Inbound)</a></li>
+        <li><a href="#vnet-integration">VNet Integration (Outbound)</a></li>
+        <li><a href="#hybrid-connections">Hybrid Connections</a></li>
+        <li><a href="#service-endpoints">Service Endpoints</a></li>
+        <li><a href="#network-summary">Networking Features Summary</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="inbound-outbound">Inbound vs Outbound</h2>
+        <p>App Service networking concerns flow in two directions:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Direction</th><th>Meaning</th><th>Features</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Inbound</strong></td><td>Traffic coming INTO your app from users or other services</td><td>Access Restrictions, Private Endpoints, App Service Environment</td></tr>
+            <tr><td><strong>Outbound</strong></td><td>Traffic going OUT from your app to databases, APIs, on-premises</td><td>VNet Integration, Hybrid Connections, Service Endpoints</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="access-restrictions">Access Restrictions</h2>
+        <p>Access Restrictions are IP-based allow/deny rules for inbound traffic — the App Service equivalent of NSG rules. You can allow only specific IP ranges or Service Tags to reach your app.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Restrict app to only allow Front Door IPs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Allow only Azure Front Door service tag
+az webapp config access-restriction add \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --rule-name AllowFrontDoor \
+  --action Allow \
+  --service-tag AzureFrontDoor.Backend \
+  --priority 100
+
+# Deny all other traffic (add deny-all rule at lower priority)
+az webapp config access-restriction add \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --rule-name DenyAll \
+  --action Deny \
+  --ip-address 0.0.0.0/0 \
+  --priority 200</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Common Pattern: Front Door + Access Restrictions</strong> Deploy Azure Front Door (for WAF, CDN, global routing) in front of App Service, then use Access Restrictions to only allow traffic from the AzureFrontDoor.Backend service tag. This prevents bypassing Front Door's WAF by directly hitting the App Service URL.</div>
+        </div>
+
+        <h2 id="private-endpoints">Private Endpoints (Inbound)</h2>
+        <p>A Private Endpoint gives your App Service app a private IP address in your VNet — removing the public internet endpoint. All inbound traffic goes through the private IP only.</p>
+        <ul>
+          <li>App is accessible only from within the VNet (or connected networks via VPN/ER)</li>
+          <li>azurewebsites.net public URL still exists but resolves to the private IP via Private DNS</li>
+          <li>Requires Premium v2/v3 or Isolated tier</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Private Endpoint vs Access Restrictions</strong> Access Restrictions filter IPs at the App Service level — the app still has a public endpoint. Private Endpoint removes the public endpoint entirely and routes through a private IP in your VNet. Private Endpoint provides stronger isolation.</div>
+        </div>
+
+        <h2 id="vnet-integration">VNet Integration (Outbound)</h2>
+        <p>VNet Integration allows your App Service app to make outbound calls to resources in your VNet — databases, VMs, internal APIs — using their private IPs. The app joins your VNet for outbound traffic only (it does NOT become accessible FROM the VNet through VNet Integration).</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>What VNet Integration Enables</th><th>What It Does NOT Do</th></tr></thead>
+          <tbody>
+            <tr><td>App can connect to SQL databases in VNet</td><td>Does not make app accessible from VNet (use Private Endpoint for that)</td></tr>
+            <tr><td>App can reach VMs in VNet</td><td>Does not block inbound traffic from internet</td></tr>
+            <tr><td>App can reach on-premises via VPN/ER</td><td>Does not give app a VNet IP address</td></tr>
+            <tr><td>Route all outbound traffic through VNet (with route-all)</td><td>Does not work on Free/Basic tier</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable VNet Integration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Add VNet Integration (app subnet must be delegated to App Service)
+az webapp vnet-integration add \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --vnet myVNet \
+  --subnet app-service-subnet</code></pre>
+        </div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Subnet Must Be Delegated</strong> The subnet used for VNet Integration must be delegated to <code>Microsoft.Web/serverFarms</code> and should not contain any other resources. Size it generously — each App Service instance uses one IP from the subnet.</div>
+        </div>
+
+        <h2 id="hybrid-connections">Hybrid Connections</h2>
+        <p>Hybrid Connections allow App Service to reach specific on-premises resources (TCP endpoints) without VPN or ExpressRoute. Uses an outbound relay connection through Azure Service Bus.</p>
+        <ul>
+          <li>Install the Hybrid Connection Manager agent on an on-premises server</li>
+          <li>The agent opens an outbound connection to Azure — no inbound firewall rules needed</li>
+          <li>App Service can then reach specific on-premises endpoints (hostname:port)</li>
+          <li>Available on Basic tier and above</li>
+          <li>Not as scalable as VPN — best for specific point-to-point connections</li>
+        </ul>
+
+        <h2 id="service-endpoints">Service Endpoints</h2>
+        <p>Service Endpoints extend VNet identity to Azure services so App Service can access Azure SQL, Storage, etc. over the Microsoft backbone. Less secure than Private Endpoints (service still has a public IP) but simpler to configure.</p>
+
+        <h2 id="network-summary">Networking Features Summary</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>Direction</th><th>Use Case</th><th>Min Tier</th></tr></thead>
+          <tbody>
+            <tr><td>Access Restrictions</td><td>Inbound</td><td>IP allowlist/blocklist</td><td>All tiers</td></tr>
+            <tr><td>Private Endpoint</td><td>Inbound</td><td>Remove public endpoint, private-only access</td><td>Premium v2+</td></tr>
+            <tr><td>VNet Integration</td><td>Outbound</td><td>Access VNet resources (DB, VMs)</td><td>Standard</td></tr>
+            <tr><td>Hybrid Connections</td><td>Outbound</td><td>Access on-premises endpoints without VPN</td><td>Basic</td></tr>
+            <tr><td>Service Endpoints</td><td>Outbound</td><td>Access Azure PaaS over backbone</td><td>Standard</td></tr>
+            <tr><td>App Service Environment</td><td>Both</td><td>Full VNet isolation, single-tenant</td><td>Isolated</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that VNet Integration is OUTBOUND only (app reaches VNet). Private Endpoint is INBOUND only (VNet reaches app, removes public endpoint). Hybrid Connections enable on-premises access without VPN. Access Restrictions are IP-based allow/deny rules. These are frequently confused in exam questions.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> An App Service app needs to connect to an Azure SQL Database in a private VNet. Which networking feature enables this?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoint makes the app accessible FROM the VNet (inbound) — it doesn\'t enable the app to REACH the VNet (outbound).')">A — Private Endpoint</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Integration is the outbound networking feature — it allows the App Service app to make outbound calls to resources inside the VNet, including SQL databases with private IPs. The app joins the VNet for outbound traffic.')">B — VNet Integration</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Access Restrictions control inbound traffic TO the app — they don\'t enable the app to reach VNet resources.')">C — Access Restrictions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deployment slots are for staging environments — not for networking to databases.')">D — Deployment Slots</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What does a Private Endpoint on an App Service app provide?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoint provides inbound private access — VNet Integration is what enables the app to REACH VNet resources (outbound).')">A — Allows the app to make outbound calls to VNet resources</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Private Endpoint on an App Service app gives it a private IP in your VNet and removes the public internet endpoint. The app is only accessible from within the VNet (or connected networks via VPN/ER). This provides the highest level of inbound access security.')">B — Gives the app a private IP in the VNet and removes public internet access</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoint is for inbound access control — Access Restrictions are the IP-based allow/deny rules.')">C — Provides IP-based allow/deny rules for inbound traffic</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoint restricts inbound access — it doesn\'t automatically enable auto-scaling.')">D — Enables auto-scaling based on network traffic</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> A company needs their App Service app to access an on-premises database without setting up a VPN Gateway. Which feature enables this?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Integration connects to Azure VNet resources — on-premises access typically requires VPN/ExpressRoute unless using Hybrid Connections.')">A — VNet Integration</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Hybrid Connections allow App Service to reach specific on-premises TCP endpoints without VPN or ExpressRoute. The Hybrid Connection Manager agent installed on-premises opens an outbound relay connection — no inbound firewall rules needed.')">B — Hybrid Connections</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Access Restrictions control inbound traffic to the app — they don\'t enable outbound connections to on-premises.')">C — Access Restrictions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Private Endpoint makes the app accessible from a VNet — it doesn\'t enable the app to reach on-premises systems.')">D — Private Endpoint</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Does VNet Integration allow resources in the VNet to call into the App Service app?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Integration only enables outbound calls FROM the app TO the VNet — not inbound calls from VNet to app.')">A — Yes — VNet Integration enables bidirectional access</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! VNet Integration is outbound ONLY — it allows the app to make outbound calls into the VNet. It does NOT allow VNet resources to call into the app. To enable inbound access from VNet, use Private Endpoint instead.')">B — No — VNet Integration is outbound only; use Private Endpoint for inbound VNet access</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Integration is outbound only on all tiers — inbound requires Private Endpoint.')">C — Only on Premium tier with the Inbound option enabled</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Integration specifically does NOT provide inbound access from VNet — that requires Private Endpoint.')">D — Yes, but only for HTTPS traffic</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What is the purpose of Access Restrictions in App Service?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Access Restrictions are IP-based allow/deny rules for inbound traffic to the app. You can whitelist specific IP ranges (your office IP, Azure Front Door service tag) and/or deny all others. They work at the App Service level — no NSG required.')">A — IP-based allow/deny rules for inbound traffic to the app</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Outbound connectivity to VNet is provided by VNet Integration — Access Restrictions are for inbound traffic control.')">B — Outbound connectivity rules for reaching VNet resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deployment management is handled by Deployment Center — Access Restrictions are networking rules.')">C — Deployment management restrictions by branch or user</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scaling rules are configured in Scale Out settings — Access Restrictions are for network traffic filtering.')">D — Auto-scale rules based on traffic patterns</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="custom-domains-ssl.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Custom Domains &amp; SSL</span></a>
+        <a class="related-card" href="scaling-app-service.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Scaling App Service</span></a>
+        <a class="related-card" href="app-service-monitoring.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Monitoring &amp; Diagnostics</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="scaling-app-service.html"><span class="nav-label">← Previous</span><span class="nav-title">Scaling App Service</span></a>
+        <a class="nav-card next" href="app-service-monitoring.html"><span class="nav-label">Next →</span><span class="nav-title">Monitoring &amp; Diagnostics</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
