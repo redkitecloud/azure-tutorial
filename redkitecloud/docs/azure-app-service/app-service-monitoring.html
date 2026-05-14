@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Service Monitoring & Diagnostics | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to monitoring Azure App Service — Application Insights, diagnostic logs, metrics, health checks, log streaming, and Kudu." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">Monitoring &amp; Diagnostics</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">App Service Monitoring &amp; Diagnostics</h1>
+      <p class="page-intro">Knowing your app is running is just the start — you need to understand how it performs, why it fails, and how to diagnose problems quickly. Azure App Service has deep monitoring integration with Application Insights, built-in diagnostic logs, real-time log streaming, and the powerful Kudu console for deep debugging.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Application Insights integration · Built-in metrics · Diagnostic logs (application, web server, detailed errors) · Log streaming · Health check endpoint · Kudu / Advanced Tools console · App Service Diagnostics (Diagnose and Solve Problems) · Alerts on metrics
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#app-insights">Application Insights</a></li>
+        <li><a href="#metrics">Built-in Metrics</a></li>
+        <li><a href="#diagnostic-logs">Diagnostic Logs</a></li>
+        <li><a href="#log-streaming">Log Streaming</a></li>
+        <li><a href="#health-check">Health Check</a></li>
+        <li><a href="#kudu">Kudu — Advanced Tools</a></li>
+        <li><a href="#diagnose-solve">Diagnose and Solve Problems</a></li>
+        <li><a href="#alerts">Setting Up Alerts</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="app-insights">Application Insights</h2>
+        <p>Application Insights is Azure's APM (Application Performance Monitoring) service — the recommended way to monitor App Service apps. Once enabled, it automatically collects:</p>
+        <ul>
+          <li><strong>Request telemetry</strong> — Every HTTP request: URL, response time, status code, user</li>
+          <li><strong>Exceptions</strong> — All unhandled exceptions with stack traces</li>
+          <li><strong>Dependencies</strong> — Outbound calls to databases, APIs, storage with timing</li>
+          <li><strong>Custom events and metrics</strong> — Track business events from your code</li>
+          <li><strong>Live Metrics</strong> — Real-time stream of requests, failures, and performance</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Enable Codeless Monitoring</strong> For .NET, Node.js, Java, and Python apps, Application Insights can be enabled from App Service settings without any code changes — no SDK required. The agent auto-instruments your application at the platform level.</div>
+        </div>
+
+        <h2 id="metrics">Built-in Metrics</h2>
+        <p>App Service exposes metrics in Azure Monitor — viewable in the Metrics blade:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Metric</th><th>What It Measures</th><th>Alert On</th></tr></thead>
+          <tbody>
+            <tr><td>CPU Percentage</td><td>Average CPU usage across instances</td><td>&gt;80% sustained</td></tr>
+            <tr><td>Memory Working Set</td><td>Current memory usage</td><td>&gt;85% of available</td></tr>
+            <tr><td>Http 5xx</td><td>Server error rate</td><td>Any increase above baseline</td></tr>
+            <tr><td>Http 4xx</td><td>Client error rate</td><td>Sudden spikes</td></tr>
+            <tr><td>Average Response Time</td><td>Time to serve requests</td><td>Above SLA threshold</td></tr>
+            <tr><td>Requests</td><td>Total requests per second</td><td>For capacity planning</td></tr>
+            <tr><td>Http Queue Length</td><td>Requests waiting to be processed</td><td>&gt;0 for extended period</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="diagnostic-logs">Diagnostic Logs</h2>
+        <p>Enable diagnostic logging (App Service → Monitoring → App Service logs) to capture:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Log Type</th><th>What It Contains</th><th>Storage</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Application logging</strong></td><td>Console.log / logging framework output from your app code</td><td>File system or Blob Storage</td></tr>
+            <tr><td><strong>Web server logging</strong></td><td>IIS/HTTP access logs — every request with status, bytes, IP</td><td>File system or Blob Storage</td></tr>
+            <tr><td><strong>Detailed error messages</strong></td><td>Full HTML error pages for HTTP 4xx/5xx errors</td><td>File system</td></tr>
+            <tr><td><strong>Failed request tracing</strong></td><td>Detailed trace of each failed request (IIS trace)</td><td>File system</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>File System Logs Are Temporary</strong> File system diagnostic logs are automatically disabled after 12 hours — they're designed for quick troubleshooting, not long-term storage. For persistent logging, configure Blob Storage as the destination.</div>
+        </div>
+
+        <h2 id="log-streaming">Log Streaming</h2>
+        <p>Stream application logs in real-time to your terminal — like tailing a log file. Useful for immediate debugging without accessing the file system:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Stream logs in real-time</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Stream app logs
+az webapp log tail \
+  --name mywebapp-2026 \
+  --resource-group myRG
+
+# Stream with filter
+az webapp log tail \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --provider http</code></pre>
+        </div>
+
+        <h2 id="health-check">Health Check</h2>
+        <p>Configure a health check endpoint path (e.g., <code>/health</code>) that App Service pings every minute. If an instance returns non-2xx responses for multiple checks, App Service:</p>
+        <ul>
+          <li>Removes the unhealthy instance from the load balancer</li>
+          <li>Attempts to restart it</li>
+          <li>If still unhealthy after restart, replaces it with a new instance (Premium and above)</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Configure health check endpoint</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Set health check path
+az webapp config set \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --generic-configurations '{"healthCheckPath":"/health"}'</code></pre>
+        </div>
+
+        <h2 id="kudu">Kudu — Advanced Tools</h2>
+        <p>Kudu is the deployment and debugging console for App Service — accessible at <code>https://mywebapp.scm.azurewebsites.net</code>. It provides:</p>
+        <ul>
+          <li><strong>Debug console</strong> — CMD/Bash access to the app's file system</li>
+          <li><strong>Process Explorer</strong> — View running processes, CPU/memory per process</li>
+          <li><strong>Log files</strong> — Browse diagnostic log files</li>
+          <li><strong>Environment variables</strong> — View all app settings injected into the environment</li>
+          <li><strong>Deployment history</strong> — View and manage past deployments</li>
+          <li><strong>REST API</strong> — Automate deployments and diagnostics</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Kudu for Quick Debugging</strong> If your app isn't starting, go to Kudu → Debug Console → navigate to the app folder and run your start command manually to see the actual error. This is often faster than decoding compressed log files.</div>
+        </div>
+
+        <h2 id="diagnose-solve">Diagnose and Solve Problems</h2>
+        <p>The built-in "Diagnose and solve problems" blade (App Service → Diagnose and solve problems) provides guided diagnosis for common issues — availability, performance, configuration problems. It automatically analyses recent metrics, logs, and deployments to identify likely root causes.</p>
+
+        <h2 id="alerts">Setting Up Alerts</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create alert for HTTP 5xx errors</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Create metric alert for 5xx errors
+az monitor metrics alert create \
+  --name Http5xxAlert \
+  --resource-group myRG \
+  --scopes /subscriptions/<sub-id>/resourceGroups/myRG/providers/Microsoft.Web/sites/mywebapp-2026 \
+  --condition "avg Http5xx > 5" \
+  --window-size 5m \
+  --evaluation-frequency 1m \
+  --action myActionGroup</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know Application Insights for APM (request tracing, exceptions, dependencies). Know diagnostic logs — file system logs auto-disable after 12 hours. Know that Health Check removes unhealthy instances from load balancer. Know Kudu provides file system and process access via browser.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which monitoring service provides request tracing, exception tracking, and dependency monitoring for Azure App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Monitor collects metrics and logs — Application Insights is the APM service for request-level telemetry.')">A — Azure Monitor</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Application Insights is Azure\'s APM service — it tracks individual requests, exceptions with stack traces, dependencies (database calls, outbound APIs), user behaviour, and provides Live Metrics for real-time visibility. It can be enabled without code changes for supported runtimes.')">B — Application Insights</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Security Center (Defender for Cloud) monitors security posture — not application performance.')">C — Azure Security Center</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Network Watcher monitors network connectivity — not application-level request tracing.')">D — Azure Network Watcher</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> How long do file system diagnostic logs remain enabled in App Service?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! File system diagnostic logs are automatically disabled after 12 hours. They\'re designed for short-term troubleshooting sessions. For persistent long-term log retention, configure Azure Blob Storage as the log destination instead.')">A — 12 hours — they auto-disable to prevent disk space issues</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. File system logs auto-disable after 12 hours — not 24 hours.')">B — 24 hours</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. File system logs auto-disable after 12 hours — not 7 days.')">C — 7 days</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. File system logs automatically disable after 12 hours — they don\'t persist until manually disabled.')">D — Until manually disabled</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What does the App Service Health Check feature do when an instance fails health checks?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Health Check does not just log failures — it actively removes unhealthy instances from the load balancer and attempts remediation.')">A — Logs the failure to Application Insights only</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When an instance fails health checks, App Service removes it from the load balancer (so users don\'t hit the bad instance), restarts it, and on Premium tier replaces it with a new instance if it remains unhealthy. This provides automatic self-healing.')">B — Removes the instance from the load balancer, restarts it, and replaces it if still unhealthy</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Health Check removes failing instances from the load balancer — it doesn\'t immediately terminate them.')">C — Immediately terminates and deletes the unhealthy instance</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Health Check automates remediation — it doesn\'t just send an email alert.')">D — Sends an email alert to the administrator only</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is Kudu in the context of Azure App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Kudu is not a deployment pipeline tool — it\'s the debug/deployment console accessible via browser.')">A — A deployment pipeline tool for GitHub integration</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Kudu is the advanced tools console for App Service — accessible at myapp.scm.azurewebsites.net. It provides a browser-based shell (CMD/Bash) to the app file system, Process Explorer, log file browser, environment variable viewer, and deployment history management.')">B — The advanced debugging console with file system access, process explorer, and deployment history</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Insights is the APM service — Kudu is the infrastructure-level debugging console.')">C — The Application Performance Monitoring service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-scaling rules are configured in the Scale Out settings — Kudu is for debugging and deployment management.')">D — The auto-scaling rules engine</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A developer wants to see application log output in real-time without downloading log files. Which feature should they use?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Application Insights provides request/exception telemetry — for real-time console log streaming, use Log Streaming.')">A — Application Insights Live Metrics</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Log Streaming (az webapp log tail) streams application log output in real-time to your terminal — like tail -f on a log file. You see console.log/print output from your app as it happens, without downloading any files.')">B — Log Streaming (az webapp log tail)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deployment Center shows deployment history — not real-time application log output.')">C — Deployment Center</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-scale history shows scaling events — not real-time application log output.')">D — Auto-scale history</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="app-service-networking.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Networking</span></a>
+        <a class="related-card" href="scaling-app-service.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Scaling App Service</span></a>
+        <a class="related-card" href="app-service-pricing.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Pricing</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="app-service-networking.html"><span class="nav-label">← Previous</span><span class="nav-title">App Service Networking</span></a>
+        <a class="nav-card next" href="app-service-pricing.html"><span class="nav-label">Next →</span><span class="nav-title">App Service Pricing</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

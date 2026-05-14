@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Service Plans | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure App Service Plans — pricing tiers, Free vs Shared vs Basic vs Standard vs Premium vs Isolated, scaling, and choosing the right plan." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">App Service Plans</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 13 min read</span></div>
+
+      <h1 class="page-title">App Service Plans</h1>
+      <p class="page-intro">An App Service Plan defines the region, VM size, OS, and number of instances that your App Service apps run on. It's the compute layer — everything you deploy to App Service must live within a plan, and the plan is what you actually pay for. Choosing the right plan tier is one of the most important decisions — it determines available features, scale limits, and cost.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        All plan tiers — Free, Shared, Basic, Standard, Premium, Isolated · What features each tier unlocks · Sharing one plan across multiple apps · Scale-up vs scale-out · App Service Environments (ASE) · Choosing between plan tiers · Creating a plan via CLI
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#plan-tiers">Plan Tiers Overview</a></li>
+        <li><a href="#free-shared">Free and Shared Tiers</a></li>
+        <li><a href="#basic">Basic Tier</a></li>
+        <li><a href="#standard">Standard Tier</a></li>
+        <li><a href="#premium">Premium Tiers</a></li>
+        <li><a href="#isolated">Isolated Tier (ASE)</a></li>
+        <li><a href="#sharing-plans">Sharing Plans Across Apps</a></li>
+        <li><a href="#scale-up-out">Scale-Up vs Scale-Out</a></li>
+        <li><a href="#choosing">Choosing the Right Tier</a></li>
+        <li><a href="#creating">Creating a Plan via CLI</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="plan-tiers">Plan Tiers Overview</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>vCPU</th><th>RAM</th><th>Custom Domain</th><th>SSL</th><th>Auto-Scale</th><th>Slots</th><th>SLA</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Free (F1)</strong></td><td>Shared</td><td>1 GB</td><td>❌</td><td>❌</td><td>❌</td><td>0</td><td>None</td></tr>
+            <tr><td><strong>Shared (D1)</strong></td><td>Shared</td><td>1 GB</td><td>✅</td><td>❌</td><td>❌</td><td>0</td><td>None</td></tr>
+            <tr><td><strong>Basic (B1-B3)</strong></td><td>1–4</td><td>1.75–7 GB</td><td>✅</td><td>✅</td><td>❌ (manual only)</td><td>0</td><td>99.95%</td></tr>
+            <tr><td><strong>Standard (S1-S3)</strong></td><td>1–4</td><td>1.75–7 GB</td><td>✅</td><td>✅</td><td>✅</td><td>5</td><td>99.95%</td></tr>
+            <tr><td><strong>Premium v3 (P0v3-P3v3)</strong></td><td>2–8</td><td>4–32 GB</td><td>✅</td><td>✅</td><td>✅</td><td>20</td><td>99.95%</td></tr>
+            <tr><td><strong>Isolated v2 (I1v2-I6v2)</strong></td><td>2–32</td><td>8–128 GB</td><td>✅</td><td>✅</td><td>✅</td><td>20</td><td>99.95%</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="free-shared">Free and Shared Tiers</h2>
+        <p>The Free (F1) and Shared (D1) tiers run on <strong>shared infrastructure</strong> — your app shares CPU with other customers' apps. There is no SLA, limited compute, and the app may be suspended when compute quotas are exceeded.</p>
+        <ul>
+          <li><strong>Free (F1)</strong> — 60 CPU minutes/day limit, no custom domain, no SSL. Dev/test only.</li>
+          <li><strong>Shared (D1)</strong> — 240 CPU minutes/day, supports custom domain. Still no SLA.</li>
+        </ul>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Never use Free/Shared for production</strong> Free and Shared tiers have no SLA, shared CPU that can spike unpredictably, and daily compute quotas. Any production workload should be on Basic tier minimum.</div>
+        </div>
+
+        <h2 id="basic">Basic Tier</h2>
+        <p>The entry-level <strong>dedicated</strong> tier — your app runs on its own VMs not shared with other customers. Basic provides:</p>
+        <ul>
+          <li>Dedicated compute (B1: 1 vCPU, 1.75 GB RAM; B2: 2 vCPU, 3.5 GB RAM; B3: 4 vCPU, 7 GB RAM)</li>
+          <li>Custom domains and SSL certificates</li>
+          <li>Manual scaling up to 3 instances</li>
+          <li>99.95% SLA</li>
+          <li>No deployment slots, no auto-scale</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Basic is fine for low-traffic production apps</strong> If your app doesn't need auto-scaling or deployment slots, Basic is the most cost-effective production tier. A B1 instance costs ~₹1,200–1,500/month.</div>
+        </div>
+
+        <h2 id="standard">Standard Tier</h2>
+        <p>The most commonly used production tier. Standard adds auto-scaling and deployment slots over Basic:</p>
+        <ul>
+          <li>Auto-scale — scale out to 10 instances based on metrics</li>
+          <li>5 deployment slots (staging environments)</li>
+          <li>Daily backups</li>
+          <li>Traffic Manager integration</li>
+          <li>Same VM sizes as Basic (S1/S2/S3)</li>
+        </ul>
+
+        <h2 id="premium">Premium Tiers</h2>
+        <p>Premium v3 provides significantly more powerful VMs and additional features for high-traffic production apps:</p>
+        <ul>
+          <li>Up to 20 deployment slots</li>
+          <li>Scale out to 30 instances</li>
+          <li>Larger VMs (P1v3: 2 vCPU/8 GB RAM up to P3v3: 8 vCPU/32 GB RAM)</li>
+          <li>VNet Integration (built-in, not add-on)</li>
+          <li>Zone redundancy — deploy across Availability Zones</li>
+          <li>Private endpoint support</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Premium v3 is Recommended Over v2</strong> Premium v3 (Pv3) is the current generation with better performance per price than Premium v2 (Pv2). If you're on Pv2, consider migrating to Pv3.</div>
+        </div>
+
+        <h2 id="isolated">Isolated Tier (ASE)</h2>
+        <p>The Isolated tier runs in an <strong>App Service Environment (ASE)</strong> — a fully dedicated, single-tenant environment deployed into your own VNet. Every aspect is dedicated exclusively to your apps.</p>
+        <ul>
+          <li>Complete network isolation — deployed entirely within your VNet</li>
+          <li>No public internet exposure (unless you configure it)</li>
+          <li>Scale to 100+ instances</li>
+          <li>Largest VMs (I6v2: 32 vCPU, 128 GB RAM)</li>
+          <li>Required for regulatory compliance (PCI-DSS, HIPAA) needing network isolation</li>
+          <li>Much more expensive — the ASE itself has a fixed hourly charge plus per-instance charges</li>
+        </ul>
+
+        <h2 id="sharing-plans">Sharing Plans Across Apps</h2>
+        <p>Multiple apps can run on the same App Service Plan — sharing compute resources. This reduces cost but means all apps compete for the same CPU and memory.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Strategy</th><th>When to Use</th></tr></thead>
+          <tbody>
+            <tr><td>Share one plan for multiple apps</td><td>Low-traffic apps, dev/test, apps with complementary usage patterns</td></tr>
+            <tr><td>Separate plan per app</td><td>High-traffic apps, apps requiring different scale settings, production isolation</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="scale-up-out">Scale-Up vs Scale-Out</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Scale Up (Vertical)</th><th>Scale Out (Horizontal)</th></tr></thead>
+          <tbody>
+            <tr><td>What changes</td><td>Move to a bigger VM size (B1 → B2 → B3)</td><td>Add more instances of the same VM size</td></tr>
+            <tr><td>How</td><td>Change the plan tier/size</td><td>Manual or auto-scale rules</td></tr>
+            <tr><td>Downtime?</td><td>Brief restart</td><td>No downtime</td></tr>
+            <tr><td>Limit</td><td>Max VM size in tier</td><td>Max instances for tier (10–100+)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="choosing">Choosing the Right Tier</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scenario</th><th>Tier</th></tr></thead>
+          <tbody>
+            <tr><td>Learning, development, prototyping</td><td>Free (F1)</td></tr>
+            <tr><td>Low-traffic production app, no auto-scale needed</td><td>Basic (B1/B2)</td></tr>
+            <tr><td>Standard production app needing auto-scale and slots</td><td>Standard (S1/S2)</td></tr>
+            <tr><td>High-traffic app, needs more VMs, more slots</td><td>Premium v3 (P1v3/P2v3)</td></tr>
+            <tr><td>Compliance, network isolation, single-tenant</td><td>Isolated v2 (ASE)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="creating">Creating a Plan via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create App Service Plan and Web App</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Create App Service Plan (Standard S1, Linux)
+az appservice plan create \
+  --name myAppServicePlan \
+  --resource-group myRG \
+  --location centralindia \
+  --sku S1 \
+  --is-linux
+
+# Create Web App on this plan
+az webapp create \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --plan myAppServicePlan \
+  --runtime "NODE:20-lts"
+
+# Scale up to S2
+az appservice plan update \
+  --name myAppServicePlan \
+  --resource-group myRG \
+  --sku S2
+
+# Manually scale out to 3 instances
+az appservice plan update \
+  --name myAppServicePlan \
+  --resource-group myRG \
+  --number-of-workers 3</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know which features require which tier — auto-scale and deployment slots require Standard or above. Know Free/Shared use shared infrastructure with no SLA. Know Isolated runs in an ASE within your VNet. Know Basic supports custom domains and SSL but not auto-scale.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which App Service Plan tier is the minimum required to use deployment slots?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic tier does not support deployment slots — it only supports manual scaling up to 3 instances.')">A — Basic</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Standard tier is the minimum that supports deployment slots (up to 5 slots). Basic tier does not support deployment slots or auto-scaling. Standard also adds auto-scale and daily backups.')">B — Standard</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium supports slots (up to 20) but is not the minimum — Standard is the minimum tier with deployment slots.')">C — Premium</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Isolated runs in an ASE — the minimum for slots is Standard, not Isolated.')">D — Isolated</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A company requires complete network isolation for their web app — it must run inside their own VNet with no shared infrastructure. Which App Service Plan tier provides this?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium v3 supports VNet Integration but still runs on shared (though dedicated-to-customer) Azure infrastructure — not fully isolated within your own VNet.')">A — Premium v3</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Isolated tier runs in an App Service Environment (ASE) — a fully single-tenant, dedicated environment deployed entirely within your own VNet. Nothing is shared with other customers. Required for compliance scenarios needing network isolation (PCI-DSS, HIPAA).')">B — Isolated (App Service Environment)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard tier runs on shared Azure infrastructure with basic VNet integration — not full network isolation.')">C — Standard</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic tier does not support VNet integration — certainly not the full isolation provided by ASE.')">D — Basic</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the difference between scaling up and scaling out in App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scaling up changes the VM size — not deploying to more regions (that would be geo-distribution).')">A — Scale up deploys to more regions; scale out adds more instances in the same region</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Scale up (vertical scaling) moves to a bigger VM size (more CPU/RAM) — e.g., S1 → S2. Scale out (horizontal scaling) adds more instances of the same VM size — e.g., 1 instance → 3 instances. Scale out is preferred as it doesn\'t require a restart.')">B — Scale up increases VM size (more CPU/RAM); scale out adds more instances of the same size</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The direction is reversed — scaling up increases VM size, scaling out adds instances.')">C — Scale up adds more instances; scale out increases VM size</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both scaling up and scaling out are available in App Service — they are just different strategies.')">D — Scale up is for Linux; scale out is for Windows</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Can multiple Web Apps share the same App Service Plan?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Multiple Web Apps can share the same App Service Plan. They share the plan\'s compute resources (CPU, memory). This reduces cost for low-traffic apps but means apps compete for the same resources. Premium and Isolated plans support more apps on the same plan.')">A — Yes — multiple apps can share one plan and its compute resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multiple apps can share one plan — there is no one-to-one restriction.')">B — No — each Web App must have its own App Service Plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Apps can share a plan on all tiers — not just Premium.')">C — Only on Premium tier plans</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Apps from different resource groups can share the same plan as long as they are in the same region and subscription.')">D — Only if apps are in the same resource group</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A development team needs to host a low-traffic internal tool with custom domain and SSL. What is the most cost-effective production-ready tier?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free tier does not support custom domains or SSL — it cannot be used for this requirement.')">A — Free (F1)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Shared supports custom domain but not SSL, and has no SLA — not suitable for a production internal tool.')">B — Shared (D1)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Basic (B1) supports custom domains, SSL certificates, dedicated compute, and a 99.95% SLA — at the lowest cost for a production-ready plan. Since the team doesn\'t need auto-scale or deployment slots, Basic is the most cost-effective choice.')">C — Basic (B1)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard adds auto-scale and deployment slots — useful features but unnecessary overhead and cost for a simple low-traffic internal tool.')">D — Standard (S1)</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="app-service-overview.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Overview</span></a>
+        <a class="related-card" href="scaling-app-service.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Scaling App Service</span></a>
+        <a class="related-card" href="app-service-pricing.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Pricing</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="app-service-overview.html"><span class="nav-label">← Previous</span><span class="nav-title">App Service Overview</span></a>
+        <a class="nav-card next" href="deploy-web-app.html"><span class="nav-label">Next →</span><span class="nav-title">Deploying a Web App</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

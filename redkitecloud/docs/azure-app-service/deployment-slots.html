@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deployment Slots | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure App Service Deployment Slots — staging environments, slot swaps, traffic splitting, slot settings, and blue-green deployments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">Deployment Slots</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Deployment Slots</h1>
+      <p class="page-intro">Deployment slots are live web apps with their own hostnames. They let you deploy new code to a staging environment, test it with production-level traffic patterns, then "swap" it into production with zero downtime. If something goes wrong, you can swap back just as quickly. Deployment slots are one of App Service's most powerful features — enabling safe, zero-downtime releases.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What slots are and how they work · Creating and managing slots · The slot swap process in detail · What gets swapped vs what stays · Slot settings (sticky settings) · Traffic splitting for A/B testing · Auto-swap · Swapping with preview · Slot limits by tier
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-are-slots">What Are Deployment Slots?</a></li>
+        <li><a href="#creating-slots">Creating Slots</a></li>
+        <li><a href="#swap-process">The Swap Process</a></li>
+        <li><a href="#what-swaps">What Gets Swapped vs Stays</a></li>
+        <li><a href="#slot-settings">Slot Settings (Sticky Settings)</a></li>
+        <li><a href="#traffic-splitting">Traffic Splitting</a></li>
+        <li><a href="#auto-swap">Auto-Swap</a></li>
+        <li><a href="#swap-with-preview">Swap with Preview</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-are-slots">What Are Deployment Slots?</h2>
+        <p>Each deployment slot is a fully independent App Service instance with its own:</p>
+        <ul>
+          <li>Hostname: <code>myapp-staging.azurewebsites.net</code></li>
+          <li>App settings and connection strings</li>
+          <li>Deployment source configuration</li>
+          <li>Application code</li>
+        </ul>
+        <p>Slots run on the same App Service Plan as the production slot — sharing compute resources. The production slot is always named "production" (accessible at <code>myapp.azurewebsites.net</code>).</p>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Slots Count by Tier</strong> Standard: 5 slots total (production + 4) · Premium v3: 20 slots total · Isolated: 20 slots total · Basic: 0 slots (no slots supported)</div>
+        </div>
+
+        <h2 id="creating-slots">Creating Slots</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create a staging slot</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Create a staging slot
+az webapp deployment slot create \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --slot staging
+
+# Deploy to staging slot (not production)
+az webapp deploy \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --slot staging \
+  --src-path myapp.zip \
+  --type zip
+
+# List all slots
+az webapp deployment slot list \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --output table</code></pre>
+        </div>
+
+        <p>The staging slot is accessible at: <code>https://mywebapp-2026-staging.azurewebsites.net</code></p>
+
+        <h2 id="swap-process">The Swap Process</h2>
+        <p>When you swap slots, App Service:</p>
+        <ol>
+          <li><strong>Warms up the source slot</strong> — Applies target slot's settings to source, restarts it, sends warm-up requests until it responds</li>
+          <li><strong>Switches routing</strong> — Updates the host name routing atomically — source becomes target, target becomes source</li>
+          <li><strong>Post-swap</strong> — Old production is now in the staging slot, ready for rollback if needed</li>
+        </ol>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Zero Downtime</strong> The swap is atomic — there's no moment when neither slot is serving traffic. Users experience no interruption. Existing connections complete normally in the old slot while new connections go to the new production.</div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Swap staging to production</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Swap staging slot to production
+az webapp deployment slot swap \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --slot staging \
+  --target-slot production
+
+# Rollback (swap back)
+az webapp deployment slot swap \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --slot staging \
+  --target-slot production</code></pre>
+        </div>
+
+        <h2 id="what-swaps">What Gets Swapped vs Stays</h2>
+        <p>Understanding what moves with the slot vs what stays is critical — it's frequently tested in AZ-104.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Gets Swapped (moves with code)</th><th>Stays (not swapped)</th></tr></thead>
+          <tbody>
+            <tr><td>Application code/content</td><td>Slot-specific app settings (sticky)</td></tr>
+            <tr><td>General app settings (non-sticky)</td><td>Slot-specific connection strings (sticky)</td></tr>
+            <tr><td>Connection strings (non-sticky)</td><td>Custom domain bindings</td></tr>
+            <tr><td>Handler mappings</td><td>TLS/SSL certificates and bindings</td></tr>
+            <tr><td>WebJobs content</td><td>Scale settings</td></tr>
+            <tr><td>Public certificates</td><td>WebJob schedulers</td></tr>
+            <tr><td>Always On setting</td><td>IP restrictions</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="slot-settings">Slot Settings (Sticky Settings)</h2>
+        <p>By default, App Settings and Connection Strings swap with the code. But sometimes you want a setting to stay in its slot — for example, a connection string that should always point to the production database regardless of which code is deployed.</p>
+        <p>Mark a setting as a <strong>Slot Setting</strong> (also called "sticky") to prevent it from swapping. Common examples:</p>
+        <ul>
+          <li>Production database connection string — should always point to prod DB</li>
+          <li>Environment name variable (ENVIRONMENT=production)</li>
+          <li>Third-party API keys that differ between environments</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Mark a setting as slot-specific (sticky)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Set a sticky app setting
+az webapp config appsettings set \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --slot staging \
+  --slot-settings DATABASE_URL=staging-connection-string</code></pre>
+        </div>
+
+        <h2 id="traffic-splitting">Traffic Splitting</h2>
+        <p>Traffic splitting (also called Testing in Production) routes a percentage of real user traffic to a non-production slot — useful for A/B testing or canary releases.</p>
+        <ul>
+          <li>Configure a percentage (e.g., 10%) to route to staging</li>
+          <li>Users are sticky — once assigned to a slot, they stay there for the session</li>
+          <li>Azure adds an <code>x-ms-routing-name</code> cookie to track which slot a user is in</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Route 10% of traffic to staging</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Route 10% of traffic to staging slot
+az webapp traffic-routing set \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --distribution staging=10</code></pre>
+        </div>
+
+        <h2 id="auto-swap">Auto-Swap</h2>
+        <p>Configure a slot to automatically swap into production whenever new code is deployed to it. Enables fully automated zero-downtime deployment pipelines.</p>
+        <ul>
+          <li>Enable Auto-Swap on the staging slot</li>
+          <li>Set the target slot (usually production)</li>
+          <li>After each successful deployment to staging, App Service automatically swaps to production</li>
+        </ul>
+
+        <h2 id="swap-with-preview">Swap with Preview</h2>
+        <p>A two-phase swap for extra safety:</p>
+        <ol>
+          <li><strong>Phase 1</strong> — Apply production's slot settings to staging, restart staging. Preview the result at the staging URL with production settings.</li>
+          <li><strong>Verify</strong> — Test that staging works with production settings.</li>
+          <li><strong>Phase 2</strong> — Complete the swap — routing switches to the staged code.</li>
+        </ol>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> This is heavily tested. Know that Standard tier minimum is required for slots. Know that sticky settings don't swap. Know that swapping is instant and zero-downtime. Know that the old production code ends up in the staging slot after a swap — enabling rollback by swapping again.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> After swapping staging with production in App Service, where is the old production code?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The old production code is not deleted — it is in the staging slot and can be used for rollback.')">A — It is deleted</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! After a swap, the slots exchange content. The old production code is now in the staging slot. To rollback, simply swap again — staging back to production.')">B — It is now in the staging slot — enables instant rollback by swapping again</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The old production code moves to staging — it is not archived to storage.')">C — It is archived in Azure Blob Storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The old production code moves to the staging slot — it is not kept in production alongside the new code.')">D — It remains in production alongside the new code</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A database connection string is marked as a "slot setting" on the production slot. What happens to this setting during a slot swap?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slot settings (sticky settings) are specifically designed to NOT swap — they stay with their slot regardless of swaps.')">A — It swaps to the staging slot along with the code</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Slot settings (sticky settings) do NOT swap. They stay with the slot they\'re configured on. So the production database connection string always stays in the production slot — regardless of what code is deployed. This prevents accidentally connecting production code to a staging database.')">B — It stays in the production slot and does not swap</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slot settings don\'t cause errors — they stay in their slot and are not transferred.')">C — It causes a deployment error during the swap</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slot settings are retained in their original slot — they are not deleted on swap.')">D — It is deleted after the swap</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the minimum App Service Plan tier required to use deployment slots?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free tier does not support deployment slots.')">A — Free (F1)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic tier does not support deployment slots — no slots are included.')">B — Basic (B1)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Standard tier is the minimum that includes deployment slots — up to 5 total (production + 4 additional). Basic tier has no deployment slots at all.')">C — Standard (S1)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium supports slots (up to 20) but Standard is the minimum — not Premium.')">D — Premium (P1v3)</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What does traffic splitting in App Service enable?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic splitting routes a percentage of users to a different slot — not load balancing between instances of the same slot.')">A — Load balancing across multiple instances of the same slot</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Traffic splitting routes a configurable percentage of real user traffic to a non-production slot. This enables A/B testing, canary releases, and gradual rollouts — letting you test new code with real traffic before fully deploying to production.')">B — Routing a percentage of real user traffic to a staging slot for A/B testing or canary releases</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic splitting routes between slots — not between Azure regions.')">C — Distributing traffic between different Azure regions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Traffic splitting does not affect custom domain mapping — it routes between slots within the same app.')">D — Mapping multiple custom domains to the same app</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What is Auto-Swap in App Service deployment slots?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-Swap automatically swaps to production after deployment — it does not automatically revert failed deployments.')">A — Automatically reverts a deployment if the application health check fails</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Auto-Swap automatically swaps a non-production slot into production after each successful deployment to that slot. This enables fully automated zero-downtime deployments — code goes to staging, and the slot automatically swaps to production without any manual step.')">B — Automatically swaps a slot to production after each successful deployment to it</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-Swap is about automatically deploying to production after a staging deployment — not scaling.')">C — Automatically scales out instances when traffic increases</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-Swap is for deployment automation — not for automatic slot creation.')">D — Automatically creates new slots when existing slots are full</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="deploy-web-app.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Deploying a Web App</span></a>
+        <a class="related-card" href="app-service-plans.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Plans</span></a>
+        <a class="related-card" href="scaling-app-service.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Scaling App Service</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="deploy-web-app.html"><span class="nav-label">← Previous</span><span class="nav-title">Deploying a Web App</span></a>
+        <a class="nav-card next" href="custom-domains-ssl.html"><span class="nav-label">Next →</span><span class="nav-title">Custom Domains &amp; SSL</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

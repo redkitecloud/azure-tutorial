@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaling App Service | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to scaling Azure App Service — manual scaling, auto-scale rules, scale-up vs scale-out, metrics-based scaling, and schedule-based scaling." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">Scaling App Service</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Scaling Azure App Service</h1>
+      <p class="page-intro">App Service can handle traffic spikes gracefully — scaling from 1 to 30+ instances automatically based on metrics like CPU, memory, or request count. Understanding how scaling works, how to configure auto-scale rules, and the difference between scaling up and scaling out is essential for AZ-104 and for building resilient applications.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Scale-up (vertical) vs scale-out (horizontal) · Manual scaling · Auto-scale — metrics-based and schedule-based · Scale conditions and rules · Min/max/default instance counts · Scale-in cooldown period · Flapping prevention · Per-app scaling · Always On setting
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#scale-up-out">Scale-Up vs Scale-Out</a></li>
+        <li><a href="#manual-scaling">Manual Scaling</a></li>
+        <li><a href="#auto-scale">Auto-Scale Overview</a></li>
+        <li><a href="#scale-conditions">Scale Conditions</a></li>
+        <li><a href="#scale-rules">Scale Rules</a></li>
+        <li><a href="#schedule-scaling">Schedule-Based Scaling</a></li>
+        <li><a href="#cooldown">Cooldown Period</a></li>
+        <li><a href="#per-app-scaling">Per-App Scaling</a></li>
+        <li><a href="#always-on">Always On</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="scale-up-out">Scale-Up vs Scale-Out</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Scale Up (Vertical)</th><th>Scale Out (Horizontal)</th></tr></thead>
+          <tbody>
+            <tr><td>What happens</td><td>Move to a larger VM (more CPU/RAM)</td><td>Add more instances of the same VM</td></tr>
+            <tr><td>Downtime?</td><td>Brief restart required</td><td>Zero downtime</td></tr>
+            <tr><td>Cost</td><td>Pay for larger VM</td><td>Pay per instance</td></tr>
+            <tr><td>Limits</td><td>Max VM size in tier</td><td>Up to 10 (Standard), 30 (Premium)</td></tr>
+            <tr><td>Best for</td><td>Memory-intensive apps, CPU-bound single-threaded</td><td>Stateless apps, handling more concurrent users</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Prefer Scale-Out for Web Apps</strong> Scale-out is the cloud-native approach — stateless web apps handle more users by adding instances. Scale-up is a blunt instrument. Build stateless apps (sessions in Redis, files in Blob Storage) that scale out cleanly.</div>
+        </div>
+
+        <h2 id="manual-scaling">Manual Scaling</h2>
+        <p>All tiers (including Basic) support manual instance count changes. Set a fixed number of instances in Scale Out settings:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Manually set instance count</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Set to 3 instances
+az appservice plan update \
+  --name myAppServicePlan \
+  --resource-group myRG \
+  --number-of-workers 3</code></pre>
+        </div>
+
+        <h2 id="auto-scale">Auto-Scale Overview</h2>
+        <p>Auto-scale (requires Standard tier or above) automatically adjusts instance count based on rules you define. It operates at the App Service Plan level — not per app.</p>
+
+        <h3>Auto-Scale Components</h3>
+        <ul>
+          <li><strong>Profile</strong> — A set of scale conditions (e.g., "weekday business hours")</li>
+          <li><strong>Condition</strong> — When to scale (metric threshold or schedule)</li>
+          <li><strong>Rule</strong> — What to do when condition is met (scale out/in by how many instances)</li>
+          <li><strong>Min/Max/Default</strong> — Instance count limits and fallback</li>
+        </ul>
+
+        <h2 id="scale-conditions">Scale Conditions</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>Triggers On</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Metric-based</strong></td><td>CPU %, Memory %, request count, HTTP queue length</td><td>Scale out when CPU &gt; 70% for 5 minutes</td></tr>
+            <tr><td><strong>Schedule-based</strong></td><td>Day/time schedule</td><td>Scale to 5 instances every weekday at 8am; scale to 1 at 6pm</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="scale-rules">Scale Rules</h2>
+        <p>Each condition contains scale-out and scale-in rules. Best practice: always have a paired scale-in rule for every scale-out rule.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Example</span><span class="code-label">Typical auto-scale configuration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code">Profile: Default
+  Min instances: 2
+  Max instances: 10
+  Default instances: 2
+
+Scale-out rule:
+  Metric: CPU Percentage
+  Time aggregation: Average
+  Operator: Greater than
+  Threshold: 70%
+  Duration: 5 minutes
+  Action: Increase count by 2
+
+Scale-in rule:
+  Metric: CPU Percentage
+  Operator: Less than
+  Threshold: 30%
+  Duration: 10 minutes
+  Action: Decrease count by 1</code></pre>
+        </div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Always Define Scale-In Rules</strong> Without scale-in rules, your app will scale out but never back in — instances accumulate and costs grow. Always pair scale-out rules with scale-in rules.</div>
+        </div>
+
+        <h2 id="schedule-scaling">Schedule-Based Scaling</h2>
+        <p>If your traffic pattern is predictable (e.g., business hours only), schedule-based scaling is more reliable than metric-based — it pre-scales before users arrive:</p>
+        <ul>
+          <li>8:00 AM weekdays: scale to 5 instances</li>
+          <li>6:00 PM weekdays: scale to 1 instance</li>
+          <li>Weekends: maintain 1 instance</li>
+        </ul>
+        <p>Combine schedule-based and metric-based rules — schedule sets the baseline, metrics handle unexpected spikes.</p>
+
+        <h2 id="cooldown">Cooldown Period</h2>
+        <p>After a scale action, the cooldown period prevents another scale action from triggering immediately. This prevents rapid oscillation ("flapping") — scaling out then immediately back in.</p>
+        <ul>
+          <li>Default cooldown: 5 minutes</li>
+          <li>Scale-out cooldown should be shorter than scale-in cooldown</li>
+          <li>Scale out: 1–2 minutes (respond quickly to traffic)</li>
+          <li>Scale in: 10–15 minutes (wait to confirm traffic has dropped)</li>
+        </ul>
+
+        <h2 id="per-app-scaling">Per-App Scaling</h2>
+        <p>By default, all apps on a shared App Service Plan scale together (the plan scales). Per-App Scaling allows individual apps on the same plan to have different instance counts — useful for plans hosting multiple apps with different traffic patterns.</p>
+
+        <h2 id="always-on">Always On</h2>
+        <p>"Always On" prevents App Service from idling the app after 20 minutes of inactivity. Without Always On, the first request after idle has a cold start delay (seconds to minutes).</p>
+        <ul>
+          <li>Required for WebJobs running continuously</li>
+          <li>Required for apps that must respond instantly (no cold starts)</li>
+          <li>Available on Basic tier and above</li>
+          <li>NOT available on Free tier</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that auto-scale requires Standard tier or above. Know the difference between metric-based and schedule-based scaling. Know that cooldown prevents flapping. Know Always On prevents cold starts and is required for continuous WebJobs. Know that scale-out is preferred over scale-up for web apps.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which App Service Plan tier is the minimum required for auto-scaling?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic tier supports manual scaling only — not auto-scale rules.')">A — Basic</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Auto-scale requires Standard tier or above. Basic tier only supports manual instance count changes — you must manually adjust the number of workers. Standard is the minimum for metric-based and schedule-based auto-scaling.')">B — Standard</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium supports auto-scale but is not the minimum — Standard is the minimum.')">C — Premium</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Isolated supports auto-scale but is not the minimum — Standard is the minimum.')">D — Isolated</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What does the cooldown period in auto-scale prevent?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The cooldown period is not related to security — it prevents rapid oscillation of scaling actions.')">A — Unauthorized access during scaling operations</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The cooldown period prevents flapping — rapid oscillation where the app scales out then immediately scales in, then out again. After a scale action, the cooldown prevents another scale action for the configured duration, stabilising the instance count.')">B — Flapping — rapid scaling in and out repeatedly (oscillation)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The cooldown period applies to all tiers with auto-scale — not just premium.')">C — Scaling beyond the maximum instance count</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The cooldown period prevents rapid scaling actions — not performance degradation during scaling.')">D — Performance degradation during scale-out operations</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> A web app uses sessions stored in server memory. When scaled out to 5 instances, users sometimes get logged out. What is the cause?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Auto-scale settings don\'t cause session loss — the issue is the in-memory session storage architecture.')">A — Auto-scale rules are configured incorrectly</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! In-memory sessions are stored on the specific instance that created them. When load balancing routes a user to a different instance (which doesn\'t have their session), they appear logged out. Solution: use distributed session storage (Azure Cache for Redis, Azure SQL) that all instances can access.')">B — In-memory sessions are instance-specific — users hitting a different instance lose their session</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. App Service SSL certificates are per-app — they don\'t cause session issues when scaling.')">C — SSL certificates are not configured for all instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deployment slots are for staging — not related to session issues during scale-out.')">D — Deployment slots are interfering with user sessions</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the purpose of the "Always On" setting in App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Always On prevents app idling and cold starts — it doesn\'t enable 24/7 auto-scaling.')">A — Enables auto-scaling to run 24 hours a day</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! "Always On" prevents App Service from idling the app after 20 minutes of no requests. Without it, the first request after idle causes a cold start (the app restarts) — potentially taking seconds to minutes. It\'s required for continuous WebJobs and apps that must respond instantly.')">B — Prevents the app from idling after inactivity, avoiding cold start delays</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Always On keeps the current version running — it doesn\'t prevent deployments or restarts.')">C — Prevents the app from being restarted during deployments</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Always On keeps the app warm — it doesn\'t provide 99.99% SLA (that\'s determined by the App Service Plan tier).')">D — Guarantees 99.99% uptime SLA</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Why is schedule-based scaling preferred over metric-based scaling for predictable traffic patterns?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Schedule-based scaling doesn\'t directly reduce costs compared to metric-based — both scale down when not needed. The advantage is proactive scaling.')">A — Schedule-based scaling is cheaper than metric-based</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Schedule-based scaling pre-scales before traffic arrives — instances are ready when users arrive. Metric-based scaling reacts after traffic has already spiked — users experience degraded performance during the scale-out lag. For predictable patterns (business hours), schedule-based is more reliable.')">B — It pre-scales before traffic arrives; metric-based reacts after the spike has already started</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both schedule-based and metric-based auto-scale require Standard tier or above.')">C — Schedule-based scaling works on Basic tier; metric-based requires Premium</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Schedule-based scaling is not more accurate — metric-based actually measures real-time resource usage. The advantage is proactive vs reactive scaling.')">D — Schedule-based scaling is more accurate than metric-based</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="app-service-plans.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Plans</span></a>
+        <a class="related-card" href="app-service-monitoring.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Monitoring &amp; Diagnostics</span></a>
+        <a class="related-card" href="app-service-networking.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Networking</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="custom-domains-ssl.html"><span class="nav-label">← Previous</span><span class="nav-title">Custom Domains &amp; SSL</span></a>
+        <a class="nav-card next" href="app-service-networking.html"><span class="nav-label">Next →</span><span class="nav-title">App Service Networking</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
