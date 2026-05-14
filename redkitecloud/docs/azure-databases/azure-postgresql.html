@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Database for PostgreSQL | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Database for PostgreSQL Flexible Server — service tiers, HA, extensions, PgBouncer, and migration." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure Database for PostgreSQL</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure Database for PostgreSQL</h1>
+      <p class="page-intro">Azure Database for PostgreSQL is a fully managed PostgreSQL service. PostgreSQL is the most feature-rich open-source relational database — with advanced SQL support, JSON querying, geospatial capabilities (PostGIS), and a rich extension ecosystem. Azure's managed service makes it enterprise-ready with built-in HA, automated backups, and security.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> Flexible Server architecture · Service tiers · High availability (zone-redundant) · PostgreSQL extensions support · Built-in PgBouncer connection pooling · Read replicas · Logical replication · Creating via CLI · PostgreSQL vs MySQL</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#flexible-server">Flexible Server</a></li>
+        <li><a href="#service-tiers">Service Tiers</a></li>
+        <li><a href="#high-availability">High Availability</a></li>
+        <li><a href="#extensions">PostgreSQL Extensions</a></li>
+        <li><a href="#pgbouncer">Built-in PgBouncer</a></li>
+        <li><a href="#read-replicas">Read Replicas</a></li>
+        <li><a href="#creating">Creating via CLI</a></li>
+        <li><a href="#pg-vs-mysql">PostgreSQL vs MySQL</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="flexible-server">Flexible Server</h2>
+        <p>Like MySQL, Azure Database for PostgreSQL — Flexible Server is the current recommended deployment option. It provides:</p>
+        <ul>
+          <li>Zone-redundant or same-zone HA</li>
+          <li>Burstable compute for dev/test</li>
+          <li>Stop/start to pause billing</li>
+          <li>Configurable maintenance windows</li>
+          <li>VNet integration for private access</li>
+          <li>Built-in PgBouncer connection pooler</li>
+          <li>PostgreSQL 13, 14, 15, and 16 supported</li>
+        </ul>
+
+        <h2 id="service-tiers">Service Tiers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>vCores</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Burstable</strong></td><td>1–20</td><td>Dev/test, low-traffic applications</td></tr>
+            <tr><td><strong>General Purpose</strong></td><td>2–96</td><td>Most production workloads</td></tr>
+            <tr><td><strong>Memory Optimised</strong></td><td>2–96</td><td>In-memory workloads, high throughput analytics</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Memory Optimised Tier</strong> PostgreSQL Flexible Server has a Memory Optimised tier (not found in MySQL Flexible Server). This provides more RAM per vCore — ideal for large working sets, complex queries, and analytics workloads that benefit from keeping more data in memory.</div>
+        </div>
+
+        <h2 id="high-availability">High Availability</h2>
+        <p>Same HA options as MySQL Flexible Server:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>HA Mode</th><th>SLA</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Zone-Redundant HA</strong></td><td>99.99%</td><td>Primary and standby in different AZs — recommended for production</td></tr>
+            <tr><td><strong>Same-Zone HA</strong></td><td>99.9%</td><td>Primary and standby in same AZ</td></tr>
+            <tr><td><strong>No HA</strong></td><td>99.9%</td><td>Single server — dev/test only</td></tr>
+          </tbody>
+        </table></div>
+
+        <p>Failover is automatic — your connection is briefly interrupted (60–120 seconds for zone-redundant) and then reconnects to the standby (now promoted to primary).</p>
+
+        <h2 id="extensions">PostgreSQL Extensions</h2>
+        <p>PostgreSQL's extension ecosystem is one of its biggest advantages. Azure Database for PostgreSQL supports many popular extensions:</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Extension</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>PostGIS</strong></td><td>Geospatial data — store and query geographic objects</td></tr>
+            <tr><td><strong>pg_stat_statements</strong></td><td>Track execution statistics for all SQL statements</td></tr>
+            <tr><td><strong>uuid-ossp</strong></td><td>Generate universally unique identifiers (UUIDs)</td></tr>
+            <tr><td><strong>pgcrypto</strong></td><td>Cryptographic functions within SQL</td></tr>
+            <tr><td><strong>pg_trgm</strong></td><td>Trigram matching for text similarity and fuzzy search</td></tr>
+            <tr><td><strong>hstore</strong></td><td>Key-value store within PostgreSQL</td></tr>
+            <tr><td><strong>timescaledb</strong></td><td>Time-series data (available in some regions)</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">Enable an extension</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code">-- Enable PostGIS for geospatial queries
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- Enable uuid-ossp
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Use UUID in a table
+CREATE TABLE users (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name VARCHAR(100)
+);</code></pre>
+        </div>
+
+        <h2 id="pgbouncer">Built-in PgBouncer</h2>
+        <p>PostgreSQL has a connection limit per server. Applications with many concurrent connections (serverless functions, containers) can exhaust this limit. Azure Database for PostgreSQL includes built-in PgBouncer — a connection pooler that maintains a small pool of actual database connections and multiplexes many application connections through them.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Connection Pooling</strong> Instead of each of your 1,000 application connections opening a direct PostgreSQL connection, PgBouncer maintains e.g. 100 connections to PostgreSQL and routes all 1,000 app connections through them. This dramatically reduces connection overhead and is essential for serverless and microservices architectures.</div>
+        </div>
+
+        <h2 id="read-replicas">Read Replicas</h2>
+        <p>Create up to 5 read replicas in the same or different regions. Useful for:</p>
+        <ul>
+          <li>Read scaling — run reporting queries against replicas</li>
+          <li>Geographic distribution — lower read latency for distant users</li>
+          <li>Disaster recovery — promote replica to standalone if primary fails</li>
+        </ul>
+
+        <p>Logical replication is also supported — stream changes to external subscribers (like a data warehouse).</p>
+
+        <h2 id="creating">Creating via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create PostgreSQL Flexible Server</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Create PostgreSQL Flexible Server
+az postgres flexible-server create \
+  --name mypgserver-2026 \
+  --resource-group myRG \
+  --location centralindia \
+  --admin-user pgadmin \
+  --admin-password "SecureP@ssword123!" \
+  --sku-name Standard_D2ds_v4 \
+  --tier GeneralPurpose \
+  --version 16 \
+  --storage-size 128 \
+  --high-availability ZoneRedundant</code></pre>
+        </div>
+
+        <h2 id="pg-vs-mysql">PostgreSQL vs MySQL on Azure</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Factor</th><th>PostgreSQL</th><th>MySQL</th></tr></thead>
+          <tbody>
+            <tr><td>SQL compliance</td><td>Very high — full SQL standard</td><td>Good — some deviations</td></tr>
+            <tr><td>JSON support</td><td>Native JSONB — indexed, queryable</td><td>JSON type, limited indexing</td></tr>
+            <tr><td>Geospatial</td><td>PostGIS — industry standard</td><td>Basic spatial types</td></tr>
+            <tr><td>Extensions</td><td>Rich ecosystem</td><td>Fewer extensions</td></tr>
+            <tr><td>CMS/LAMP use</td><td>Less common</td><td>Very common (WordPress, Drupal)</td></tr>
+            <tr><td>Choose when</td><td>Complex queries, geospatial, advanced SQL</td><td>LAMP stack, simpler workloads, existing MySQL apps</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know PostgreSQL Flexible Server supports Memory Optimised tier (MySQL does not). Know PostGIS for geospatial. Know built-in PgBouncer for connection pooling. Know that PITR restores create a new server (same as MySQL).</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A developer needs to store and query geographic data (locations, distances, polygons) in Azure. Which database + extension is best?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure SQL Database has basic spatial types but PostGIS in PostgreSQL is the industry standard for geospatial workloads.')">A — Azure SQL Database with built-in spatial types</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Database for PostgreSQL with the PostGIS extension is the industry-standard choice for geospatial data. PostGIS adds support for geographic objects, spatial indexing, and hundreds of geospatial functions.')">B — Azure Database for PostgreSQL with PostGIS extension</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB with Gremlin API is for graph data (relationships/networks) — not for geographic/spatial data.')">C — Azure Cosmos DB with Gremlin API</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Cache for Redis is a caching service — not suitable for complex geospatial querying.')">D — Azure Cache for Redis</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What problem does built-in PgBouncer solve in Azure Database for PostgreSQL?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PgBouncer is a connection pooler — it doesn\'t handle data encryption.')">A — Encrypts data in transit between applications and the database</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! PgBouncer is a connection pooler that manages a pool of actual database connections and multiplexes thousands of application connections through them. PostgreSQL has a limited number of concurrent connections — PgBouncer prevents connection exhaustion in applications with many clients (microservices, serverless functions).')">B — Manages connection pooling to prevent connection exhaustion from many application clients</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PgBouncer manages connections — it doesn\'t handle data replication to other regions.')">C — Replicates data to secondary regions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PgBouncer handles connection pooling — query caching is a separate concern handled by pg_stat_statements or application-level caches.')">D — Caches query results for faster response times</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Which service tier is unique to Azure Database for PostgreSQL Flexible Server (not available in MySQL Flexible Server)?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Burstable tier is available in both MySQL and PostgreSQL Flexible Server.')">A — Burstable</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. General Purpose is available in both MySQL and PostgreSQL Flexible Server.')">B — General Purpose</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Memory Optimised tier is available in Azure Database for PostgreSQL Flexible Server but not in MySQL Flexible Server. It provides more RAM per vCore, making it ideal for memory-intensive workloads, large working sets, and analytics.')">C — Memory Optimised</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Business Critical is a SQL Database tier name — PostgreSQL uses "Memory Optimised" as its premium tier name.')">D — Business Critical</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> How many read replicas can you create for Azure Database for PostgreSQL?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Database for PostgreSQL supports up to 5 read replicas — the same as MySQL. Replicas can be in the same or different regions and can serve read-heavy workloads or provide geographic read distribution.')">A — Up to 5</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum is 5 read replicas — not 3.')">B — Up to 3</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum is 5 — not 10.')">C — Up to 10</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is a maximum of 5 read replicas — not unlimited.')">D — Unlimited</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> When should you choose PostgreSQL over MySQL for an Azure-hosted application?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. MySQL is more commonly used for WordPress and typical LAMP stack — not PostgreSQL.')">A — When building a WordPress website</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! PostgreSQL excels at complex queries (advanced SQL features, CTEs, window functions), geospatial data (PostGIS), JSON data (native JSONB), and workloads needing strict SQL standards compliance. MySQL is better for simpler LAMP stack applications.')">B — When needing complex queries, geospatial support, JSON data, or strict SQL compliance</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. MySQL is typically preferred for LAMP stack applications — not PostgreSQL.')">C — When building a PHP application</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both MySQL and PostgreSQL on Azure are similarly priced at equivalent tiers — cost is not a differentiator.')">D — When you need the cheapest possible database</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="azure-mysql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Database for MySQL</span></a>
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+        <a class="related-card" href="database-migration.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Database Migration Service</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="azure-mysql.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Database for MySQL</span></a>
+        <a class="nav-card next" href="azure-redis.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Cache for Redis</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

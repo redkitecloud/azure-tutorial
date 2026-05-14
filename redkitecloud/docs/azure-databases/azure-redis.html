@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Cache for Redis | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Cache for Redis — tiers, data structures, caching patterns, session management, pub/sub, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure Cache for Redis</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure Cache for Redis</h1>
+      <p class="page-intro">Azure Cache for Redis is a fully managed in-memory data store based on the open-source Redis project. It provides sub-millisecond response times — dramatically faster than any disk-based database. Redis is the standard solution for caching, session management, real-time leaderboards, pub/sub messaging, and any scenario where you need blazing-fast data access.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> What Redis is and when to use it · Azure Cache for Redis tiers · Redis data structures · Caching patterns (cache-aside, write-through) · Session state management · Pub/Sub · Persistence options · Geo-replication · Security and private endpoints</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-redis">What is Redis?</a></li>
+        <li><a href="#tiers">Azure Cache for Redis Tiers</a></li>
+        <li><a href="#data-structures">Redis Data Structures</a></li>
+        <li><a href="#caching-patterns">Caching Patterns</a></li>
+        <li><a href="#session-state">Session State Management</a></li>
+        <li><a href="#pubsub">Pub/Sub Messaging</a></li>
+        <li><a href="#persistence">Persistence Options</a></li>
+        <li><a href="#geo-replication">Geo-Replication</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-redis">What is Redis?</h2>
+        <p>Redis (Remote Dictionary Server) is an in-memory data structure store. All data lives in RAM — making it orders of magnitude faster than disk-based databases. Key characteristics:</p>
+        <ul>
+          <li><strong>Sub-millisecond latency</strong> — Reads and writes typically &lt;1ms</li>
+          <li><strong>Rich data structures</strong> — Strings, lists, sets, sorted sets, hashes, streams</li>
+          <li><strong>Volatile data option</strong> — TTL (time-to-live) on keys — automatic expiry</li>
+          <li><strong>Atomic operations</strong> — Operations are atomic, avoiding race conditions</li>
+          <li><strong>Pub/Sub</strong> — Real-time messaging between applications</li>
+        </ul>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Not a Primary Database</strong> Redis is designed as a cache or secondary data store — not as your primary database (unless you configure persistence and are comfortable with the constraints). Always have a durable primary database (SQL, Cosmos DB, etc.) and use Redis as a cache in front of it.</div>
+        </div>
+
+        <h2 id="tiers">Azure Cache for Redis Tiers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>Cache Size</th><th>HA</th><th>Clustering</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Basic</strong></td><td>250 MB – 53 GB</td><td>❌ No</td><td>❌ No</td><td>Dev/test only — no SLA</td></tr>
+            <tr><td><strong>Standard</strong></td><td>250 MB – 53 GB</td><td>✅ Primary + replica</td><td>❌ No</td><td>Production caching</td></tr>
+            <tr><td><strong>Premium</strong></td><td>6 GB – 1.2 TB</td><td>✅ Yes</td><td>✅ Up to 10 shards</td><td>Large caches, clustering, VNet, persistence</td></tr>
+            <tr><td><strong>Enterprise</strong></td><td>12 GB – 2 TB</td><td>✅ Yes</td><td>✅ Active geo-replication</td><td>Enterprise, active-active geo, RediSearch, RedisBloom</td></tr>
+            <tr><td><strong>Enterprise Flash</strong></td><td>300 GB – 13 TB</td><td>✅ Yes</td><td>✅ Yes</td><td>Very large caches using SSD extension</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="data-structures">Redis Data Structures</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>Use Case</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>String</strong></td><td>Simple key-value, counters, cached HTML</td><td>user:1234:name = "Priya"</td></tr>
+            <tr><td><strong>Hash</strong></td><td>Object properties (user profiles)</td><td>user:1234 → {name, email, plan}</td></tr>
+            <tr><td><strong>List</strong></td><td>Queues, timelines, recent activity</td><td>notifications:user1 → [msg3, msg2, msg1]</td></tr>
+            <tr><td><strong>Set</strong></td><td>Unique members (tags, friends)</td><td>post:123:tags → {azure, cloud, devops}</td></tr>
+            <tr><td><strong>Sorted Set</strong></td><td>Leaderboards, rankings (score-ordered)</td><td>leaderboard → {alice:950, bob:900, eve:880}</td></tr>
+            <tr><td><strong>Stream</strong></td><td>Event logs, activity streams</td><td>Ordered event journal with consumer groups</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="caching-patterns">Caching Patterns</h2>
+
+        <h3>Cache-Aside (Lazy Loading) — Most Common</h3>
+        <ol>
+          <li>Application requests data</li>
+          <li>Check Redis — if found (cache hit), return it</li>
+          <li>If not found (cache miss), query the database</li>
+          <li>Store result in Redis with TTL</li>
+          <li>Return data to application</li>
+        </ol>
+
+        <h3>Write-Through</h3>
+        <p>On every database write, also write to Redis. Keeps cache always up-to-date — no stale data — but higher write latency and may cache data that's rarely read.</p>
+
+        <h3>Read-Through</h3>
+        <p>Cache sits in front of the database. All reads go through cache — if miss, cache fetches from DB and populates itself. Application only talks to the cache.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Always Set a TTL</strong> Always set an expiration (TTL) on cached keys — stale data that never expires can cause subtle bugs. Typical TTLs: product catalogue: 1 hour, user profile: 15 minutes, session: 30 minutes, frequently changing data: 1–5 minutes.</div>
+        </div>
+
+        <h2 id="session-state">Session State Management</h2>
+        <p>Redis is the standard solution for distributed session state in web applications. Instead of storing sessions on individual web servers (which breaks when you scale to multiple servers), store all sessions in Redis:</p>
+        <ul>
+          <li>Any web server can serve any user — fully stateless web tier</li>
+          <li>Sessions survive web server restarts</li>
+          <li>Built-in TTL for automatic session expiry</li>
+          <li>Sub-millisecond session reads on every request</li>
+        </ul>
+
+        <h2 id="pubsub">Pub/Sub Messaging</h2>
+        <p>Redis pub/sub allows applications to publish messages to channels and subscribe to channels for real-time notifications. Use cases: real-time chat, live notifications, cache invalidation signals, event broadcasting.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Redis CLI</span><span class="code-label">Basic Redis commands</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Set with TTL (expire in 3600 seconds / 1 hour)
+SET user:1234:profile "{name: 'Priya'}" EX 3600
+
+# Get
+GET user:1234:profile
+
+# Increment counter atomically
+INCR page:views:homepage
+
+# Add to sorted set (leaderboard)
+ZADD leaderboard 950 "alice"
+ZADD leaderboard 900 "bob"
+
+# Get top 3 (highest scores)
+ZREVRANGE leaderboard 0 2 WITHSCORES</code></pre>
+        </div>
+
+        <h2 id="persistence">Persistence Options</h2>
+        <p>By default, Redis is in-memory only — data is lost on restart. Premium and Enterprise tiers support persistence:</p>
+        <ul>
+          <li><strong>RDB (Redis Database)</strong> — Point-in-time snapshots at configurable intervals</li>
+          <li><strong>AOF (Append Only File)</strong> — Log every write operation — can replay to reconstruct data</li>
+        </ul>
+
+        <h2 id="geo-replication">Geo-Replication</h2>
+        <p>Premium tier supports passive geo-replication (one primary, one secondary). Enterprise tier supports active geo-replication — write to any region, all regions stay in sync. Use for global applications needing low-latency cache access from multiple regions.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know Basic tier has no SLA and no HA — dev/test only. Know Premium adds clustering, VNet, and persistence. Know Redis is for caching and session state — not primary database storage. Know cache-aside is the most common caching pattern.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is the primary benefit of Azure Cache for Redis compared to a relational database?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Redis stores data in memory — it does not provide more storage than disk-based databases.')">A — It provides much larger storage capacity</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Redis stores all data in RAM — providing sub-millisecond read and write latency. Relational databases use disk storage which is orders of magnitude slower. Redis is typically 100-1000x faster than a disk-based database for simple key lookups.')">B — Sub-millisecond response times due to in-memory storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Relational databases have stronger ACID guarantees and complex query capabilities — Redis is simpler but faster.')">C — Stronger ACID transaction guarantees</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Redis has a simpler data model than relational databases — it does not support complex SQL queries with joins.')">D — Support for complex SQL queries with joins</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Which Azure Cache for Redis tier should be used for production workloads requiring high availability?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic tier has no SLA and no HA — it is for dev/test only.')">A — Basic</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Standard tier includes a primary and replica pair for high availability. If the primary fails, the replica is promoted automatically. Standard tier is the minimum recommended for production caching workloads.')">B — Standard</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While Premium provides even more features (clustering, VNet, persistence), Standard is sufficient and cheaper for basic production HA requirements.')">C — Only Premium supports production workloads</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic tier has no HA — it is explicitly for dev/test only.')">D — Basic with backup enabled</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What Redis data structure is best for implementing a real-time leaderboard?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Strings store simple key-value pairs — they don\'t have built-in sorted ranking functionality.')">A — String</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hash maps field-value pairs within an object — it doesn\'t maintain sorted scores.')">B — Hash</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Sorted Set stores members with associated scores, maintaining them in order. ZADD adds members with scores, ZREVRANGE retrieves the top N by score. It\'s perfectly designed for leaderboards and rankings.')">C — Sorted Set</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Set stores unique members but without scores or ordering — not suitable for ranked leaderboards.')">D — Set</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> In the cache-aside pattern, what happens on a cache miss?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. On a cache miss, the application fetches from the database — it does not return an error.')">A — An error is returned to the application</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! On a cache miss, the application queries the primary database, stores the result in Redis (with a TTL), then returns the data. The next request for the same data will be a cache hit.')">B — The application queries the database, stores the result in Redis with a TTL, and returns the data</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. In cache-aside, the application — not the cache — fetches from the database on a miss. This is the key characteristic of cache-aside vs read-through patterns.')">C — Redis automatically fetches the data from the database</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Null is not returned on a cache miss — the application falls back to the database.')">D — Null is returned and the application handles it</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Why is Redis ideal for storing web session state?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Redis is not the cheapest storage option — it is more expensive than disk storage due to in-memory nature. The benefit is speed and distributed access.')">A — It is the cheapest storage option for session data</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Redis enables shared session state across multiple web servers — any server can retrieve any user\'s session. Combined with sub-millisecond latency (fast per-request session lookups), built-in TTL (automatic expiry), and high availability, it\'s the ideal distributed session store.')">B — Shared access across all web servers, sub-millisecond reads, and built-in TTL for automatic expiry</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Redis does not provide stronger encryption than other databases — session security is an application-level concern.')">C — It provides stronger encryption for sensitive session data</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Redis stores data in memory — it provides much less storage than disk-based databases.')">D — It can store unlimited session data without size constraints</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="cosmos-db.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Cosmos DB</span></a>
+        <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="azure-postgresql.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Database for PostgreSQL</span></a>
+        <a class="nav-card next" href="synapse.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Synapse Analytics</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

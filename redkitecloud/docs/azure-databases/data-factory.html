@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Data Factory | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Data Factory — ETL pipelines, data integration, 90+ connectors, triggers, data flows, and monitoring." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure Data Factory</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Azure Data Factory</h1>
+      <p class="page-intro">Azure Data Factory (ADF) is Azure's cloud ETL and data integration service. It lets you create, schedule, and orchestrate data pipelines — copying data between 90+ sources and destinations, transforming it along the way. Whether you're moving data from on-premises SQL Server to Azure SQL, loading CSV files into a data warehouse, or orchestrating a complex multi-step analytics workflow, ADF is the tool.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> ADF core concepts — pipelines, activities, datasets, linked services · Copy Activity — the workhorse of ADF · Data Flows for no-code transformation · Triggers — schedule, event, tumbling window · Integration Runtimes · Monitoring pipelines · ADF vs Synapse Pipelines</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#core-concepts">Core Concepts</a></li>
+        <li><a href="#copy-activity">Copy Activity</a></li>
+        <li><a href="#data-flows">Data Flows</a></li>
+        <li><a href="#triggers">Triggers</a></li>
+        <li><a href="#integration-runtimes">Integration Runtimes</a></li>
+        <li><a href="#monitoring">Monitoring</a></li>
+        <li><a href="#adf-vs-synapse">ADF vs Synapse Pipelines</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="core-concepts">Core Concepts</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concept</th><th>Description</th><th>Analogy</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Pipeline</strong></td><td>Logical grouping of activities that perform a task</td><td>A recipe with multiple steps</td></tr>
+            <tr><td><strong>Activity</strong></td><td>A processing step within a pipeline (Copy, Transform, Execute)</td><td>A step in the recipe</td></tr>
+            <tr><td><strong>Dataset</strong></td><td>Named view of the data (schema, location)</td><td>The ingredients</td></tr>
+            <tr><td><strong>Linked Service</strong></td><td>Connection string to a data store or compute</td><td>The pantry connection</td></tr>
+            <tr><td><strong>Trigger</strong></td><td>When and how a pipeline runs (schedule, event)</td><td>The timer or doorbell</td></tr>
+            <tr><td><strong>Integration Runtime</strong></td><td>The compute infrastructure that runs activities</td><td>The kitchen (Azure or on-premises)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="copy-activity">Copy Activity</h2>
+        <p>The Copy Activity is the most commonly used activity — it copies data from a source to a sink (destination). ADF supports 90+ connectors including:</p>
+        <ul>
+          <li>Azure: Blob Storage, Data Lake, SQL Database, Cosmos DB, Synapse</li>
+          <li>On-premises: SQL Server, Oracle, SAP, file systems</li>
+          <li>SaaS: Salesforce, ServiceNow, Dynamics 365, REST APIs</li>
+          <li>Other clouds: Amazon S3, Google Cloud Storage, Snowflake</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>No Code Required</strong> Copy Activity is configured visually in the ADF Studio — no coding needed for most data copy scenarios. You select source, destination, and column mappings through a GUI. For complex transformations, use Data Flows or compute activities (Spark, Databricks, stored procedures).</div>
+        </div>
+
+        <h2 id="data-flows">Data Flows</h2>
+        <p>Mapping Data Flows provide a visual, no-code way to transform data at scale. You design transformation logic in a GUI — ADF compiles it to Spark and runs it on a managed Spark cluster.</p>
+        <p>Common transformations:</p>
+        <ul>
+          <li>Filter, select, derive new columns</li>
+          <li>Join multiple datasets</li>
+          <li>Aggregate (group by, sum, count)</li>
+          <li>Pivot/unpivot</li>
+          <li>Lookup — enrich data from a reference dataset</li>
+        </ul>
+
+        <h2 id="triggers">Triggers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Trigger Type</th><th>When It Fires</th><th>Use Case</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Schedule</strong></td><td>On a fixed schedule (hourly, daily, cron)</td><td>Regular batch loads — nightly ETL</td></tr>
+            <tr><td><strong>Tumbling Window</strong></td><td>Fixed-size non-overlapping time windows, sequentially</td><td>Time-partitioned loads, retry failed windows</td></tr>
+            <tr><td><strong>Event-based (Storage)</strong></td><td>When a file arrives in Blob Storage</td><td>Process files as soon as they arrive</td></tr>
+            <tr><td><strong>Custom Events</strong></td><td>Azure Event Grid event</td><td>Trigger on any Azure resource event</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="integration-runtimes">Integration Runtimes</h2>
+        <p>Integration Runtime (IR) is the compute infrastructure ADF uses to run activities:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>IR Type</th><th>Where It Runs</th><th>Use For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Azure IR</strong></td><td>Managed Azure cloud compute</td><td>Cloud-to-cloud data movement and transformation</td></tr>
+            <tr><td><strong>Self-hosted IR</strong></td><td>Your own on-premises or VM</td><td>On-premises data sources (behind firewall)</td></tr>
+            <tr><td><strong>Azure-SSIS IR</strong></td><td>Managed SSIS runtime in Azure</td><td>Lifting existing SSIS packages to Azure</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Self-Hosted IR for On-Premises</strong> If your source data is on-premises behind a firewall, you install the Self-Hosted Integration Runtime on a server in your network. It establishes an outbound connection to ADF — no inbound firewall rules needed.</div>
+        </div>
+
+        <h2 id="monitoring">Monitoring</h2>
+        <p>ADF has built-in monitoring in the ADF Studio:</p>
+        <ul>
+          <li>View all pipeline runs — status, duration, errors</li>
+          <li>Drill into individual activity runs</li>
+          <li>Rerun failed pipelines from the point of failure</li>
+          <li>Alert on pipeline failures via Azure Monitor</li>
+        </ul>
+
+        <h2 id="adf-vs-synapse">ADF vs Synapse Pipelines</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Factor</th><th>Azure Data Factory</th><th>Synapse Pipelines</th></tr></thead>
+          <tbody>
+            <tr><td>Standalone service?</td><td>Yes — independent service</td><td>Part of Synapse workspace</td></tr>
+            <tr><td>Features</td><td>Same engine</td><td>Same engine — tightly integrated with Synapse SQL/Spark</td></tr>
+            <tr><td>Choose when</td><td>Standalone ETL, no Synapse workspace</td><td>Already using Synapse for warehousing/analytics</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know ADF is for ETL/data integration (not a database). Know it has 90+ connectors. Know Self-Hosted IR for on-premises connectivity. Know the three trigger types (Schedule, Tumbling Window, Event-based). Know Data Flows compile to Spark for transformation.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A company needs to copy data from an on-premises SQL Server database to Azure Blob Storage. Which Integration Runtime type does ADF need?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure IR runs in Azure and cannot access on-premises data sources behind a firewall.')">A — Azure IR</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Self-Hosted Integration Runtime is installed on a server in your on-premises network. It establishes an outbound connection to ADF — no inbound firewall rules are needed. ADF then uses this IR to access the on-premises SQL Server.')">B — Self-Hosted IR installed in the on-premises network</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure-SSIS IR is for running SSIS packages in Azure — not for general on-premises data access.')">C — Azure-SSIS IR</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VPN Gateway is a network service — ADF uses Integration Runtime for compute, not VPN Gateway directly.')">D — VPN Gateway</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is a Linked Service in Azure Data Factory?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A pipeline is a logical grouping of activities — not a Linked Service.')">A — A pipeline that links multiple activities together</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Linked Service defines the connection information for a data store or compute resource — essentially a connection string. It contains the endpoint URL, authentication credentials, and any other connection parameters needed to connect to the source or destination.')">B — A connection definition containing connection string and authentication for a data store</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Dataset represents the data structure/location within a data store — Linked Service is the connection to the store itself.')">C — A schema definition for the data structure</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Trigger defines when a pipeline runs — not a Linked Service.')">D — A scheduled job that triggers pipelines automatically</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Which ADF trigger type fires automatically when a file arrives in Azure Blob Storage?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Schedule trigger fires at fixed times — not when files arrive.')">A — Schedule trigger</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Tumbling Window trigger fires at fixed time intervals — not when files arrive.')">B — Tumbling Window trigger</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Event-based (Storage Events) trigger fires when files are created or deleted in Azure Blob Storage. You configure the storage account and container path filter — ADF automatically starts the pipeline when a matching file arrives.')">C — Event-based (Storage Events) trigger</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Manual trigger requires a human to explicitly run the pipeline — it doesn\'t fire automatically on file arrival.')">D — Manual trigger</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What technology do ADF Mapping Data Flows compile to under the hood?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ADF Data Flows compile to Spark — not SQL Server stored procedures.')">A — SQL Server stored procedures</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ADF Mapping Data Flows are compiled by ADF into Apache Spark code and executed on a managed Spark cluster. This means they can process large-scale data transformations without you needing to write Spark code directly.')">B — Apache Spark</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ADF Data Flows compile to Spark — not Azure Functions.')">C — Azure Functions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ADF Data Flows compile to Spark — not T-SQL.')">D — T-SQL</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> How many data source/destination connectors does Azure Data Factory support?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ADF supports 90+ connectors — not just 10.')">A — 10</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ADF supports more than 30 connectors.')">B — 30</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Data Factory supports 90+ connectors — covering Azure services, on-premises databases, SaaS applications (Salesforce, ServiceNow), other clouds (AWS S3, Google Cloud Storage), and REST APIs.')">C — 90+</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While ADF has many connectors, the number is 90+ not 500+.')">D — 500+</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="synapse.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Synapse Analytics</span></a>
+        <a class="related-card" href="database-migration.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Database Migration Service</span></a>
+        <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="synapse.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Synapse Analytics</span></a>
+        <a class="nav-card next" href="database-migration.html"><span class="nav-label">Next →</span><span class="nav-title">Database Migration Service</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

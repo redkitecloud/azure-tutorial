@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Cosmos DB | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Cosmos DB — global distribution, consistency levels, APIs, partitioning, RU/s, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure Cosmos DB</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 14 min read</span></div>
+
+      <h1 class="page-title">Azure Cosmos DB</h1>
+      <p class="page-intro">Azure Cosmos DB is Microsoft's globally distributed, multi-model NoSQL database service. It's designed for applications that need guaranteed low latency (single-digit milliseconds at the 99th percentile), elastic scalability, and the ability to serve users from anywhere in the world. Cosmos DB is unique in offering five consistency models and support for multiple database APIs — all in one service.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> Global distribution and multi-region writes · Five consistency levels · Multiple database APIs (SQL, MongoDB, Cassandra, Gremlin, Table) · Partitioning strategy · Request Units (RU/s) — how billing works · Serverless vs provisioned throughput · Change feed · SLA guarantees</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#global-distribution">Global Distribution</a></li>
+        <li><a href="#consistency-levels">Five Consistency Levels</a></li>
+        <li><a href="#apis">Database APIs</a></li>
+        <li><a href="#partitioning">Partitioning</a></li>
+        <li><a href="#rus">Request Units (RU/s)</a></li>
+        <li><a href="#throughput-modes">Throughput Modes</a></li>
+        <li><a href="#change-feed">Change Feed</a></li>
+        <li><a href="#sla">SLA Guarantees</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="global-distribution">Global Distribution</h2>
+        <p>Cosmos DB can replicate your data to any Azure region with a single click — or configure it programmatically. Key capabilities:</p>
+        <ul>
+          <li><strong>Multi-region reads</strong> — Users automatically routed to nearest region</li>
+          <li><strong>Multi-region writes</strong> — Write to any region; conflicts resolved automatically</li>
+          <li><strong>Automatic failover</strong> — If a region fails, traffic moves to next available region</li>
+          <li><strong>Manual failover</strong> — For testing DR procedures</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Guaranteed Latency</strong> Cosmos DB guarantees &lt;10ms reads and &lt;15ms writes at the 99th percentile — regardless of which region you're in or how much data you store. This SLA is backed by Microsoft.</div>
+        </div>
+
+        <h2 id="consistency-levels">Five Consistency Levels</h2>
+        <p>Cosmos DB offers five consistency models — from strongest (more consistent, more latency) to weakest (less consistent, less latency/cost). This is unique in the industry and a key exam topic.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Level</th><th>Guarantees</th><th>Latency</th><th>Use When</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Strong</strong></td><td>Always reads latest write — linearisable</td><td>Highest</td><td>Financial transactions, inventory</td></tr>
+            <tr><td><strong>Bounded Staleness</strong></td><td>Reads lag behind writes by configurable time or operations</td><td>High</td><td>Apps tolerating slight lag but needing order guarantees</td></tr>
+            <tr><td><strong>Session</strong> (default)</td><td>Consistent reads/writes within a session — monotonic</td><td>Medium</td><td>Most apps — social profiles, shopping carts</td></tr>
+            <tr><td><strong>Consistent Prefix</strong></td><td>Reads never see out-of-order writes</td><td>Low</td><td>Social media feeds, logs</td></tr>
+            <tr><td><strong>Eventual</strong></td><td>No ordering guarantee — replicas eventually converge</td><td>Lowest</td><td>Likes/views counts, non-critical data</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Session is the Sweet Spot</strong> Session consistency (the default) provides strong consistency for a single user's session — reads always reflect your own writes. For 90% of applications, this is the right balance of consistency and performance.</div>
+        </div>
+
+        <h2 id="apis">Database APIs</h2>
+        <p>Cosmos DB supports multiple APIs — you can use your existing skills and client libraries:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>API</th><th>Use When</th><th>Wire Protocol</th></tr></thead>
+          <tbody>
+            <tr><td><strong>NoSQL (SQL)</strong></td><td>Native Cosmos DB — JSON documents, SQL-like queries</td><td>Cosmos REST API</td></tr>
+            <tr><td><strong>MongoDB</strong></td><td>Migrating from MongoDB, existing MongoDB code</td><td>MongoDB wire protocol</td></tr>
+            <tr><td><strong>Cassandra</strong></td><td>Wide-column data, existing Cassandra apps</td><td>Cassandra wire protocol (CQL)</td></tr>
+            <tr><td><strong>Gremlin</strong></td><td>Graph data — social networks, recommendation engines</td><td>Gremlin (Apache TinkerPop)</td></tr>
+            <tr><td><strong>Table</strong></td><td>Migrating from Azure Table Storage, need global distribution</td><td>OData (Table Storage compatible)</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Choose API at Creation Time</strong> You select the API when creating a Cosmos DB account — you cannot change it afterwards. Choose carefully based on your data model and compatibility requirements.</div>
+        </div>
+
+        <h2 id="partitioning">Partitioning</h2>
+        <p>Cosmos DB distributes data across partitions for scale. You must choose a <strong>partition key</strong> when creating a container. Good partition key design is critical:</p>
+        <ul>
+          <li><strong>High cardinality</strong> — Many unique values (userId, orderId) — not gender or country</li>
+          <li><strong>Evenly distributed reads/writes</strong> — Avoid hot partitions where one key gets all traffic</li>
+          <li><strong>Used in most queries</strong> — Include partition key in queries for efficiency</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Good Partition Keys</strong> userId, productId, deviceId, tenantId — high cardinality, evenly distributed.<br/><strong>Bad Partition Keys</strong> status (only a few values), createdDate (hot partition for today's date), country (uneven distribution).</div>
+        </div>
+
+        <h2 id="rus">Request Units (RU/s)</h2>
+        <p>Cosmos DB billing is based on <strong>Request Units per second (RU/s)</strong> — not raw CPU/memory. One RU represents the resources needed to read a 1 KB document. Other operations cost more:</p>
+        <ul>
+          <li>1 KB point read: ~1 RU</li>
+          <li>1 KB write: ~5 RUs</li>
+          <li>Complex query: 10–100+ RUs</li>
+        </ul>
+        <p>You provision RU/s at the container or database level. If your app exceeds the provisioned RU/s, requests are rate-limited (429 errors) — you need to provision more RU/s or use autoscale.</p>
+
+        <h2 id="throughput-modes">Throughput Modes</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Mode</th><th>Description</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Provisioned (Manual)</strong></td><td>Set fixed RU/s — guaranteed throughput</td><td>Predictable, sustained workloads</td></tr>
+            <tr><td><strong>Autoscale</strong></td><td>Set max RU/s — scales 10% of max to max automatically</td><td>Variable workloads with peak hours</td></tr>
+            <tr><td><strong>Serverless</strong></td><td>Pay per RU consumed — no minimum</td><td>Dev/test, sporadic workloads</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="change-feed">Change Feed</h2>
+        <p>Cosmos DB's change feed is a persistent log of all changes (inserts, updates) to a container in order. Applications can read this feed to:</p>
+        <ul>
+          <li>Trigger event-driven processing (Azure Functions)</li>
+          <li>Build real-time dashboards</li>
+          <li>Replicate data to other systems</li>
+          <li>Implement event sourcing patterns</li>
+        </ul>
+
+        <h2 id="sla">SLA Guarantees</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>SLA</th><th>Guarantee</th></tr></thead>
+          <tbody>
+            <tr><td>Availability</td><td>99.999% (5 nines) with multi-region writes</td></tr>
+            <tr><td>Read latency</td><td>&lt;10ms at 99th percentile</td></tr>
+            <tr><td>Write latency</td><td>&lt;15ms at 99th percentile</td></tr>
+            <tr><td>Throughput</td><td>Provisioned RU/s guaranteed</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know the five consistency levels — especially Session (default), Strong, and Eventual. Know the five APIs and when to use each. Know partition key design principles. Know that RU/s is the billing unit and provisioned RU/s sets throughput limits.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which Cosmos DB consistency level guarantees that reads always reflect the latest writes?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Strong consistency guarantees linearisability — reads always return the latest committed write. It has the highest latency of all consistency levels but provides the strongest guarantees, suitable for financial transactions and inventory systems.')">A — Strong</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Session consistency guarantees reads within a session reflect that session\'s writes — but reads from other sessions may see stale data.')">B — Session</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Eventual consistency provides no ordering guarantees — reads may see stale data from any point in the replication lag.')">C — Eventual</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Consistent Prefix ensures reads see writes in order — but may lag behind the latest write.')">D — Consistent Prefix</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A team is migrating an existing MongoDB application to Azure. Which Cosmos DB API should they use?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The NoSQL (SQL) API is Cosmos DB\'s native API — existing MongoDB code would need significant rewrites.')">A — NoSQL (SQL) API</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The MongoDB API is wire-protocol compatible with MongoDB — existing MongoDB drivers and code can connect to Cosmos DB without changes (for supported features). This enables migration with minimal code changes.')">B — MongoDB API</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Cassandra API uses CQL (Cassandra Query Language) — it\'s for Cassandra migrations, not MongoDB.')">C — Cassandra API</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Table API is for Azure Table Storage migrations — not MongoDB.')">D — Table API</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What happens when an application exceeds the provisioned RU/s in Cosmos DB?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB does not automatically increase provisioned RU/s when exceeded (in manual mode) — it rate-limits the requests.')">A — Cosmos DB automatically increases the provisioned RU/s</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When requests exceed the provisioned RU/s, Cosmos DB returns HTTP 429 (Too Many Requests) errors. The application must handle these with retry logic. To prevent rate limiting, provision more RU/s or enable autoscale.')">B — Requests are rate-limited and return HTTP 429 errors</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB does not drop data — it rate-limits requests with 429 errors.')">C — Data is dropped to maintain performance</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Excess requests are rejected with rate-limiting errors — not queued indefinitely.')">D — Requests are queued until RU/s capacity is available</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which Cosmos DB consistency level is the default?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Strong is not the default — it has the highest latency and is not suitable for global distribution without performance penalties.')">A — Strong</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Session consistency is the default for Cosmos DB. It provides strong consistency within a single user\'s session (reads always reflect that user\'s writes) while allowing different sessions to see slightly different views. It balances performance and consistency for most applications.')">B — Session</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Eventual is not the default — it provides the weakest consistency and is only suitable for non-critical data.')">C — Eventual</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Bounded Staleness is not the default consistency level.')">D — Bounded Staleness</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What is a good partition key for a Cosmos DB container storing user orders?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Order status has very few values (pending, shipped, delivered) — this would create a "hot partition" where most traffic hits a small number of partitions.')">A — orderStatus (pending, shipped, delivered)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! customerId has high cardinality (many unique values), distributes writes evenly across customers, and orders for a specific customer are frequently queried together. This is an ideal partition key — high cardinality and aligned with query patterns.')">B — customerId</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. orderDate creates hot partitions — today\'s date would receive all new orders while historical dates are barely touched.')">C — orderDate</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. country has low cardinality and uneven distribution — a few countries would receive most traffic, creating hot partitions.')">D — country</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+        <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+        <a class="related-card" href="azure-redis.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Cache for Redis</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="sql-managed-instance.html"><span class="nav-label">← Previous</span><span class="nav-title">SQL Managed Instance</span></a>
+        <a class="nav-card next" href="azure-mysql.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Database for MySQL</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

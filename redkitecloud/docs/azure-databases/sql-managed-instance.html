@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure SQL Managed Instance | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure SQL Managed Instance — full SQL Server compatibility, lift-and-shift migration, business continuity, and differences from SQL Database." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">SQL Managed Instance</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Azure SQL Managed Instance</h1>
+      <p class="page-intro">Azure SQL Managed Instance is a fully managed SQL Server database engine that provides near-100% compatibility with the latest SQL Server on-premises edition. It bridges the gap between SQL Database (cloud-optimised, limited features) and SQL Server on a VM (full features, full management burden). It's Microsoft's recommended target for lift-and-shift migrations of complex SQL Server applications.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> SQL MI vs SQL Database key differences · Features exclusive to Managed Instance · VNet deployment requirement · Migration scenarios · Service tiers and vCores · Business continuity features · SQL MI vs SQL on VM</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#mi-vs-db">SQL MI vs SQL Database</a></li>
+        <li><a href="#exclusive-features">Exclusive Features</a></li>
+        <li><a href="#vnet-deployment">VNet Deployment</a></li>
+        <li><a href="#service-tiers">Service Tiers</a></li>
+        <li><a href="#migration">Migration to SQL MI</a></li>
+        <li><a href="#business-continuity">Business Continuity</a></li>
+        <li><a href="#mi-vs-vm">SQL MI vs SQL on VM</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="mi-vs-db">SQL MI vs SQL Database</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>SQL Database</th><th>SQL Managed Instance</th></tr></thead>
+          <tbody>
+            <tr><td>SQL Server Agent</td><td>❌ No</td><td>✅ Yes</td></tr>
+            <tr><td>Linked Servers</td><td>❌ No</td><td>✅ Yes</td></tr>
+            <tr><td>CLR Integration</td><td>Limited</td><td>✅ Yes</td></tr>
+            <tr><td>Database Mail</td><td>❌ No</td><td>✅ Yes</td></tr>
+            <tr><td>Cross-database queries</td><td>❌ No</td><td>✅ Yes</td></tr>
+            <tr><td>Service Broker</td><td>❌ No</td><td>✅ Yes</td></tr>
+            <tr><td>VNet deployment</td><td>Optional (Private Endpoint)</td><td>Required — always in VNet</td></tr>
+            <tr><td>Max database size</td><td>4 TB (GP), 4 TB (BC)</td><td>Up to 16 TB (GP), 4 TB (BC)</td></tr>
+            <tr><td>Instance-level features</td><td>No — database only</td><td>Yes — instance-level access</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="exclusive-features">Features Exclusive to SQL MI</h2>
+        <ul>
+          <li><strong>SQL Server Agent</strong> — Schedule and automate SQL jobs (ETL, maintenance, alerts)</li>
+          <li><strong>Linked Servers</strong> — Query remote databases from SQL Server</li>
+          <li><strong>CLR Integration</strong> — Run .NET code inside SQL Server</li>
+          <li><strong>Database Mail</strong> — Send emails from SQL Server</li>
+          <li><strong>Cross-database queries</strong> — Query across multiple databases on the same instance</li>
+          <li><strong>Service Broker</strong> — Asynchronous messaging between databases</li>
+          <li><strong>Distributed transactions</strong> — MSDTC support</li>
+          <li><strong>Native backup/restore</strong> — Restore .bak files from Azure Blob Storage</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Migration Decision Rule</strong> If your on-premises SQL Server app uses SQL Agent, linked servers, CLR, or cross-database queries → use SQL Managed Instance. If it's a simple database without these features → SQL Database is sufficient and cheaper.</div>
+        </div>
+
+        <h2 id="vnet-deployment">VNet Deployment</h2>
+        <p>Unlike SQL Database (which has a public endpoint by default), SQL Managed Instance is <strong>always deployed inside a VNet</strong> — it has no public endpoint. This is both a security feature and a requirement. The MI is deployed into a dedicated subnet within your VNet.</p>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Dedicated Subnet Required</strong> SQL Managed Instance requires its own dedicated subnet — no other resources can be in that subnet. The subnet must be large enough for the number of instances and must have service delegation configured for Microsoft.Sql/managedInstances.</div>
+        </div>
+
+        <h2 id="service-tiers">Service Tiers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>Storage</th><th>IOPS</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>General Purpose</strong></td><td>Up to 16 TB</td><td>Up to 7,500</td><td>Most production workloads</td></tr>
+            <tr><td><strong>Business Critical</strong></td><td>Up to 4 TB</td><td>Up to 120,000</td><td>High IOPS, built-in read replica, in-memory OLTP</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="migration">Migration to SQL MI</h2>
+        <p>Azure Database Migration Service (DMS) supports online migration (minimal downtime) to SQL MI:</p>
+        <ol>
+          <li>Assess source SQL Server compatibility with Azure Database Migration Service</li>
+          <li>Configure DMS with source (on-premises) and target (SQL MI) connections</li>
+          <li>Run initial full migration (while source is running)</li>
+          <li>Apply ongoing log backups to keep MI in sync</li>
+          <li>Cutover — stop new writes on source, final sync, switch connection strings</li>
+        </ol>
+
+        <p>Native backup/restore is also supported — backup databases to Azure Blob Storage and restore directly to SQL MI.</p>
+
+        <h2 id="business-continuity">Business Continuity</h2>
+        <ul>
+          <li><strong>Automated backups</strong> — Full/differential/log backups with PITR (1–35 days)</li>
+          <li><strong>Auto-failover groups</strong> — Geo-replication with automatic failover to secondary region</li>
+          <li><strong>Business Critical tier</strong> — Built-in Always On availability group with one readable secondary (no extra cost)</li>
+          <li><strong>Zone redundancy</strong> — Deploy across Availability Zones for 99.99% SLA</li>
+        </ul>
+
+        <h2 id="mi-vs-vm">SQL MI vs SQL on VM</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Factor</th><th>SQL Managed Instance</th><th>SQL Server on VM</th></tr></thead>
+          <tbody>
+            <tr><td>Management</td><td>Microsoft manages OS, SQL patches, HA</td><td>You manage OS, patches, HA</td></tr>
+            <tr><td>Feature compatibility</td><td>Near-full SQL Server</td><td>Full SQL Server — every version/feature</td></tr>
+            <tr><td>Specific SQL version</td><td>No — Microsoft controls version</td><td>Yes — run SQL 2012, 2016, etc.</td></tr>
+            <tr><td>Legacy/unsupported features</td><td>Some not supported</td><td>All supported</td></tr>
+            <tr><td>Choose when</td><td>Want managed service, near-full compatibility</td><td>Need specific version or unsupported feature</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that SQL MI is always deployed in a VNet (no public endpoint). Know it supports SQL Agent, linked servers, CLR, cross-database queries. Know that Auto-Failover Groups enable automatic geo-failover. Know that the Business Critical tier includes a free built-in readable secondary.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> An on-premises SQL Server application uses SQL Server Agent for scheduled jobs and CLR integration. Which Azure service provides the best migration target?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure SQL Database does not support SQL Agent or full CLR integration.')">A — Azure SQL Database</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SQL Managed Instance supports SQL Agent, CLR integration, linked servers, and near-full SQL Server compatibility — making it the ideal lift-and-shift target for on-premises SQL Server applications that use these features.')">B — Azure SQL Managed Instance</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB is a NoSQL service — not compatible with SQL Server workloads.')">C — Azure Cosmos DB</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Database for MySQL is for MySQL workloads — not SQL Server migrations.')">D — Azure Database for MySQL</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Does Azure SQL Managed Instance have a public internet endpoint by default?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL Managed Instance does NOT have a public endpoint by default — it is always deployed inside a VNet.')">A — Yes — it has a public endpoint accessible from the internet</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SQL Managed Instance is always deployed inside a VNet with no public internet endpoint. Access is only possible through the VNet or via VPN/ExpressRoute from on-premises. A public endpoint can optionally be enabled, but it\'s disabled by default.')">B — No — it is always deployed inside a VNet with no public endpoint by default</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A public endpoint can optionally be enabled on SQL MI — it is not completely blocked.')">C — Public endpoints are completely blocked on SQL MI</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL MI has no public endpoint regardless of the service tier.')">D — Only Business Critical tier has a public endpoint</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What advantage does the Business Critical tier of SQL Managed Instance provide over General Purpose?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. General Purpose supports larger storage (up to 16 TB) — Business Critical supports up to 4 TB storage.')">A — Larger maximum storage capacity</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Business Critical tier includes a built-in readable secondary replica at no extra cost (using Always On Availability Groups). This secondary can serve read workloads, offloading the primary. It also provides significantly higher IOPS (up to 120,000 vs 7,500).')">B — Built-in readable secondary replica at no extra cost, plus much higher IOPS</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both tiers support automated backups and PITR — this is not a Business Critical exclusive feature.')">C — Automated backups are only available on Business Critical</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both tiers support zone redundancy — this is not exclusive to Business Critical.')">D — Zone redundancy is only available on Business Critical</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Can you run cross-database queries (querying multiple databases on the same instance) in Azure SQL Managed Instance?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Cross-database queries are supported in SQL Managed Instance — just like on-premises SQL Server. This is one of the key features that differentiates MI from SQL Database, which does not support cross-database queries.')">A — Yes — cross-database queries are fully supported</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cross-database queries ARE supported in SQL Managed Instance — this is one of its key advantages over SQL Database.')">B — No — cross-database queries are not supported</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cross-database queries work with all databases on the instance — not just databases within the same elastic pool.')">C — Only within elastic pools</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cross-database queries work on both General Purpose and Business Critical tiers.')">D — Only on Business Critical tier</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> When should you choose SQL Server on a VM instead of SQL Managed Instance?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL MI supports most SQL Server features — if you need near-full compatibility, MI is sufficient and easier to manage.')">A — When you need SQL Agent and linked servers</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SQL Server on a VM is the right choice when you need a specific SQL Server version (e.g., SQL 2012 for a legacy application) or features not supported in SQL MI (e.g., some replication types, filestream). MI controls which version is used.')">B — When you need a specific SQL Server version or a feature not yet supported in SQL MI</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL MI is always in a VNet — there is no SQL MI deployment without VNet integration.')">C — When you want to avoid VNet deployment requirements</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL MI is more expensive than SQL Database — cost alone is not a reason to choose SQL on VM over SQL MI.')">D — When you need to reduce costs compared to SQL Database</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+        <a class="related-card" href="database-migration.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Database Migration Service</span></a>
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="azure-sql.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure SQL Database</span></a>
+        <a class="nav-card next" href="cosmos-db.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Cosmos DB</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

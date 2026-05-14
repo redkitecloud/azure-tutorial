@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Synapse Analytics | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Synapse Analytics — data warehousing, dedicated SQL pools, serverless SQL, Spark, data integration, and AnalyticsHub." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure Synapse Analytics</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure Synapse Analytics</h1>
+      <p class="page-intro">Azure Synapse Analytics is a limitless analytics service that brings together data integration, enterprise data warehousing, and big data analytics. It's the evolution of Azure SQL Data Warehouse — now a unified workspace for data engineers, data scientists, and business analysts to work with petabyte-scale data using both SQL and Spark engines.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> Synapse architecture overview · Dedicated SQL Pool (data warehouse) · Serverless SQL Pool (query-on-demand) · Apache Spark Pool · Synapse Link (HTAP) · Synapse Pipelines (data integration) · When to use Synapse vs SQL Database · Pricing model</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#architecture">Synapse Architecture</a></li>
+        <li><a href="#dedicated-sql">Dedicated SQL Pool</a></li>
+        <li><a href="#serverless-sql">Serverless SQL Pool</a></li>
+        <li><a href="#spark-pool">Apache Spark Pool</a></li>
+        <li><a href="#synapse-link">Synapse Link</a></li>
+        <li><a href="#pipelines">Synapse Pipelines</a></li>
+        <li><a href="#synapse-vs-sql">Synapse vs SQL Database</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="architecture">Synapse Architecture</h2>
+        <p>Azure Synapse is a unified workspace with multiple compute engines, all connected to a common data lake (Azure Data Lake Storage Gen2):</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dedicated SQL Pool</strong></td><td>Traditional data warehouse — provisioned MPP compute</td></tr>
+            <tr><td><strong>Serverless SQL Pool</strong></td><td>Query files in data lake on-demand with SQL</td></tr>
+            <tr><td><strong>Apache Spark Pool</strong></td><td>Big data processing, ML, data transformation with Spark</td></tr>
+            <tr><td><strong>Synapse Pipelines</strong></td><td>Data integration and orchestration (like Azure Data Factory)</td></tr>
+            <tr><td><strong>Synapse Link</strong></td><td>HTAP — query operational data in Cosmos DB/SQL without ETL</td></tr>
+            <tr><td><strong>Synapse Studio</strong></td><td>Unified web IDE for all Synapse capabilities</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="dedicated-sql">Dedicated SQL Pool</h2>
+        <p>The traditional data warehouse component — formerly called Azure SQL Data Warehouse. A massively parallel processing (MPP) SQL engine optimised for petabyte-scale analytics.</p>
+
+        <h3>Key Concepts</h3>
+        <ul>
+          <li><strong>Data Warehouse Units (DWU)</strong> — The billing unit. More DWUs = more compute and memory. Scale up/down as needed.</li>
+          <li><strong>Distributions</strong> — Data is distributed across 60 nodes. Distribution key choice is critical for performance.</li>
+          <li><strong>Columnstore indexes</strong> — Data stored column-by-column — excellent for analytical queries scanning many rows</li>
+          <li><strong>Pause/Resume</strong> — Pause when not needed, stop compute billing. Storage billing continues.</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Pause to Save Money</strong> Dedicated SQL Pools are expensive (charged per DWU per hour). Always pause them outside business hours or when not running queries. Storage continues to bill but compute (the expensive part) stops.</div>
+        </div>
+
+        <h2 id="serverless-sql">Serverless SQL Pool</h2>
+        <p>Serverless SQL Pool allows you to query files directly in Azure Data Lake Storage (Parquet, CSV, JSON, Delta) using standard SQL — without provisioning any infrastructure. You pay per TB of data scanned.</p>
+        <ul>
+          <li>No infrastructure to manage</li>
+          <li>Query data in place — no need to load into a database first</li>
+          <li>Create external tables as views over data lake files</li>
+          <li>Pay per TB scanned — ₹5/TB (approximate)</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">Query Parquet file in data lake with Serverless SQL</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code">SELECT TOP 100 *
+FROM OPENROWSET(
+  BULK 'https://mystorageaccount.dfs.core.windows.net/data/sales/*.parquet',
+  FORMAT = 'PARQUET'
+) AS sales
+WHERE sales.year = 2026;</code></pre>
+        </div>
+
+        <h2 id="spark-pool">Apache Spark Pool</h2>
+        <p>Serverless Spark clusters for big data processing, machine learning, and data transformation using Python, Scala, R, or SQL. Auto-scales — only active (and billed) when running jobs.</p>
+        <ul>
+          <li>Integrated with Azure ML for model training</li>
+          <li>Share data with Dedicated SQL Pool (via shared data lake)</li>
+          <li>Delta Lake support for ACID transactions on data lake files</li>
+        </ul>
+
+        <h2 id="synapse-link">Synapse Link</h2>
+        <p>Synapse Link enables Hybrid Transactional Analytical Processing (HTAP) — run analytics directly on operational data without copying it or impacting the transactional database:</p>
+        <ul>
+          <li><strong>Synapse Link for Cosmos DB</strong> — Analytical store mirrors your Cosmos DB data; query it with SQL or Spark</li>
+          <li><strong>Synapse Link for SQL</strong> — Replicate SQL Database/MI data to Synapse for analytics</li>
+        </ul>
+
+        <h2 id="pipelines">Synapse Pipelines</h2>
+        <p>Built-in data integration capability (same visual experience as Azure Data Factory). Orchestrate data movement and transformation — copy data from 90+ sources, transform with data flows or Spark, load into the data warehouse.</p>
+
+        <h2 id="synapse-vs-sql">Synapse vs SQL Database</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Factor</th><th>Synapse Dedicated SQL Pool</th><th>Azure SQL Database</th></tr></thead>
+          <tbody>
+            <tr><td>Workload type</td><td>Analytics — complex queries on billions of rows</td><td>Transactional (OLTP) — many small reads/writes</td></tr>
+            <tr><td>Optimised for</td><td>Aggregations, scans, reporting</td><td>Point lookups, inserts, updates</td></tr>
+            <tr><td>Storage format</td><td>Columnar</td><td>Row-based</td></tr>
+            <tr><td>Scaling</td><td>DWU-based MPP</td><td>vCores/DTUs</td></tr>
+            <tr><td>Max data size</td><td>Petabytes</td><td>4 TB</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know Synapse = data warehousing and analytics (not OLTP). Know the four main components — Dedicated SQL Pool, Serverless SQL Pool, Spark Pool, Synapse Pipelines. Know that Dedicated SQL Pool can be paused to stop compute billing. Know Synapse Link enables analytics on operational data without ETL.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which Synapse component allows you to query files directly in Azure Data Lake using SQL without provisioning any infrastructure?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dedicated SQL Pool requires provisioning DWUs — it is not serverless.')">A — Dedicated SQL Pool</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Serverless SQL Pool lets you query Parquet, CSV, JSON, and Delta files in Azure Data Lake Storage using SQL — with no infrastructure to provision. You pay per TB of data scanned.')">B — Serverless SQL Pool</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Apache Spark Pool uses Spark for data processing — not standard SQL queries on data lake files.')">C — Apache Spark Pool</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Synapse Pipelines handles data movement and orchestration — not direct SQL querying of data lake files.')">D — Synapse Pipelines</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the billing unit for Dedicated SQL Pool (data warehouse)?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. vCores are used by Azure SQL Database — not Synapse Dedicated SQL Pool.')">A — vCores</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Dedicated SQL Pool uses Data Warehouse Units (DWU) as its billing unit. More DWUs means more compute and memory for faster query performance. You can scale DWUs up/down and pause the pool to stop compute billing.')">B — Data Warehouse Units (DWU)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RU/s is Cosmos DB\'s billing unit — not Synapse.')">C — Request Units (RU/s)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DTUs are used by Azure SQL Database\'s DTU purchasing model — not Synapse.')">D — DTUs</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> A company runs analytics reports on their Cosmos DB operational data. They want to avoid impacting the production database performance. What should they use?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Running analytics on the primary Cosmos DB would consume RU/s and impact transactional performance.')">A — Run analytics directly on the primary Cosmos DB</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Synapse Link for Cosmos DB creates an analytical store — a column-oriented copy of Cosmos DB data that is automatically updated. Analytics queries run against this store without consuming production RU/s or impacting transactional performance.')">B — Enable Synapse Link for Cosmos DB — analytical queries run against the analytical store</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Exporting to CSV and importing manually would be slow, outdated by the time it\'s ready, and operationally complex.')">C — Export data to CSV daily and import into Synapse</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating a Cosmos DB replica (read region) still consumes RU/s and is not optimised for analytics.')">D — Create a Cosmos DB read replica for analytics</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> How can you reduce costs for Dedicated SQL Pool when no queries are running overnight?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting and recreating would lose data and configuration — that is not a cost optimisation strategy.')">A — Delete and recreate the pool each morning</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Pausing the Dedicated SQL Pool stops compute billing (the expensive DWU-based cost). Storage billing continues, but compute is stopped. Resume the pool when needed. This can save 60–80% on Synapse costs for workloads with predictable usage patterns.')">B — Pause the pool — compute billing stops while paused</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reducing DWUs reduces performance — it does not stop billing. Only pausing stops compute billing.')">C — Reduce DWUs to minimum during off-hours</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Moving data to cold storage is not a cost optimisation for Synapse compute — only pausing stops compute billing.')">D — Move data to cold storage tier</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> When should you use Azure Synapse instead of Azure SQL Database?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure SQL Database is better for transactional workloads with many small reads and writes — Synapse is for analytics.')">A — For a transactional e-commerce application processing thousands of orders per minute</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Synapse is designed for analytical workloads — running complex aggregation queries across billions of rows (data warehousing). SQL Database is for transactional (OLTP) workloads. If you\'re doing business intelligence, reporting, or big data analytics, Synapse is the right choice.')">B — For a data warehouse running complex aggregation queries across billions of rows</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A standard CRUD web application benefits from SQL Database\'s transactional optimisation — not Synapse\'s analytical focus.')">C — For a standard CRUD web application</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Session storage is a use case for Redis (in-memory) — not for Synapse which is for analytics.')">D — For storing user session data</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="data-factory.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Data Factory</span></a>
+        <a class="related-card" href="cosmos-db.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Cosmos DB</span></a>
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="azure-redis.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Cache for Redis</span></a>
+        <a class="nav-card next" href="data-factory.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Data Factory</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

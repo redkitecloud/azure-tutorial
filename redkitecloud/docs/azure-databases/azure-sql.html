@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure SQL Database | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure SQL Database — purchasing models, service tiers, elastic pools, geo-replication, backups, security, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure SQL Database</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Databases</span>
+          <span class="badge badge-beginner">Intermediate</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 14 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure SQL Database</h1>
+        <p class="page-intro">Azure SQL Database is a fully managed relational database service built on Microsoft SQL Server. It handles patching, backups, high availability, and scaling automatically — so you focus on your application, not database infrastructure. It's the most popular Azure database service and one of the most heavily tested in AZ-104.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Deployment options (single database, elastic pool, serverless) · Purchasing models (DTU vs vCore) · Service tiers · Elastic pools for multi-tenant apps · Active geo-replication · Automated backups and PITR · Security features · Connecting to SQL Database · Creating via CLI
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#deployment-options">Deployment Options</a></li>
+            <li><a href="#purchasing-models">Purchasing Models</a></li>
+            <li><a href="#service-tiers">Service Tiers</a></li>
+            <li><a href="#elastic-pools">Elastic Pools</a></li>
+            <li><a href="#serverless">Serverless Tier</a></li>
+            <li><a href="#geo-replication">Active Geo-Replication</a></li>
+            <li><a href="#backups">Automated Backups and PITR</a></li>
+            <li><a href="#security">Security Features</a></li>
+            <li><a href="#connecting">Connecting to Azure SQL Database</a></li>
+            <li><a href="#creating">Creating via CLI</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="deployment-options">Deployment Options</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Option</th><th>Description</th><th>Best For</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Single Database</strong></td><td>One database with its own guaranteed resources</td><td>Isolated databases with predictable workloads</td></tr>
+                <tr><td><strong>Elastic Pool</strong></td><td>Multiple databases sharing a pool of resources</td><td>Multi-tenant SaaS apps with variable usage</td></tr>
+                <tr><td><strong>Serverless</strong></td><td>Auto-scales compute, pauses when idle</td><td>Dev/test, sporadic workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="purchasing-models">Purchasing Models</h2>
+
+          <h3>DTU Model (Database Transaction Units)</h3>
+          <p>A bundled measure of compute, memory, and I/O. Simpler but less transparent. Three tiers: Basic, Standard, Premium.</p>
+
+          <h3>vCore Model (Recommended)</h3>
+          <p>Choose specific number of vCPUs, memory, and storage independently. More transparent pricing. Supports Azure Hybrid Benefit. Five tiers: General Purpose, Business Critical, Hyperscale, Serverless, and Free offer.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Choose vCore for New Deployments</strong>
+              vCore model allows Azure Hybrid Benefit (use existing SQL Server licences), is more flexible, and maps better to on-premises concepts. Microsoft recommends vCore for new workloads.
+            </div>
+          </div>
+
+          <h2 id="service-tiers">Service Tiers (vCore)</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tier</th><th>Storage</th><th>IOPS</th><th>HA</th><th>Best For</th></tr></thead>
+              <tbody>
+                <tr><td><strong>General Purpose</strong></td><td>Up to 4 TB</td><td>Up to 7,000</td><td>99.99%</td><td>Most production workloads</td></tr>
+                <tr><td><strong>Business Critical</strong></td><td>Up to 4 TB</td><td>Up to 200,000</td><td>99.99%</td><td>High IOPS, in-memory OLTP, readable secondary</td></tr>
+                <tr><td><strong>Hyperscale</strong></td><td>Up to 100 TB</td><td>High</td><td>99.99%</td><td>Very large databases, variable workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="elastic-pools">Elastic Pools</h2>
+          <p>Elastic Pools allow multiple databases to share a pool of compute and storage resources. Instead of provisioning maximum resources for each database (that each uses at different times), they share the pool — reducing overall cost.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Perfect for SaaS Applications</strong>
+              If you have 100 customer databases, most customers are active at different times — you don't need to provision peak resources for all 100 simultaneously. An elastic pool lets them share resources, reducing cost by 50–70% vs individual databases.
+            </div>
+          </div>
+
+          <h2 id="serverless">Serverless Tier</h2>
+          <p>Serverless Azure SQL Database auto-scales compute between a configured min and max, and automatically pauses the database after a period of inactivity — billing stops for compute while paused (storage charges continue). Perfect for development, testing, or applications with infrequent usage.</p>
+          <ul>
+            <li>Auto-pause delay: 1 hour minimum, up to 7 days</li>
+            <li>First query after pause has a "cold start" delay (~30 seconds)</li>
+            <li>Not suitable for workloads requiring 24/7 availability</li>
+          </ul>
+
+          <h2 id="geo-replication">Active Geo-Replication</h2>
+          <p>Active Geo-Replication creates up to 4 readable secondary databases in different regions. Secondaries are continuously synchronised (asynchronously). For disaster recovery — if the primary region fails, you can manually failover to a secondary. Secondaries can also handle read workloads to offload the primary.</p>
+
+          <h3>Auto-Failover Groups</h3>
+          <p>Auto-Failover Groups build on geo-replication and add automatic failover — if the primary becomes unavailable, Azure automatically fails over to the secondary. A single connection string is provided that always points to the current primary — your application doesn't need to change anything.</p>
+
+          <h2 id="backups">Automated Backups and PITR</h2>
+          <p>Azure SQL Database automatically takes:</p>
+          <ul>
+            <li><strong>Full backups</strong> — Weekly</li>
+            <li><strong>Differential backups</strong> — Every 12 hours</li>
+            <li><strong>Transaction log backups</strong> — Every 5–10 minutes</li>
+          </ul>
+          <p><strong>Point-in-time restore (PITR)</strong> — Restore to any point within the retention period. Default retention: 7 days. Configurable: 1–35 days.</p>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Long-Term Retention (LTR)</strong>
+              Need to keep backups for compliance (years)? Enable Long-Term Retention to store weekly, monthly, or yearly backups in Azure Blob Storage for up to 10 years — at low archival cost.
+            </div>
+          </div>
+
+          <h2 id="security">Security Features</h2>
+          <ul>
+            <li><strong>Transparent Data Encryption (TDE)</strong> — Encrypts data at rest automatically (enabled by default)</li>
+            <li><strong>Always Encrypted</strong> — Column-level encryption; data is encrypted even from the database engine's perspective</li>
+            <li><strong>Row-Level Security (RLS)</strong> — Filter rows based on user identity</li>
+            <li><strong>Dynamic Data Masking</strong> — Mask sensitive data for non-privileged users (e.g., show only last 4 digits of phone numbers)</li>
+            <li><strong>Azure AD Authentication</strong> — Authenticate with Azure AD identities instead of SQL logins</li>
+            <li><strong>Advanced Threat Protection</strong> — Detect unusual access patterns (SQL injection attempts, anomalous access)</li>
+            <li><strong>Firewall Rules</strong> — Control which IPs can connect; Private Endpoint for no public access</li>
+          </ul>
+
+          <h2 id="connecting">Connecting to Azure SQL Database</h2>
+          <p>Azure SQL Database uses port <strong>1433</strong>. Connection string format:</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Connection String</span><span class="code-label">Azure SQL Database connection</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code">Server=tcp:myserver.database.windows.net,1433;
+Initial Catalog=mydatabase;
+Persist Security Info=False;
+User ID=myuser;
+Password=mypassword;
+Encrypt=True;
+TrustServerCertificate=False;</code></pre>
+          </div>
+
+          <h2 id="creating">Creating via CLI</h2>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create SQL Server and Database</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code"># Create a logical SQL server
+az sql server create \
+  --name mydbserver-2026 \
+  --resource-group myRG \
+  --location centralindia \
+  --admin-user sqladmin \
+  --admin-password "SecureP@ssword123!"
+
+# Create a database (General Purpose, 2 vCores)
+az sql db create \
+  --resource-group myRG \
+  --server mydbserver-2026 \
+  --name myDatabase \
+  --edition GeneralPurpose \
+  --compute-model Provisioned \
+  --family Gen5 \
+  --capacity 2
+
+# Allow Azure services to connect (optional)
+az sql server firewall-rule create \
+  --resource-group myRG \
+  --server mydbserver-2026 \
+  --name AllowAzureServices \
+  --start-ip-address 0.0.0.0 \
+  --end-ip-address 0.0.0.0</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the purchasing models (DTU vs vCore), elastic pools for multi-tenant apps, PITR and backup retention (1–35 days), Active Geo-Replication for readable secondaries, Auto-Failover Groups for automatic failover, and TDE as always-on encryption.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A SaaS company has 200 customer databases that each have variable and unpredictable usage — some peak at different times. Which Azure SQL Database deployment model optimises cost?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 200 individual single databases would each need resources provisioned for peak usage — very expensive when combined.')">A — 200 individual single databases</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Elastic Pools let multiple databases share a pool of resources. Since not all 200 databases peak simultaneously, the pool only needs to cover the combined average usage — saving 50–70% vs individual databases.')">B — Elastic Pool containing all 200 databases</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL Managed Instance is for full SQL Server compatibility — it\'s not designed for multi-tenant SaaS database pooling.')">C — SQL Managed Instance</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Serverless auto-pauses individual databases — it doesn\'t help with sharing resources across many databases simultaneously.')">D — Serverless tier for each database</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What is the maximum backup retention period for Azure SQL Database Point-in-Time Restore?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 7 days is the default retention — not the maximum.')">A — 7 days</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 14 days is not the maximum — the maximum is 35 days.')">B — 14 days</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The maximum PITR retention for Azure SQL Database is 35 days. The default is 7 days and you can configure anywhere from 1 to 35 days. For longer retention, use Long-Term Retention (LTR) which can store backups for up to 10 years.')">C — 35 days</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 90 days exceeds the maximum PITR retention of 35 days. Use Long-Term Retention for periods beyond 35 days.')">D — 90 days</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What does Active Geo-Replication provide for Azure SQL Database?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Active Geo-Replication creates secondary databases in different regions — not automatic failover. Auto-Failover Groups provide automatic failover.')">A — Automatic failover to another region without manual intervention</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Active Geo-Replication creates up to 4 readable secondary databases in different Azure regions. The secondaries are continuously synchronised and can serve read traffic. Failover to a secondary is manual — for automatic failover, use Auto-Failover Groups.')">B — Up to 4 readable secondary databases in different regions, manually failover if primary fails</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Active Geo-Replication is asynchronous — there can be a small replication lag. Synchronous replication would severely impact write performance.')">C — Synchronous replication with zero data loss guarantee</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Geo-Replication is for disaster recovery and read offloading — not for load balancing writes across regions.')">D — Load balancing write operations across multiple regions</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Is Transparent Data Encryption (TDE) enabled by default on Azure SQL Database?</div>
+            <div class="options">
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! TDE is enabled by default on all Azure SQL Databases. All data, backups, and transaction logs are encrypted at rest automatically using AES-256. You cannot disable it.')">A — Yes — TDE is always enabled by default and cannot be disabled</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. TDE is enabled by default — you do not need to manually enable it.')">B — No — TDE must be manually enabled for each database</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. TDE is enabled by default for all tiers — not just Business Critical.')">C — Only for Business Critical tier databases</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. TDE is always enabled — it is not an optional paid add-on.')">D — Only when using Customer-Managed Keys</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> What is the Serverless tier for Azure SQL Database best suited for?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Serverless has auto-pause which causes cold start delays — unsuitable for always-on production databases.')">A — High-traffic production databases requiring 24/7 availability</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Serverless is ideal for dev/test environments and applications with infrequent or sporadic usage. It auto-scales compute and pauses (with no compute billing) when idle — you only pay for storage and compute seconds used.')">B — Development, testing, and applications with infrequent or sporadic usage</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Serverless is for sporadic workloads — Business Critical tier is designed for high IOPS requirements.')">C — Applications requiring extremely high IOPS</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Serverless is for single databases — Elastic Pools handle multi-tenant SaaS scenarios.')">D — Multi-tenant SaaS applications with hundreds of databases</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="sql-managed-instance.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Managed Instance</span></a>
+            <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+            <a class="related-card" href="database-migration.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Database Migration Service</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="choosing-database.html"><span class="nav-label">← Previous</span><span class="nav-title">Choosing the Right Database</span></a>
+          <a class="nav-card next" href="sql-managed-instance.html"><span class="nav-label">Next →</span><span class="nav-title">Azure SQL Managed Instance</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
