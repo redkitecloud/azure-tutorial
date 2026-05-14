@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Database for MySQL | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Database for MySQL — Flexible Server, service tiers, high availability, backups, and migration from on-premises MySQL." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Azure Database for MySQL</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure Database for MySQL</h1>
+      <p class="page-intro">Azure Database for MySQL is a fully managed MySQL database service — handling patching, backups, HA, and scaling automatically. It's the go-to choice for LAMP stack applications, WordPress sites, and any workload already running on MySQL. It delivers community MySQL compatibility in a managed, enterprise-grade service.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> Flexible Server architecture · Service tiers (Burstable, General Purpose, Business Critical) · High availability zones · Automated backups and PITR · Read replicas · Security features · Connecting to MySQL · Creating via CLI · Migration from on-premises</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#flexible-server">Flexible Server</a></li>
+        <li><a href="#service-tiers">Service Tiers</a></li>
+        <li><a href="#high-availability">High Availability</a></li>
+        <li><a href="#backups">Backups and PITR</a></li>
+        <li><a href="#read-replicas">Read Replicas</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#creating">Creating via CLI</a></li>
+        <li><a href="#migration">Migration from On-Premises</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="flexible-server">Flexible Server</h2>
+        <p>Azure Database for MySQL — Flexible Server is the current recommended deployment option (the older Single Server is retired). Flexible Server provides:</p>
+        <ul>
+          <li>Full control over maintenance windows</li>
+          <li>Zone-redundant HA or same-zone HA</li>
+          <li>Burstable compute for cost savings</li>
+          <li>Stop/start capability — pause billing when not in use</li>
+          <li>Better customisation of MySQL server parameters</li>
+          <li>VNet integration for private access</li>
+        </ul>
+
+        <h2 id="service-tiers">Service Tiers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>vCores</th><th>Best For</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Burstable</strong></td><td>1–20</td><td>Dev/test, low-traffic apps, WordPress</td><td>Lowest</td></tr>
+            <tr><td><strong>General Purpose</strong></td><td>2–64</td><td>Most production workloads</td><td>Medium</td></tr>
+            <tr><td><strong>Business Critical</strong></td><td>2–96</td><td>High IOPS, memory-intensive, mission critical</td><td>Highest</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Burstable for WordPress</strong> The Burstable tier uses B-series compute — perfect for WordPress and low-traffic apps that don't need full CPU continuously. It earns CPU credits when idle and bursts when needed — much cheaper than General Purpose for typical CMS workloads.</div>
+        </div>
+
+        <h2 id="high-availability">High Availability</h2>
+        <p>Flexible Server offers two HA options:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>HA Mode</th><th>Architecture</th><th>SLA</th><th>Failover Time</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Zone-Redundant HA</strong></td><td>Primary + standby in different AZs</td><td>99.99%</td><td>60–120 seconds</td></tr>
+            <tr><td><strong>Same-Zone HA</strong></td><td>Primary + standby in same AZ</td><td>99.9%</td><td>Under 60 seconds</td></tr>
+            <tr><td><strong>No HA</strong></td><td>Single server</td><td>99.9%</td><td>N/A</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="backups">Backups and PITR</h2>
+        <ul>
+          <li><strong>Automated backups</strong> — Daily full + transaction log backups</li>
+          <li><strong>Retention</strong> — 1 to 35 days (default 7 days)</li>
+          <li><strong>Point-in-time restore</strong> — Restore to any second within the retention window</li>
+          <li><strong>Geo-redundant backups</strong> — Optional — replicate backup to paired region for geo-restore</li>
+          <li><strong>Restore</strong> — Creates a new server — does not restore in-place</li>
+        </ul>
+
+        <h2 id="read-replicas">Read Replicas</h2>
+        <p>Create up to 5 read replicas in the same or different regions. Replicas receive async replication from the primary. Use replicas to:</p>
+        <ul>
+          <li>Scale out read-heavy workloads (reporting, analytics)</li>
+          <li>Serve read traffic from geographically distant regions</li>
+          <li>Promote a replica to standalone server if primary fails (manual process)</li>
+        </ul>
+
+        <h2 id="security">Security</h2>
+        <ul>
+          <li><strong>Encryption at rest</strong> — AES-256, always enabled</li>
+          <li><strong>Encryption in transit</strong> — SSL/TLS enforced by default</li>
+          <li><strong>Firewall rules</strong> — Control which IPs can connect</li>
+          <li><strong>VNet integration</strong> — Private access without public IP</li>
+          <li><strong>Azure AD authentication</strong> — Use Azure AD identities instead of MySQL passwords</li>
+          <li><strong>Microsoft Defender for MySQL</strong> — Threat detection, anomaly detection</li>
+        </ul>
+
+        <h2 id="creating">Creating via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create MySQL Flexible Server</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code"># Create MySQL Flexible Server
+az mysql flexible-server create \
+  --name mymysqlserver-2026 \
+  --resource-group myRG \
+  --location centralindia \
+  --admin-user mysqladmin \
+  --admin-password "SecureP@ssword123!" \
+  --sku-name Standard_B2ms \
+  --tier Burstable \
+  --version 8.0 \
+  --storage-size 32 \
+  --high-availability ZoneRedundant</code></pre>
+        </div>
+
+        <h2 id="migration">Migration from On-Premises</h2>
+        <p>Two common approaches:</p>
+        <ul>
+          <li><strong>Azure Database Migration Service</strong> — Online migration with minimal downtime. Continuous replication until cutover.</li>
+          <li><strong>mysqldump + restore</strong> — Dump the database, import to Azure MySQL. Simple but requires downtime.</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know Flexible Server is the current recommended deployment option. Know the three tiers (Burstable, General Purpose, Business Critical). Know that PITR retention is 1–35 days. Know that restoring creates a new server — it does not restore in-place.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What happens when you perform a Point-in-Time Restore on Azure Database for MySQL?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PITR creates a new server — it does not overwrite or restore the existing server in-place.')">A — The existing server is restored in-place to the specified point</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Point-in-Time Restore creates a new MySQL Flexible Server with data from the specified point in time. The original server continues running unchanged. You then update connection strings to point to the new server.')">B — A new server is created with data from the specified point in time</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PITR creates a new server — it does not overwrite a backup file.')">C — A backup file is created in Azure Blob Storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PITR restores all data to the specified point — it does not revert only the most recent changes.')">D — Only the last transaction is rolled back</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Which Azure Database for MySQL service tier is best for a low-traffic WordPress site?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Burstable tier uses B-series compute — perfect for WordPress and low-traffic applications. It earns CPU credits when idle and uses them during bursts. Much cheaper than General Purpose for workloads that don\'t need constant full CPU.')">A — Burstable</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. General Purpose is for production workloads needing sustained performance — overkill and more expensive for a low-traffic WordPress site.')">B — General Purpose</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Business Critical is for the highest performance requirements — expensive and completely unnecessary for a small WordPress site.')">C — Business Critical</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Standard" tier in Azure Database for MySQL Flexible Server.')">D — Standard</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the maximum number of read replicas you can create for Azure Database for MySQL?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum is 5 read replicas — not 1.')">A — 1</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Database for MySQL supports up to 5 read replicas. Replicas can be in the same region or different regions for geographic read distribution.')">B — 5</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum is 5 — not 10.')">C — 10</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is a maximum of 5 read replicas — it is not unlimited.')">D — Unlimited</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which HA configuration provides the highest SLA for Azure Database for MySQL?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Zone-Redundant HA deploys a primary and standby in different Availability Zones, providing 99.99% SLA. Same-Zone HA and no HA configurations provide 99.9% SLA.')">A — Zone-Redundant HA (primary and standby in different AZs) — 99.99%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Same-Zone HA provides 99.9% SLA — lower than Zone-Redundant HA\'s 99.99%.')">B — Same-Zone HA — 99.99%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. No HA configuration provides 99.9% SLA — the lowest of the three options.')">C — No HA — 99.95%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. All HA configurations provide the same SLA regardless of tier (zone-redundant = 99.99%, others = 99.9%).')">D — Business Critical tier only — 99.999%</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Is encryption at rest enabled by default for Azure Database for MySQL?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Encryption at rest using AES-256 is always enabled for Azure Database for MySQL — it cannot be disabled. All data files, backups, and temp files are encrypted. Encryption in transit (SSL/TLS) is also enforced by default.')">A — Yes — AES-256 encryption at rest is always enabled and cannot be disabled</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption at rest is always enabled — you do not need to manually enable it.')">B — No — it must be manually enabled</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption at rest is enabled for all tiers — not just Business Critical.')">C — Only for Business Critical tier</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Encryption at rest is included in the standard cost — there is no additional charge.')">D — Yes — but only with an additional cost</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="azure-postgresql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Database for PostgreSQL</span></a>
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+        <a class="related-card" href="database-migration.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Database Migration Service</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="cosmos-db.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Cosmos DB</span></a>
+        <a class="nav-card next" href="azure-postgresql.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Database for PostgreSQL</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

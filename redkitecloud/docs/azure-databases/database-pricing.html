@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Database Pricing | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure database pricing — SQL Database, Cosmos DB, MySQL, PostgreSQL, Redis cost components, real examples, and top cost-saving tips." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Database Pricing</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Azure Database Pricing</h1>
+      <p class="page-intro">Azure database services span a huge price range — from a few hundred rupees per month for a small MySQL Flexible Server to millions for a large Cosmos DB globally distributed deployment. Understanding all the cost components, knowing which levers to pull, and planning before you deploy can save enormous amounts. This page covers pricing for every major Azure database service.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> Cost components for each database service · Real-world price estimates (Central India) · Azure Hybrid Benefit for SQL Server · Reserved capacity discounts · Serverless and auto-pause savings · Elastic pool savings · Top 10 database cost-saving tips · Using the Pricing Calculator
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#sql-database-pricing">Azure SQL Database Pricing</a></li>
+        <li><a href="#sql-mi-pricing">SQL Managed Instance Pricing</a></li>
+        <li><a href="#cosmos-pricing">Cosmos DB Pricing</a></li>
+        <li><a href="#mysql-pg-pricing">MySQL &amp; PostgreSQL Pricing</a></li>
+        <li><a href="#redis-pricing">Redis Cache Pricing</a></li>
+        <li><a href="#synapse-pricing">Synapse Analytics Pricing</a></li>
+        <li><a href="#hybrid-benefit">Azure Hybrid Benefit</a></li>
+        <li><a href="#reserved-capacity">Reserved Capacity</a></li>
+        <li><a href="#cost-tips">Top 10 Cost-Saving Tips</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="sql-database-pricing">Azure SQL Database Pricing</h2>
+        <p>SQL Database billing has three components — compute, storage, and backup storage:</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Billing Unit</th><th>Approx. Cost (Central India)</th></tr></thead>
+          <tbody>
+            <tr><td>Compute (vCore)</td><td>Per vCore per hour</td><td>General Purpose: ~₹6–8/vCore/hour</td></tr>
+            <tr><td>Storage</td><td>Per GB per month</td><td>~₹10–12/GB/month</td></tr>
+            <tr><td>Backup storage</td><td>Per GB per month above free</td><td>First 100% of DB size free; LRS ~₹1/GB beyond</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Real Example — General Purpose, 4 vCores, 100 GB</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Monthly Cost</th></tr></thead>
+          <tbody>
+            <tr><td>4 vCores × ~₹7 × 730 hours</td><td>~₹20,440</td></tr>
+            <tr><td>100 GB storage × ₹11</td><td>~₹1,100</td></tr>
+            <tr><td>Backup (within free tier)</td><td>₹0</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>~₹21,540/month</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Serverless Saves on Dev/Test</strong> Serverless SQL Database auto-pauses after inactivity. A dev database that's used 8 hours/day instead of 24 saves ~67% on compute. Configure auto-pause to 1 hour for maximum savings.</div>
+        </div>
+
+        <h2 id="sql-mi-pricing">SQL Managed Instance Pricing</h2>
+        <p>SQL MI is significantly more expensive than SQL Database — it provides a full SQL Server instance:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>vCores</th><th>Approx. Monthly Cost</th></tr></thead>
+          <tbody>
+            <tr><td>General Purpose</td><td>4 vCores</td><td>~₹50,000–60,000/month</td></tr>
+            <tr><td>General Purpose</td><td>8 vCores</td><td>~₹100,000–120,000/month</td></tr>
+            <tr><td>Business Critical</td><td>4 vCores</td><td>~₹160,000–180,000/month</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Azure Hybrid Benefit Saves ~40%</strong> If you have existing SQL Server licences with Software Assurance, Azure Hybrid Benefit lets you use them for SQL MI — reducing the licence portion of the cost by ~40%. Always check if AHB applies before deploying SQL MI.</div>
+        </div>
+
+        <h2 id="cosmos-pricing">Cosmos DB Pricing</h2>
+        <p>Cosmos DB bills on RU/s (throughput) and storage:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Provisioned throughput (manual)</td><td>~₹6 per 100 RU/s per hour</td></tr>
+            <tr><td>Autoscale throughput</td><td>~₹7.5 per 100 RU/s per hour (billed at current scale)</td></tr>
+            <tr><td>Serverless</td><td>~₹0.024 per 10,000 RUs consumed</td></tr>
+            <tr><td>Storage (transactional)</td><td>~₹21/GB/month</td></tr>
+            <tr><td>Additional write regions</td><td>Each additional region multiplies RU/s cost</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Multi-Region Writes Multiply Costs</strong> Adding write regions to Cosmos DB multiplies your RU/s cost by the number of regions. A 1,000 RU/s database in 3 write regions costs 3× the single-region price. Read-only replicas are cheaper — plan your topology carefully.</div>
+        </div>
+
+        <h2 id="mysql-pg-pricing">MySQL &amp; PostgreSQL Pricing</h2>
+        <p>Both MySQL and PostgreSQL Flexible Server share a similar pricing model:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>vCores</th><th>Approx. Monthly Cost (Central India)</th></tr></thead>
+          <tbody>
+            <tr><td>Burstable</td><td>1 vCore</td><td>~₹1,200–1,800/month</td></tr>
+            <tr><td>Burstable</td><td>2 vCores</td><td>~₹2,500–3,500/month</td></tr>
+            <tr><td>General Purpose</td><td>2 vCores</td><td>~₹8,000–10,000/month</td></tr>
+            <tr><td>General Purpose</td><td>4 vCores</td><td>~₹16,000–20,000/month</td></tr>
+            <tr><td>Business Critical / Memory Optimised</td><td>2 vCores</td><td>~₹16,000–20,000/month</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Stop/Start Saves Money</h3>
+        <p>MySQL and PostgreSQL Flexible Servers can be stopped when not in use. Compute billing pauses — storage billing continues (~₹10/GB/month). A dev server stopped for 16 hours per day saves ~67% on compute.</p>
+
+        <h2 id="redis-pricing">Redis Cache Pricing</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>Cache Size</th><th>Approx. Monthly Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Basic C0</td><td>250 MB</td><td>~₹1,000/month</td></tr>
+            <tr><td>Standard C1</td><td>1 GB</td><td>~₹3,500/month</td></tr>
+            <tr><td>Standard C2</td><td>6 GB</td><td>~₹9,000/month</td></tr>
+            <tr><td>Premium P1</td><td>6 GB</td><td>~₹18,000/month</td></tr>
+            <tr><td>Premium P3</td><td>26 GB</td><td>~₹75,000/month</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="synapse-pricing">Synapse Analytics Pricing</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Dedicated SQL Pool (DW100c)</td><td>~₹55/hour → ~₹40,000/month (if always on)</td></tr>
+            <tr><td>Serverless SQL Pool</td><td>~₹370/TB scanned</td></tr>
+            <tr><td>Spark Pool</td><td>Per vCore-hour when running</td></tr>
+            <tr><td>Data Lake Storage</td><td>Standard storage rates</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Pause Dedicated SQL Pool</strong> The biggest Synapse cost lever — pause the Dedicated SQL Pool when not running queries. A pool used only during business hours (8 hours/day × 22 days) saves ~73% vs always-on.</div>
+        </div>
+
+        <h2 id="hybrid-benefit">Azure Hybrid Benefit</h2>
+        <p>If you have existing SQL Server licences with Software Assurance (SA), Azure Hybrid Benefit (AHB) allows you to use them in Azure — reducing costs by 30–40%.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Service</th><th>AHB Discount</th></tr></thead>
+          <tbody>
+            <tr><td>Azure SQL Database</td><td>Up to 30% off licence component</td></tr>
+            <tr><td>SQL Managed Instance</td><td>Up to 40% off licence component</td></tr>
+            <tr><td>SQL Server on VM</td><td>Use own licence — save full SQL Server licence cost</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="reserved-capacity">Reserved Capacity</h2>
+        <p>For predictable, steady-state workloads, reserve capacity 1 or 3 years in advance for significant discounts:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Service</th><th>1-Year Reservation</th><th>3-Year Reservation</th></tr></thead>
+          <tbody>
+            <tr><td>Azure SQL Database</td><td>~33% discount</td><td>~60% discount</td></tr>
+            <tr><td>SQL Managed Instance</td><td>~33% discount</td><td>~60% discount</td></tr>
+            <tr><td>Cosmos DB (RU/s)</td><td>~17% discount</td><td>~29% discount</td></tr>
+            <tr><td>MySQL/PostgreSQL</td><td>~33% discount</td><td>~60% discount</td></tr>
+            <tr><td>Redis Cache</td><td>~33% discount</td><td>~60% discount</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="cost-tips">Top 10 Database Cost-Saving Tips</h2>
+
+        <h3>1. Use Azure Hybrid Benefit</h3>
+        <p>If you have SQL Server licences with SA, enable AHB before deploying — saves 30–40% immediately.</p>
+
+        <h3>2. Buy Reserved Capacity for Stable Workloads</h3>
+        <p>3-year reserved capacity saves up to 60% vs pay-as-you-go for always-on databases.</p>
+
+        <h3>3. Use Serverless for Dev/Test</h3>
+        <p>SQL Database Serverless auto-pauses — billing stops for compute when idle.</p>
+
+        <h3>4. Stop MySQL/PostgreSQL Servers After Hours</h3>
+        <p>Flexible Servers can be stopped manually or via Azure Automation. Stop dev servers overnight.</p>
+
+        <h3>5. Pause Synapse Dedicated SQL Pools</h3>
+        <p>Biggest Synapse cost lever — pause when not running analytics queries.</p>
+
+        <h3>6. Right-Size Before Deploying</h3>
+        <p>Start with the smallest tier that meets requirements. Scale up is easy — but scale down requires careful planning.</p>
+
+        <h3>7. Use Elastic Pools for Multi-Tenant Apps</h3>
+        <p>Multiple databases sharing a pool costs far less than individual databases for SaaS apps with variable usage.</p>
+
+        <h3>8. Choose the Right Cosmos DB Throughput Mode</h3>
+        <p>Serverless for dev/test. Autoscale for variable production. Manual provisioned for predictable high-volume.</p>
+
+        <h3>9. Minimise Cosmos DB Write Regions</h3>
+        <p>Each write region multiplies RU/s cost. Use read-only regions where possible — much cheaper.</p>
+
+        <h3>10. Monitor with Azure Cost Management</h3>
+        <p>Set budgets and alerts. Review cost analysis monthly. Identify orphaned databases and unused elastic pool capacity.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that Azure Hybrid Benefit reduces SQL Server licensing costs. Know reserved capacity provides up to 60% discount for 3-year commitments. Know that Serverless SQL Database and MySQL/PostgreSQL stop/start eliminate compute costs when idle. Know elastic pools reduce multi-tenant database costs.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A company has existing SQL Server licences with Software Assurance. What should they do before deploying Azure SQL Managed Instance to reduce costs?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Hybrid Benefit (AHB) allows companies with SQL Server licences covered by Software Assurance to apply those licences to Azure SQL MI — reducing the licence portion of the cost by up to 40%. Always enable AHB before deploying if you have eligible licences.')">A — Enable Azure Hybrid Benefit to apply existing licences</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Buying a SQL Server licence from the Azure Marketplace adds cost — AHB allows you to use existing licences you already own.')">B — Buy a new SQL Server licence from Azure Marketplace</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using MySQL instead of SQL MI defeats the purpose of migrating a SQL Server workload.')">C — Switch to Azure Database for MySQL to save costs</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Choosing a lower tier reduces performance — AHB reduces cost without impacting performance.')">D — Choose the Basic tier to reduce costs</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> How much can reserved capacity (3-year) save compared to pay-as-you-go for Azure SQL Database?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A 10% discount is much lower than what 3-year reserved capacity provides.')">A — 10%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A 3-year reservation provides a larger discount than 33%.')">B — 33%</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A 3-year reserved capacity commitment for Azure SQL Database can save up to 60% compared to pay-as-you-go pricing. This makes reserved capacity extremely valuable for stable, predictable production databases that run continuously.')">C — Up to 60%</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While Azure Hybrid Benefit combined with reserved capacity can push discounts higher, reserved capacity alone provides up to 60%.')">D — Up to 90%</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the most effective way to reduce Azure Synapse Analytics costs for a batch analytics workload that only runs during business hours?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reducing DWUs lowers performance but doesn\'t stop billing — pausing stops compute billing entirely.')">A — Reduce DWUs to minimum outside business hours</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Pausing the Dedicated SQL Pool stops compute billing entirely — you only pay for storage. For a pool used 8 hours/day on weekdays, pausing saves ~73% vs always-on. This is the single biggest cost lever for Synapse.')">B — Pause the Dedicated SQL Pool outside business hours</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deleting and recreating daily is risky, complex, and time-consuming — pausing is the correct approach.')">C — Delete and recreate the Dedicated SQL Pool daily</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Synapse Standard tier doesn\'t exist — and choosing a cheaper tier isn\'t as effective as pausing the pool.')">D — Switch to Synapse Standard tier</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> A SaaS company has 50 customer databases with variable usage — different customers peak at different times. What saves the most money vs individual databases?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 50 individual serverless databases still pay per database — Elastic Pools share resources more efficiently for this pattern.')">A — Use Serverless tier for each of the 50 databases</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Elastic Pools let all 50 databases share a pool of resources. Since customers peak at different times, the pool only needs to handle combined average load — not 50 × peak. This typically saves 50–70% vs individual databases for multi-tenant SaaS applications.')">B — Put all databases in an Elastic Pool to share resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL Managed Instance is more expensive than SQL Database and not designed for Elastic Pool-style multi-tenancy.')">C — Use SQL Managed Instance for all databases</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB is a NoSQL service — migrating from SQL to NoSQL just to save money on a SQL workload introduces unnecessary complexity.')">D — Migrate all databases to Cosmos DB</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> How does adding write regions to a Cosmos DB account affect cost?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Additional write regions do not use different billing units — RU/s remains the unit, but the total cost multiplies.')">A — Additional write regions use a different billing unit</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Each write region you add to a Cosmos DB account multiplies your RU/s cost by the number of regions. A 1,000 RU/s database in 3 write regions costs 3× the single-region price. Where possible, use read-only replicas (cheaper) instead of full write regions.')">B — Each additional write region multiplies the RU/s cost by the number of regions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Additional write regions add significant cost — they are not free.')">C — Additional write regions are free — you only pay for the primary region</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The cost impact is much larger than a flat ₹500/month per region — it multiplies the entire RU/s cost.')">D — Each additional region adds a flat ₹500/month</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="choosing-database.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Choosing the Right Database</span></a>
+        <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+        <a class="related-card" href="cosmos-db.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Cosmos DB</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="database-migration.html"><span class="nav-label">← Previous</span><span class="nav-title">Database Migration Service</span></a>
+        <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

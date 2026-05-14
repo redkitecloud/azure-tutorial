@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database Migration Service | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Database Migration Service — online vs offline migration, supported sources, migration assessment, and step-by-step process." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Database Migration Service</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Databases</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Azure Database Migration Service</h1>
+      <p class="page-intro">Azure Database Migration Service (DMS) is a fully managed service designed to enable seamless migrations from multiple database sources to Azure data platforms with minimal downtime. Whether you're moving SQL Server, MySQL, PostgreSQL, MongoDB, or Oracle to Azure, DMS provides automated, monitored migration with minimal disruption to your applications.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong> Online vs offline migration · Supported source/target combinations · Azure Database Migration Assessment · Pre-migration steps · Step-by-step migration process · Cutover process · DMS SKUs · Troubleshooting migrations</div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#online-vs-offline">Online vs Offline Migration</a></li>
+        <li><a href="#supported-migrations">Supported Migrations</a></li>
+        <li><a href="#assessment">Migration Assessment</a></li>
+        <li><a href="#migration-process">Migration Process</a></li>
+        <li><a href="#cutover">Cutover Process</a></li>
+        <li><a href="#dms-skus">DMS SKUs</a></li>
+        <li><a href="#alternatives">Alternative Migration Methods</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="online-vs-offline">Online vs Offline Migration</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Offline Migration</th><th>Online Migration</th></tr></thead>
+          <tbody>
+            <tr><td>Downtime required</td><td>Yes — database goes offline during migration</td><td>Minimal — database stays online, brief cutover only</td></tr>
+            <tr><td>How it works</td><td>Full backup/restore — database offline during transfer</td><td>Initial full backup + continuous log streaming until cutover</td></tr>
+            <tr><td>Best for</td><td>Small databases, planned maintenance window available</td><td>Large databases, 24/7 availability required</td></tr>
+            <tr><td>Complexity</td><td>Simpler</td><td>More complex — requires log backup access</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Online Migration for Production</strong> For production databases that must remain accessible, always use online migration. DMS streams transaction logs continuously — keeping the Azure target in near-real-time sync with the source. Only a brief cutover window (seconds to minutes) is needed.</div>
+        </div>
+
+        <h2 id="supported-migrations">Supported Migrations</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Source</th><th>Target</th><th>Mode</th></tr></thead>
+          <tbody>
+            <tr><td>SQL Server (on-premises/VM)</td><td>Azure SQL Database</td><td>Online, Offline</td></tr>
+            <tr><td>SQL Server (on-premises/VM)</td><td>Azure SQL Managed Instance</td><td>Online, Offline</td></tr>
+            <tr><td>MySQL (on-premises/VM)</td><td>Azure Database for MySQL</td><td>Online, Offline</td></tr>
+            <tr><td>PostgreSQL (on-premises/VM)</td><td>Azure Database for PostgreSQL</td><td>Online, Offline</td></tr>
+            <tr><td>MongoDB</td><td>Azure Cosmos DB (Mongo API)</td><td>Online, Offline</td></tr>
+            <tr><td>Oracle</td><td>Azure Database for PostgreSQL</td><td>Online</td></tr>
+            <tr><td>Amazon RDS MySQL/PostgreSQL</td><td>Azure Database for MySQL/PostgreSQL</td><td>Online</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="assessment">Migration Assessment</h2>
+        <p>Before migrating, assess your source database for compatibility issues. Microsoft provides:</p>
+        <ul>
+          <li><strong>Azure Migrate</strong> — Discover and assess on-premises SQL Server workloads</li>
+          <li><strong>Database Migration Assessment for MySQL/PostgreSQL</strong> — Identify compatibility issues</li>
+          <li><strong>Data Migration Assistant (DMA)</strong> — Deep SQL Server compatibility assessment for Azure SQL Database/MI</li>
+        </ul>
+
+        <p>Assessment identifies: unsupported features, deprecated syntax, incompatible data types, and recommended target (SQL Database vs Managed Instance).</p>
+
+        <h2 id="migration-process">Migration Process</h2>
+
+        <h3>Step 1 — Pre-Migration</h3>
+        <ul>
+          <li>Run assessment tool — identify and resolve compatibility issues</li>
+          <li>Create target Azure database</li>
+          <li>Configure network — source must be reachable from DMS (VPN or ExpressRoute for on-premises)</li>
+          <li>Ensure source database has required permissions for DMS</li>
+        </ul>
+
+        <h3>Step 2 — Create DMS Migration Project</h3>
+        <ol>
+          <li>Create DMS instance in Azure Portal</li>
+          <li>Create a new migration project (specify source type, target type, migration type)</li>
+          <li>Configure source connection (on-premises SQL Server connection details)</li>
+          <li>Configure target connection (Azure SQL Database/MI connection details)</li>
+          <li>Select databases to migrate</li>
+          <li>Map source to target tables (for online migration)</li>
+        </ol>
+
+        <h3>Step 3 — Run Migration</h3>
+        <ul>
+          <li><strong>Offline</strong>: DMS takes backup of source, transfers, restores to target. Source goes offline.</li>
+          <li><strong>Online</strong>: DMS takes initial snapshot, then applies ongoing transaction logs. Source stays online.</li>
+        </ul>
+
+        <h3>Step 4 — Monitor</h3>
+        <p>Monitor progress in the Azure Portal — see replication lag (for online), rows migrated, errors. For online migration, aim to get replication lag to near-zero before cutover.</p>
+
+        <h2 id="cutover">Cutover Process (Online Migration)</h2>
+        <ol>
+          <li>Wait for replication lag to reach near-zero</li>
+          <li>Stop new write operations on the source database</li>
+          <li>Wait for replication lag to reach exactly zero</li>
+          <li>Initiate cutover in DMS Portal</li>
+          <li>DMS finalises the migration</li>
+          <li>Update application connection strings to point to Azure target</li>
+          <li>Verify application functionality</li>
+          <li>Decommission source database</li>
+        </ol>
+
+        <h2 id="dms-skus">DMS SKUs</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>SKU</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Standard (General Purpose)</strong></td><td>Offline migrations</td></tr>
+            <tr><td><strong>Premium (Business Critical)</strong></td><td>Online migrations — continuous log streaming requires premium SKU</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Online Migration Requires Premium SKU</strong> If you need online (minimal downtime) migration, you must use the Premium SKU. The Standard SKU only supports offline migrations.</div>
+        </div>
+
+        <h2 id="alternatives">Alternative Migration Methods</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Method</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>BACPAC (SQL)</strong></td><td>Small SQL Database migrations — export .bacpac, import to Azure</td></tr>
+            <tr><td><strong>Native backup/restore (SQL MI)</strong></td><td>Direct .bak file restore to SQL Managed Instance</td></tr>
+            <tr><td><strong>mysqldump / pg_dump</strong></td><td>Simple MySQL/PostgreSQL offline migrations</td></tr>
+            <tr><td><strong>Azure Data Factory</strong></td><td>Custom data pipelines with transformation</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that online migration requires Premium SKU and provides minimal downtime. Know that offline migration requires downtime. Know DMS supports SQL Server, MySQL, PostgreSQL, MongoDB, and Oracle sources. Know that assessment tools identify compatibility issues before migration.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A company needs to migrate a production SQL Server database to Azure SQL Managed Instance with minimal downtime. Which DMS mode should they use?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Offline migration requires taking the database offline during migration — not suitable for minimal downtime.')">A — Offline migration</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Online migration keeps the source database running throughout. DMS takes an initial backup, then continuously streams transaction logs to the target — keeping it in near-real-time sync. Only a brief cutover (stop writes, final sync, switch connections) is needed for minimal downtime.')">B — Online migration</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Hybrid" migration mode in DMS.')">C — Hybrid migration</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Parallel migration is not a DMS migration mode.')">D — Parallel migration</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Which DMS SKU is required for online (minimal downtime) migrations?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard SKU only supports offline migrations — Premium is required for online migrations.')">A — Standard (General Purpose)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Online migrations require the Premium (Business Critical) SKU because continuous log streaming and near-real-time replication requires more powerful compute than offline migrations.')">B — Premium (Business Critical)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Standard and Premium support migrations — but only Premium supports online mode.')">C — Both Standard and Premium support online migration</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Free" tier for DMS.')">D — Free tier</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> In an online migration, when should you initiate the cutover?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cutting over immediately after initial backup leaves the target hours behind — you should wait for replication lag to reach near-zero first.')">A — Immediately after the initial backup completes</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The cutover should happen when replication lag is near-zero (meaning the Azure target is almost fully synchronised with the source). Stop new writes on source, wait for lag to reach zero, then cut over. This minimises data loss risk.')">B — When replication lag reaches near-zero, then stop writes on source before final cutover</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A 24-hour delay would be arbitrary — cutover timing should be based on replication lag, not a fixed time period.')">C — After exactly 24 hours of replication</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no Microsoft-initiated cutover — you control the timing and initiate it manually.')">D — When Microsoft sends a migration complete notification</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which tool should you use to assess SQL Server compatibility before migrating to Azure SQL Database?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Data Migration Assistant (DMA) is Microsoft\'s assessment tool for SQL Server migrations. It identifies compatibility issues, deprecated features, unsupported objects, and recommends whether to target SQL Database or SQL Managed Instance based on your workload.')">A — Data Migration Assistant (DMA)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Migrate is used for VM and infrastructure discovery and assessment — not specifically for deep SQL Server compatibility assessment.')">B — Azure Migrate</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Advisor provides cost and performance recommendations for existing Azure resources — not for pre-migration SQL Server assessment.')">C — Azure Advisor</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DMS itself can discover issues, but Data Migration Assistant provides a more detailed assessment before starting migration.')">D — Azure Database Migration Service directly</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What is the simplest method to migrate a small Azure SQL Database to another region?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! BACPAC export/import is the simplest method for small SQL Database migrations. Export the database to a .bacpac file (stored in Azure Blob Storage), then import it to a new SQL server in the target region. DMS is more appropriate for large, online migrations.')">A — Export as BACPAC, transfer to target region, import</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. DMS is more appropriate for large databases requiring minimal downtime — BACPAC is simpler for small databases.')">B — Azure Database Migration Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Data Factory can copy data but is more complex to configure than a simple BACPAC export/import for SQL Database.')">C — Azure Data Factory pipeline</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Native .bak file restore is the approach for SQL Managed Instance — not Azure SQL Database (which uses BACPAC).')">D — Native .bak file backup and restore</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+        <a class="related-card" href="sql-managed-instance.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">SQL Managed Instance</span></a>
+        <a class="related-card" href="database-pricing.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Database Pricing</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="data-factory.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Data Factory</span></a>
+        <a class="nav-card next" href="database-pricing.html"><span class="nav-label">Next →</span><span class="nav-title">Database Pricing</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

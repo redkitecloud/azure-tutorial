@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choosing the Right Azure Database | Azure Databases | RedKiteCloud</title>
+  <meta name="description" content="Decision guide for Azure databases — SQL vs NoSQL, managed vs self-managed, and when to use Azure SQL, Cosmos DB, MySQL, PostgreSQL, Redis, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+    <main class="main">
+      <div class="content-area">
+        <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Databases</a><span class="sep">›</span><span class="current">Choosing the Right Database</span></div>
+        <div class="last-updated">Last updated: May 2026</div>
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Databases</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-104</span>
+          <span class="badge badge-read">⏱ 10 min read</span>
+        </div>
+
+        <h1 class="page-title">Choosing the Right Azure Database</h1>
+        <p class="page-intro">Azure offers over a dozen database services — and choosing the wrong one costs time, money, and can require a painful migration later. The right choice depends on your data model (relational vs NoSQL), your application's consistency and latency requirements, your team's existing skills, and whether you need to migrate an existing workload or build something new. This guide walks through the decision.</p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          Relational vs NoSQL — when each fits · All Azure database services mapped · Decision tree for common scenarios · Managed PaaS vs IaaS (SQL on VM) trade-offs · Migration scenarios · Performance tier decisions
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#relational-vs-nosql">Relational vs NoSQL</a></li>
+            <li><a href="#azure-database-map">Azure Database Services Map</a></li>
+            <li><a href="#decision-tree">Decision Tree</a></li>
+            <li><a href="#paas-vs-iaas">Managed PaaS vs SQL on VM</a></li>
+            <li><a href="#migration-scenarios">Migration Scenarios</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="relational-vs-nosql">Relational vs NoSQL</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th></th><th>Relational (SQL)</th><th>NoSQL</th></tr></thead>
+              <tbody>
+                <tr><td>Data model</td><td>Tables with rows and columns, fixed schema</td><td>Documents, key-value, graph, column-family — flexible schema</td></tr>
+                <tr><td>Query language</td><td>SQL — powerful JOIN, aggregation</td><td>Varies — API-based, limited joins</td></tr>
+                <tr><td>Consistency</td><td>ACID transactions — strong consistency</td><td>Eventual or configurable consistency</td></tr>
+                <tr><td>Scale</td><td>Vertical (scale up) + limited horizontal</td><td>Horizontal scale-out designed in</td></tr>
+                <tr><td>Best for</td><td>Structured data with relationships, financial systems, ERP</td><td>High-volume reads/writes, globally distributed, flexible data</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="azure-database-map">Azure Database Services Map</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Service</th><th>Type</th><th>Engine</th><th>Best For</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Azure SQL Database</strong></td><td>Relational PaaS</td><td>SQL Server</td><td>New cloud-native apps, SQL Server migration</td></tr>
+                <tr><td><strong>Azure SQL Managed Instance</strong></td><td>Relational PaaS</td><td>SQL Server (near-full)</td><td>Lift-and-shift SQL Server with full compatibility</td></tr>
+                <tr><td><strong>SQL Server on VM</strong></td><td>Relational IaaS</td><td>SQL Server</td><td>Full control, legacy features, specific versions</td></tr>
+                <tr><td><strong>Azure Database for MySQL</strong></td><td>Relational PaaS</td><td>MySQL</td><td>LAMP stack, WordPress, existing MySQL apps</td></tr>
+                <tr><td><strong>Azure Database for PostgreSQL</strong></td><td>Relational PaaS</td><td>PostgreSQL</td><td>Complex queries, geospatial, advanced SQL</td></tr>
+                <tr><td><strong>Azure Cosmos DB</strong></td><td>NoSQL PaaS</td><td>Multi-model</td><td>Globally distributed, low latency, multi-model</td></tr>
+                <tr><td><strong>Azure Cache for Redis</strong></td><td>Cache/NoSQL</td><td>Redis</td><td>Caching, session state, leaderboards, pub/sub</td></tr>
+                <tr><td><strong>Azure Synapse Analytics</strong></td><td>Analytics</td><td>Dedicated SQL pool</td><td>Data warehousing, big data analytics</td></tr>
+                <tr><td><strong>Azure Table Storage</strong></td><td>NoSQL</td><td>Key-value</td><td>Simple structured data, cheap storage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="decision-tree">Decision Tree</h2>
+
+          <h3>Start with: Is your data structured (tables with relationships)?</h3>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Scenario</th><th>Recommended Service</th></tr></thead>
+              <tbody>
+                <tr><td>New app, SQL Server skills, cloud-native</td><td>Azure SQL Database</td></tr>
+                <tr><td>Lift-and-shift existing SQL Server, need SQL Agent, linked servers</td><td>Azure SQL Managed Instance</td></tr>
+                <tr><td>Need specific SQL Server version, full OS access, legacy features</td><td>SQL Server on VM</td></tr>
+                <tr><td>Existing MySQL app, LAMP stack, WordPress</td><td>Azure Database for MySQL</td></tr>
+                <tr><td>PostgreSQL app, geospatial queries, advanced SQL</td><td>Azure Database for PostgreSQL</td></tr>
+                <tr><td>Globally distributed app, need &lt;10ms latency worldwide, flexible schema</td><td>Azure Cosmos DB</td></tr>
+                <tr><td>Need a cache to reduce database load, session storage</td><td>Azure Cache for Redis</td></tr>
+                <tr><td>Data warehousing, petabyte-scale analytics</td><td>Azure Synapse Analytics</td></tr>
+                <tr><td>Simple key-value lookups, extremely cheap storage</td><td>Azure Table Storage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="paas-vs-iaas">Managed PaaS vs SQL on VM</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Factor</th><th>PaaS (SQL Database / MI)</th><th>IaaS (SQL on VM)</th></tr></thead>
+              <tbody>
+                <tr><td>OS management</td><td>Microsoft manages</td><td>You manage</td></tr>
+                <tr><td>SQL patching</td><td>Automatic</td><td>Manual</td></tr>
+                <tr><td>Backup</td><td>Automatic</td><td>Manual / Azure Backup</td></tr>
+                <tr><td>HA</td><td>Built-in</td><td>Must configure Always On, FCI</td></tr>
+                <tr><td>SQL Server features</td><td>Most features (SQL Database), near-all (MI)</td><td>All features — no restrictions</td></tr>
+                <tr><td>Licensing</td><td>Included or BYOL (Hybrid Benefit)</td><td>PAYG or BYOL</td></tr>
+                <tr><td>Choose when</td><td>Want less management overhead</td><td>Need specific version, full control, legacy features</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="migration-scenarios">Migration Scenarios</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>From</th><th>To</th><th>Tool</th></tr></thead>
+              <tbody>
+                <tr><td>On-premises SQL Server</td><td>Azure SQL Database</td><td>Azure Database Migration Service, BACPAC</td></tr>
+                <tr><td>On-premises SQL Server</td><td>Azure SQL Managed Instance</td><td>Azure Database Migration Service (online)</td></tr>
+                <tr><td>On-premises MySQL</td><td>Azure Database for MySQL</td><td>Azure Database Migration Service, mysqldump</td></tr>
+                <tr><td>On-premises PostgreSQL</td><td>Azure Database for PostgreSQL</td><td>Azure Database Migration Service, pg_dump</td></tr>
+                <tr><td>Any relational database</td><td>Azure Cosmos DB</td><td>Custom ETL, Azure Data Factory</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-104 Exam Tip</strong>
+              Know the key differences: SQL Database (cloud-native, limited SQL Server features) vs SQL Managed Instance (near-full SQL Server, lift-and-shift). Know Cosmos DB for globally distributed, multi-model scenarios. Know Redis for caching. Know Synapse for data warehousing.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> A company wants to migrate their on-premises SQL Server to Azure with minimal changes — they use SQL Server Agent, linked servers, and CLR integration. Which service should they use?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure SQL Database does not support SQL Agent, linked servers, or CLR integration — it is a cloud-native service with a subset of SQL Server features.')">A — Azure SQL Database</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure SQL Managed Instance provides near-full SQL Server compatibility — including SQL Agent, linked servers, CLR, Database Mail, and more. It is specifically designed for lift-and-shift migrations from on-premises SQL Server.')">B — Azure SQL Managed Instance</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB is a NoSQL database — not compatible with SQL Server workloads.')">C — Azure Cosmos DB</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Database for MySQL is for MySQL workloads — not SQL Server migrations.')">D — Azure Database for MySQL</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> A startup is building a globally distributed mobile app that needs sub-10ms reads from any region worldwide. Which database is the best fit?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure SQL Database is a regional service — it cannot provide sub-10ms latency to users worldwide without complex geo-replication setup.')">A — Azure SQL Database</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cosmos DB is designed for global distribution with guaranteed single-digit millisecond latency at any scale. Data can be replicated to any number of Azure regions, and users are automatically routed to the nearest copy.')">B — Azure Cosmos DB</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Cache for Redis is a caching layer — not a primary database for persistent globally distributed data.')">C — Azure Cache for Redis</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Synapse Analytics is for analytics and data warehousing — not for real-time low-latency transactional reads.')">D — Azure Synapse Analytics</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What is the main advantage of PaaS database services (like Azure SQL Database) over SQL Server on a VM?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PaaS databases do not offer all SQL Server features — SQL on VM gives you full feature parity. PaaS trades features for reduced management overhead.')">A — PaaS offers all SQL Server features without restrictions</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! PaaS database services handle OS patching, SQL patching, backups, and high availability automatically. You manage only your data and applications — not the infrastructure. This reduces operational overhead significantly.')">B — Microsoft manages patching, backups, and HA automatically — reduced operational overhead</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PaaS services are not always cheaper than IaaS — it depends on the workload. PaaS trades features for management simplicity.')">C — PaaS is always cheaper than SQL on VM</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL on VM gives full OS access — PaaS services abstract the OS entirely.')">D — PaaS provides full OS access for custom configurations</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> Which Azure service is specifically designed for petabyte-scale data warehousing and analytics?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure SQL Database is for transactional workloads — not petabyte-scale analytics.')">A — Azure SQL Database</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Cosmos DB is for globally distributed transactional workloads — not data warehousing.')">B — Azure Cosmos DB</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Synapse Analytics is Microsoft\'s cloud data warehousing service — designed for petabyte-scale analytics, combining data integration, data warehousing, and big data analytics in one service.')">C — Azure Synapse Analytics</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Cache for Redis is for in-memory caching — not analytics.')">D — Azure Cache for Redis</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> A web application uses a database for user sessions and frequently accessed data to reduce load on the primary database. Which service is ideal?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL Managed Instance is for full SQL Server workloads — overkill for session caching.')">A — Azure SQL Managed Instance</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Database for PostgreSQL is a relational database — not optimised for in-memory caching and session state.')">B — Azure Database for PostgreSQL</div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Cache for Redis is an in-memory data store specifically designed for caching, session state management, real-time leaderboards, and reducing database load. It provides sub-millisecond response times.')">C — Azure Cache for Redis</div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Synapse Analytics is for large-scale analytics — not for application caching and session management.')">D — Azure Synapse Analytics</div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="azure-sql.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure SQL Database</span></a>
+            <a class="related-card" href="cosmos-db.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Cosmos DB</span></a>
+            <a class="related-card" href="azure-redis.html"><span class="related-card-label">Azure Databases</span><span class="related-card-title">Azure Cache for Redis</span></a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <div></div>
+          <a class="nav-card next" href="azure-sql.html"><span class="nav-label">Next →</span><span class="nav-title">Azure SQL Database</span></a>
+        </div>
+
+        <div class="comments-section"><div class="comments-label">Comments</div>
+          <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+        </div>
+        <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
