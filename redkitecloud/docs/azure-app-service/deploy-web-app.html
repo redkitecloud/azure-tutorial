@@ -55,7 +55,7 @@
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">GitHub Actions</span><span class="code-label">Example workflow for Node.js App Service deployment</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code">name: Deploy to Azure App Service
+          <pre><code>name: Deploy to Azure App Service
 
 on:
   push:
@@ -93,7 +93,7 @@ jobs:
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI + Git</span><span class="code-label">Configure and deploy via local Git</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Enable local Git deployment
+          <pre><code># Enable local Git deployment
 az webapp deployment source config-local-git \
   --name mywebapp-2026 \
   --resource-group myRG
@@ -111,7 +111,7 @@ git push azure main</code></pre>
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Deploy a ZIP package</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Create ZIP of your app (example for Node.js)
+          <pre><code># Create ZIP of your app (example for Node.js)
 zip -r myapp.zip . -x "node_modules/*" -x ".git/*"
 
 # Deploy ZIP to App Service
@@ -127,7 +127,7 @@ az webapp deploy \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Deploy a container from ACR</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Create web app with container image
+          <pre><code># Create web app with container image
 az webapp create \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -146,7 +146,7 @@ az webapp deployment container config \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Set App Settings</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Set environment variables
+          <pre><code># Set environment variables
 az webapp config appsettings set \
   --name mywebapp-2026 \
   --resource-group myRG \

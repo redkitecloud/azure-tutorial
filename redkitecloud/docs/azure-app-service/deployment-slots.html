@@ -56,7 +56,7 @@
         <h2 id="creating-slots">Creating Slots</h2>
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create a staging slot</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Create a staging slot
+          <pre><code># Create a staging slot
 az webapp deployment slot create \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -94,7 +94,7 @@ az webapp deployment slot list \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Swap staging to production</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Swap staging slot to production
+          <pre><code># Swap staging slot to production
 az webapp deployment slot swap \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -136,7 +136,7 @@ az webapp deployment slot swap \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Mark a setting as slot-specific (sticky)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Set a sticky app setting
+          <pre><code># Set a sticky app setting
 az webapp config appsettings set \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -154,7 +154,7 @@ az webapp config appsettings set \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Route 10% of traffic to staging</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Route 10% of traffic to staging slot
+          <pre><code># Route 10% of traffic to staging slot
 az webapp traffic-routing set \
   --name mywebapp-2026 \
   --resource-group myRG \

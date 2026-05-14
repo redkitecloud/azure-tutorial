@@ -90,7 +90,7 @@
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Stream logs in real-time</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Stream app logs
+          <pre><code># Stream app logs
 az webapp log tail \
   --name mywebapp-2026 \
   --resource-group myRG
@@ -112,7 +112,7 @@ az webapp log tail \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Configure health check endpoint</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Set health check path
+          <pre><code># Set health check path
 az webapp config set \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -141,7 +141,7 @@ az webapp config set \
         <h2 id="alerts">Setting Up Alerts</h2>
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create alert for HTTP 5xx errors</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Create metric alert for 5xx errors
+          <pre><code># Create metric alert for 5xx errors
 az monitor metrics alert create \
   --name Http5xxAlert \
   --resource-group myRG \
