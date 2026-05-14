@@ -114,7 +114,7 @@
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Upload and bind a custom certificate</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Upload PFX certificate
+          <pre><code># Upload PFX certificate
 az webapp config ssl upload \
   --certificate-file mycert.pfx \
   --certificate-password "CertPassword123!" \
@@ -145,7 +145,7 @@ az webapp config ssl bind \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enforce HTTPS</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Force HTTPS redirect
+          <pre><code># Force HTTPS redirect
 az webapp update \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -157,7 +157,7 @@ az webapp update \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Set minimum TLS version to 1.2</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Set minimum TLS to 1.2
+          <pre><code># Set minimum TLS to 1.2
 az webapp config set \
   --name mywebapp-2026 \
   --resource-group myRG \

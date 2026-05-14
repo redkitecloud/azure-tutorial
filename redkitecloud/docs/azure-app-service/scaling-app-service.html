@@ -60,7 +60,7 @@
         <p>All tiers (including Basic) support manual instance count changes. Set a fixed number of instances in Scale Out settings:</p>
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Manually set instance count</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Set to 3 instances
+          <pre><code># Set to 3 instances
 az appservice plan update \
   --name myAppServicePlan \
   --resource-group myRG \
@@ -92,7 +92,7 @@ az appservice plan update \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Example</span><span class="code-label">Typical auto-scale configuration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code">Profile: Default
+          <pre><code>Profile: Default
   Min instances: 2
   Max instances: 10
   Default instances: 2

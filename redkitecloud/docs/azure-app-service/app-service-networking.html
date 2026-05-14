@@ -52,7 +52,7 @@
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Restrict app to only allow Front Door IPs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Allow only Azure Front Door service tag
+          <pre><code># Allow only Azure Front Door service tag
 az webapp config access-restriction add \
   --name mywebapp-2026 \
   --resource-group myRG \
@@ -104,7 +104,7 @@ az webapp config access-restriction add \
 
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable VNet Integration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code"># Add VNet Integration (app subnet must be delegated to App Service)
+          <pre><code># Add VNet Integration (app subnet must be delegated to App Service)
 az webapp vnet-integration add \
   --name mywebapp-2026 \
   --resource-group myRG \
