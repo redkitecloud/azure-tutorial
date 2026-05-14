@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Service Best Practices | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="Azure App Service best practices — performance, reliability, security, deployment, scaling, cost optimisation, and production readiness checklist." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">App Service Best Practices</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Azure App Service Best Practices</h1>
+      <p class="page-intro">Running App Service correctly means more than just deploying your code. Production-ready applications need proper security hardening, resilient scaling configuration, zero-downtime deployments, cost controls, and observability. This page consolidates the most important best practices across every area of App Service.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Performance best practices · Reliability and HA · Security hardening checklist · Deployment best practices · Scaling configuration · Cost optimisation · Networking security · Monitoring and alerting · Production readiness checklist
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#performance">Performance</a></li>
+        <li><a href="#reliability">Reliability &amp; High Availability</a></li>
+        <li><a href="#security">Security Hardening</a></li>
+        <li><a href="#deployment">Deployment Best Practices</a></li>
+        <li><a href="#scaling">Scaling Configuration</a></li>
+        <li><a href="#cost">Cost Optimisation</a></li>
+        <li><a href="#networking">Networking Security</a></li>
+        <li><a href="#monitoring">Monitoring &amp; Alerting</a></li>
+        <li><a href="#checklist">Production Readiness Checklist</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="performance">Performance</h2>
+
+        <h3>Enable Always On</h3>
+        <p>Enable Always On (Basic tier+) to prevent the app from idling and avoid cold start delays on the first request after inactivity. Required for continuous WebJobs.</p>
+
+        <h3>Use the Right Tier</h3>
+        <p>Don't under-provision. Monitor CPU and memory for 2–4 weeks, then choose a tier with headroom. A consistently 90%+ CPU app will perform poorly under load spikes.</p>
+
+        <h3>Enable ARR Affinity Only When Needed</h3>
+        <p>ARR Affinity (sticky sessions) routes the same user to the same instance — useful for stateful apps but reduces load balancing effectiveness. If your app is stateless, disable it.</p>
+
+        <h3>Use a CDN for Static Assets</h3>
+        <p>Offload static files (images, CSS, JS) to Azure CDN or Front Door. App Service should serve only dynamic content — static content from CDN is faster and cheaper.</p>
+
+        <h3>Cache Aggressively</h3>
+        <p>Use Azure Cache for Redis for session state, database query results, and frequently accessed data. Reduces database load and response times dramatically.</p>
+
+        <h2 id="reliability">Reliability &amp; High Availability</h2>
+
+        <h3>Run Multiple Instances</h3>
+        <p>Always run at least 2 instances in production. A single-instance app has zero tolerance for instance failures or restarts during deployment.</p>
+
+        <h3>Use Availability Zones (Premium v3)</h3>
+        <p>On Premium v3, enable zone redundancy to spread instances across Availability Zones. Protects against a single data centre failure.</p>
+
+        <h3>Configure Health Check</h3>
+        <p>Set a <code>/health</code> endpoint and configure App Service Health Check. Unhealthy instances are automatically removed from the load balancer and replaced.</p>
+
+        <h3>Use Deployment Slots for Zero-Downtime Releases</h3>
+        <p>Never deploy directly to production. Deploy to staging, test, warm up, then swap. Keep the previous production in staging for instant rollback.</p>
+
+        <h3>Enable Auto-Healing</h3>
+        <p>Configure auto-heal rules to automatically restart the app when it enters degraded states (high memory, slow requests, status code errors) — before users notice.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable health check and Always On</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az webapp config set \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --always-on true \
+  --generic-configurations '{"healthCheckPath":"/health"}'</code></pre>
+        </div>
+
+        <h2 id="security">Security Hardening</h2>
+
+        <h3>Enforce HTTPS Only</h3>
+        <p>Always enable HTTPS Only — redirects all HTTP traffic to HTTPS. Never serve production traffic over unencrypted HTTP.</p>
+
+        <h3>Set Minimum TLS to 1.2</h3>
+        <p>Reject TLS 1.0 and 1.1 connections — both are deprecated and vulnerable.</p>
+
+        <h3>Never Store Secrets in Code or Config Files</h3>
+        <p>Use App Settings (environment variables) and reference Azure Key Vault for all secrets. Use Managed Identities to authenticate to Key Vault without storing credentials.</p>
+
+        <h3>Use Managed Identity</h3>
+        <p>Enable a system-assigned Managed Identity on your App Service app. Use it to authenticate to Azure services (Key Vault, SQL, Storage) without any connection strings or passwords.</p>
+
+        <h3>Restrict Inbound Traffic</h3>
+        <p>Use Access Restrictions to limit inbound traffic to known IPs or service tags. If using Front Door, restrict to the AzureFrontDoor.Backend service tag only.</p>
+
+        <h3>Disable FTP and SCM Access When Not Needed</h3>
+        <p>Disable FTP (use FTPS only) and restrict SCM (Kudu) access to trusted IPs. Open FTP/SCM is a common attack vector.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Security hardening commands</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Enforce HTTPS
+az webapp update --name mywebapp-2026 --resource-group myRG --https-only true
+
+# Set minimum TLS version
+az webapp config set --name mywebapp-2026 --resource-group myRG --min-tls-version 1.2
+
+# Disable FTP, keep FTPS only
+az webapp config set --name mywebapp-2026 --resource-group myRG --ftps-state FtpsOnly
+
+# Enable Managed Identity
+az webapp identity assign --name mywebapp-2026 --resource-group myRG</code></pre>
+        </div>
+
+        <h2 id="deployment">Deployment Best Practices</h2>
+        <ul>
+          <li><strong>Use deployment slots</strong> — staging → test → swap to production</li>
+          <li><strong>Use CI/CD</strong> — automate builds and deployments via GitHub Actions or Azure DevOps</li>
+          <li><strong>Mark environment-specific settings as slot settings</strong> — prevents production DB connection strings from accidentally being swapped</li>
+          <li><strong>Run smoke tests after deploying to staging</strong> — before swapping to production</li>
+          <li><strong>Keep a rollback plan</strong> — the previous production code is always in the staging slot after a swap</li>
+        </ul>
+
+        <h2 id="scaling">Scaling Configuration</h2>
+        <ul>
+          <li><strong>Run at least 2 instances</strong> — never single-instance in production</li>
+          <li><strong>Set meaningful min/max counts</strong> — min 2 for HA, max based on load testing</li>
+          <li><strong>Always pair scale-out with scale-in rules</strong> — without scale-in, instances accumulate</li>
+          <li><strong>Use schedule-based scaling for predictable patterns</strong> — pre-scale before traffic arrives</li>
+          <li><strong>Set cooldown periods appropriately</strong> — scale out: 1–2 min, scale in: 10–15 min</li>
+          <li><strong>Build stateless apps</strong> — store sessions in Redis, files in Blob Storage, not on the VM</li>
+        </ul>
+
+        <h2 id="cost">Cost Optimisation</h2>
+        <ul>
+          <li><strong>Share plans for low-traffic apps</strong> — multiple apps on one plan, no per-app charge</li>
+          <li><strong>Buy reserved instances for stable production plans</strong> — up to 55% off with 3-year commitment</li>
+          <li><strong>Stop dev/test plans overnight</strong> — compute billing pauses when stopped</li>
+          <li><strong>Right-size before reserving</strong> — monitor for 2–4 weeks, then commit</li>
+          <li><strong>Use scale-in rules</strong> — don't let instances accumulate overnight</li>
+        </ul>
+
+        <h2 id="networking">Networking Security</h2>
+        <ul>
+          <li><strong>Use VNet Integration</strong> — connect app to private VNet for database/service access</li>
+          <li><strong>Use Private Endpoints for databases</strong> — SQL, Storage, Key Vault on private IPs</li>
+          <li><strong>Put App Service behind Front Door or App Gateway</strong> — for WAF protection</li>
+          <li><strong>Use Access Restrictions</strong> — restrict to Front Door service tag if using CDN/WAF</li>
+        </ul>
+
+        <h2 id="monitoring">Monitoring &amp; Alerting</h2>
+        <ul>
+          <li><strong>Enable Application Insights</strong> — request tracing, exceptions, dependencies</li>
+          <li><strong>Set alerts on HTTP 5xx errors</strong> — any increase above baseline is a red flag</li>
+          <li><strong>Set alerts on response time</strong> — P95 response time above SLA threshold</li>
+          <li><strong>Set alerts on memory and CPU</strong> — above 85% sustained triggers investigation</li>
+          <li><strong>Use Log Analytics workspace</strong> — centralise logs for querying and correlation</li>
+        </ul>
+
+        <h2 id="checklist">Production Readiness Checklist</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Category</th><th>Item</th><th>Done?</th></tr></thead>
+          <tbody>
+            <tr><td>Plan</td><td>Standard or Premium tier (not Free/Basic)</td><td>☐</td></tr>
+            <tr><td>Scaling</td><td>Minimum 2 instances configured</td><td>☐</td></tr>
+            <tr><td>Scaling</td><td>Auto-scale rules with scale-in defined</td><td>☐</td></tr>
+            <tr><td>Deployment</td><td>CI/CD pipeline configured (GitHub Actions / DevOps)</td><td>☐</td></tr>
+            <tr><td>Deployment</td><td>Deployment slot for staging configured</td><td>☐</td></tr>
+            <tr><td>Security</td><td>HTTPS Only enabled</td><td>☐</td></tr>
+            <tr><td>Security</td><td>Minimum TLS 1.2 enforced</td><td>☐</td></tr>
+            <tr><td>Security</td><td>Managed Identity enabled (no hardcoded secrets)</td><td>☐</td></tr>
+            <tr><td>Security</td><td>Secrets in Key Vault, referenced via App Settings</td><td>☐</td></tr>
+            <tr><td>Security</td><td>Access Restrictions configured</td><td>☐</td></tr>
+            <tr><td>Reliability</td><td>Health check endpoint configured</td><td>☐</td></tr>
+            <tr><td>Reliability</td><td>Always On enabled</td><td>☐</td></tr>
+            <tr><td>Networking</td><td>VNet Integration for database access</td><td>☐</td></tr>
+            <tr><td>Monitoring</td><td>Application Insights enabled</td><td>☐</td></tr>
+            <tr><td>Monitoring</td><td>Alerts on HTTP 5xx, response time, CPU</td><td>☐</td></tr>
+            <tr><td>Cost</td><td>Reserved instance purchased for 1 or 3 years</td><td>☐</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that HTTPS Only and minimum TLS 1.2 are security best practices. Know that Always On prevents cold starts. Know that Managed Identity eliminates hardcoded secrets. Know that running 2+ instances with Health Check provides HA. Know that deployment slots enable zero-downtime releases with instant rollback.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A production web app is deployed to a single App Service instance. What is the main reliability risk?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single instance has the same cost efficiency — the risk is availability, not cost.')">A — Higher cost compared to multiple instances</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A single instance means zero tolerance for failures — if the instance crashes, restarts, or is replaced during a deployment, the app goes completely down. Best practice is always at least 2 instances for production so one can handle traffic while the other restarts.')">B — Zero fault tolerance — any instance failure causes total downtime</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single instance does not prevent auto-scaling — it just starts at one instance.')">C — Auto-scaling is disabled on single-instance plans</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Custom domains and SSL work on single instances — the risk is availability.')">D — Custom domains cannot be configured on single instances</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the most secure way for an App Service app to connect to Azure Key Vault to retrieve secrets?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storing the Key Vault access key in App Settings is still a secret — it defeats the purpose of using Key Vault.')">A — Store the Key Vault access key in App Settings</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Managed Identity gives the App Service app an Azure AD identity that can be granted access to Key Vault. No credentials are stored anywhere — authentication is handled automatically by Azure AD. This is the most secure and recommended pattern.')">B — Enable Managed Identity on the app and grant it access to Key Vault</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hardcoding Key Vault credentials in application code is the worst practice — credentials in code can leak via source control, logs, or error messages.')">C — Hardcode Key Vault credentials in the application code</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Making Key Vault public removes the entire point of using Key Vault for security — it should never be publicly accessible.')">D — Make the Key Vault publicly accessible</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Why is it important to build stateless web applications when using App Service auto-scaling?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Stateless apps do not use less memory than stateful ones — the benefit is scalability and reliability.')">A — Stateless apps use less memory per instance</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When multiple instances run, users can be routed to any instance. If sessions are stored in local instance memory, a user hitting a different instance loses their session. Stateless apps store sessions externally (Redis, SQL) — all instances share the same state, enabling seamless scale-out.')">B — Any instance can serve any user — no session loss when traffic is routed to different instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Stateless apps do not reduce deployment time — the benefit is horizontal scalability.')">C — Stateless apps deploy faster than stateful ones</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both stateful and stateless apps can use HTTPS — statelessness is about scalability architecture, not security.')">D — Stateless apps can use HTTPS; stateful apps cannot</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the purpose of marking an App Setting as a "slot setting"?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slot settings are not encrypted differently — they are about deployment swap behaviour.')">A — It encrypts the setting value at rest</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Marking a setting as a slot setting (sticky) prevents it from being swapped when deployment slots are swapped. For example, the production database connection string stays in the production slot regardless of which code version is deployed — preventing staging code from connecting to the production database.')">B — It prevents the setting from being swapped when deployment slots are swapped</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slot settings are not visible only in the portal — they are available to the running application as environment variables.')">C — It makes the setting visible only in the Azure Portal</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slot settings don\'t synchronise across slots — they specifically stay with their original slot and don\'t swap.')">D — It synchronises the setting value across all deployment slots</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which combination of settings is the baseline security hardening for any production App Service app?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Free tier has no SLA — this is not production-appropriate, and FTP over HTTP is insecure.')">A — Free tier, FTP enabled, no SSL</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The security baseline for any production App Service app is: HTTPS Only (redirect HTTP→HTTPS), minimum TLS 1.2 (reject old TLS), FTPS Only (no unencrypted FTP). These three settings should always be configured before going live.')">B — HTTPS Only enabled, minimum TLS 1.2, FTPS Only</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Public IP with no restrictions leaves the app open to the internet without any security controls.')">C — Public IP with no access restrictions, TLS 1.0 enabled</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Disabling HTTPS and enabling all TLS versions is a major security downgrade — the opposite of best practice.')">D — HTTP only enabled, all TLS versions allowed</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="deployment-slots.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Deployment Slots</span></a>
+        <a class="related-card" href="autoscaling.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Auto-scaling</span></a>
+        <a class="related-card" href="app-service-monitoring.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Monitoring</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="app-service-monitoring.html"><span class="nav-label">← Previous</span><span class="nav-title">App Service Monitoring</span></a>
+        <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

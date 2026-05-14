@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deployment Methods | Azure App Service | RedKiteCloud</title>
+  <meta name="description" content="All Azure App Service deployment methods compared — GitHub Actions, Azure DevOps, Local Git, ZIP deploy, FTP, and container deployment from ACR." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure App Service</a><span class="sep">›</span><span class="current">Deployment Methods</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure App Service</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Azure App Service Deployment Methods</h1>
+      <p class="page-intro">Azure App Service supports multiple deployment methods — from a simple ZIP upload to fully automated CI/CD pipelines that deploy on every Git push. Choosing the right method depends on your team, workflow, and requirements. This page covers every deployment option with practical examples so you can pick the best fit.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Deployment Center — the hub for all deployments · GitHub Actions CI/CD · Azure DevOps Pipelines · Local Git push · ZIP Deploy via CLI · FTP/FTPS · Container deployment from ACR · App Settings and environment variables · Which method to use when
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#deployment-center">Deployment Center</a></li>
+        <li><a href="#github-actions">GitHub Actions</a></li>
+        <li><a href="#azure-devops">Azure DevOps Pipelines</a></li>
+        <li><a href="#local-git">Local Git</a></li>
+        <li><a href="#zip-deploy">ZIP Deploy</a></li>
+        <li><a href="#container-deploy">Container Deployment (ACR)</a></li>
+        <li><a href="#app-settings">App Settings and Connection Strings</a></li>
+        <li><a href="#comparison">Methods Compared</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="deployment-center">Deployment Center</h2>
+        <p>The Deployment Center (App Service → Deployment Center) is the single hub where you connect and manage all deployment sources. From here you configure CI/CD, view deployment history, and troubleshoot failed deployments.</p>
+
+        <h2 id="github-actions">GitHub Actions</h2>
+        <p>The recommended approach for teams using GitHub. When you connect GitHub in Deployment Center, Azure automatically generates a GitHub Actions workflow file in your repository.</p>
+        <ol>
+          <li>App Service → Deployment Center → Source: GitHub</li>
+          <li>Authorise GitHub, select repository and branch</li>
+          <li>Azure creates <code>.github/workflows/azure-webapps.yml</code></li>
+          <li>Every push to the selected branch triggers build + deploy automatically</li>
+        </ol>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">GitHub Actions</span><span class="code-label">Node.js deployment workflow</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>name: Deploy to Azure App Service
+on:
+  push:
+    branches: [main]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install && npm run build
+      - uses: azure/webapps-deploy@v3
+        with:
+          app-name: mywebapp-2026
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./dist</code></pre>
+        </div>
+
+        <h2 id="azure-devops">Azure DevOps Pipelines</h2>
+        <p>For enterprise teams using Azure DevOps — connect Azure Repos or GitHub via Deployment Center with Azure DevOps as the build provider. Supports approval gates, staged releases, and advanced pipeline control.</p>
+
+        <h2 id="local-git">Local Git</h2>
+        <p>App Service acts as a Git remote — push code directly from your machine to deploy. Good for individual developers or simple setups without a CI/CD system.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI + Git</span><span class="code-label">Configure and deploy via Local Git</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Enable local Git and get the remote URL
+az webapp deployment source config-local-git \
+  --name mywebapp-2026 \
+  --resource-group myRG
+
+# Add the App Service as a Git remote
+git remote add azure https://mywebapp-2026.scm.azurewebsites.net/mywebapp-2026.git
+
+# Push to deploy
+git push azure main</code></pre>
+        </div>
+
+        <h2 id="zip-deploy">ZIP Deploy</h2>
+        <p>Package your app as a ZIP and deploy via the Azure CLI. Fastest method for scripts and pipelines that don't use GitHub or DevOps.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">ZIP deploy</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az webapp deploy \
+  --resource-group myRG \
+  --name mywebapp-2026 \
+  --src-path myapp.zip \
+  --type zip</code></pre>
+        </div>
+
+        <h2 id="container-deploy">Container Deployment (ACR)</h2>
+        <p>Deploy a Docker container from Azure Container Registry (ACR), Docker Hub, or any private registry. App Service pulls the image and runs it — you manage only the container image.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Deploy container from ACR</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create web app from container image
+az webapp create \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --plan myAppServicePlan \
+  --deployment-container-image-name myacr.azurecr.io/myapp:latest
+
+# Enable continuous deployment (auto-redeploy on image update)
+az webapp deployment container config \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --enable-cd true</code></pre>
+        </div>
+
+        <h2 id="app-settings">App Settings and Connection Strings</h2>
+        <p>App Settings inject environment variables at runtime — use them to store secrets, connection strings, and environment-specific config without hardcoding values in code.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Set App Settings</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az webapp config appsettings set \
+  --name mywebapp-2026 \
+  --resource-group myRG \
+  --settings \
+    NODE_ENV=production \
+    API_KEY=@Microsoft.KeyVault(SecretUri=https://myvault.vault.azure.net/secrets/apikey/)</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Reference Key Vault Secrets</strong> Use the <code>@Microsoft.KeyVault(SecretUri=...)</code> syntax in App Settings to pull secrets directly from Key Vault — they never appear in portal logs or source code.</div>
+        </div>
+
+        <h2 id="comparison">Deployment Methods Compared</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Method</th><th>Best For</th><th>CI/CD</th><th>Requires</th></tr></thead>
+          <tbody>
+            <tr><td>GitHub Actions</td><td>Teams using GitHub</td><td>✅ Automatic</td><td>GitHub repo</td></tr>
+            <tr><td>Azure DevOps</td><td>Enterprise, approval gates</td><td>✅ Automatic</td><td>Azure DevOps org</td></tr>
+            <tr><td>Local Git</td><td>Individual developers</td><td>Manual push</td><td>Git client</td></tr>
+            <tr><td>ZIP Deploy</td><td>Scripts, non-Git pipelines</td><td>Scripted</td><td>Azure CLI</td></tr>
+            <tr><td>FTP/FTPS</td><td>Legacy, simple uploads</td><td>Manual</td><td>FTP client</td></tr>
+            <tr><td>Container (ACR)</td><td>Containerised apps</td><td>✅ Webhooks</td><td>Docker image</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that Deployment Center is the hub for all CI/CD configuration. Know GitHub Actions automatically generates a workflow YAML file. Know App Settings override config files and can reference Key Vault secrets. Know that container deployment supports ACR, Docker Hub, and private registries.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Where in the Azure Portal do you configure CI/CD from GitHub for an App Service app?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. App Service Configuration manages App Settings — not CI/CD.')">A — App Service → Configuration</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deployment Center (App Service → Deployment Center) is the hub for configuring all deployment sources — GitHub, Azure DevOps, Local Git, and others. It also shows deployment history.')">B — App Service → Deployment Center</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scale Out manages auto-scaling — not deployments.')">C — App Service → Scale Out</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Networking manages VNet integration and private endpoints — not deployment configuration.')">D — App Service → Networking</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What does Azure automatically create in your GitHub repository when you connect it via Deployment Center?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure automatically generates a GitHub Actions workflow YAML file at .github/workflows/azure-webapps.yml. This workflow builds and deploys the app on every push to the configured branch.')">A — A GitHub Actions workflow YAML file in .github/workflows/</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure creates a workflow file — not a Dockerfile.')">B — A Dockerfile</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure creates a GitHub Actions workflow — not an Azure DevOps pipeline.')">C — An Azure DevOps pipeline YAML file</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure creates an Actions workflow file — not a webhook configuration file.')">D — A webhook.json configuration file</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the recommended way to store a sensitive database connection string for an App Service app?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hardcoding secrets in source code is a major security risk — never commit credentials.')">A — Hardcode it in the application source code</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! App Settings (environment variables) keep secrets out of source code. For maximum security, store the secret in Azure Key Vault and reference it in App Settings using @Microsoft.KeyVault(SecretUri=...) — the secret never appears in portal or logs.')">B — Use App Settings, referencing an Azure Key Vault secret</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Committing a .env file to the repository exposes secrets in version control history.')">C — Commit a .env file to the repository</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FTP uploading files is for deployment — not a secure secrets management pattern.')">D — Upload a config file via FTP after each deployment</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which deployment method is best for a team that wants zero-touch, fully automated deployments triggered by Git pushes, without using GitHub or Azure DevOps?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Local Git requires a manual git push — it is not fully automated.')">A — Local Git</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ZIP Deploy can be scripted and integrated into any CI/CD tool or custom pipeline — triggered automatically by whatever event you choose. It doesn\'t require GitHub or Azure DevOps. Combined with a custom script or third-party CI tool, it enables fully automated deployments.')">B — ZIP Deploy integrated into a custom CI script</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FTP is a manual method — not suitable for automated zero-touch deployments.')">C — FTP upload</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The question specifies without GitHub or Azure DevOps — GitHub Actions requires GitHub.')">D — GitHub Actions</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Can you deploy a Docker container from Azure Container Registry to Azure App Service?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! App Service fully supports container deployment from Azure Container Registry, Docker Hub, and any private container registry. You specify the image URL at creation time. You can also enable continuous deployment to auto-redeploy when the image tag is updated in ACR.')">A — Yes — from ACR, Docker Hub, or any private registry</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. App Service supports containers — AKS is not required for container hosting.')">B — No — containers require AKS</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Container support is available on Standard and above — not just Isolated.')">C — Only on Isolated tier</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Container support works on both Linux and Windows App Service plans.')">D — Only on Linux plans</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="create-web-app.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Create &amp; Deploy a Web App</span></a>
+        <a class="related-card" href="deployment-slots.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">Deployment Slots</span></a>
+        <a class="related-card" href="app-service-monitoring.html"><span class="related-card-label">Azure App Service</span><span class="related-card-title">App Service Monitoring</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="create-web-app.html"><span class="nav-label">← Previous</span><span class="nav-title">Create &amp; Deploy a Web App</span></a>
+        <a class="nav-card next" href="deployment-slots.html"><span class="nav-label">Next →</span><span class="nav-title">Deployment Slots</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
