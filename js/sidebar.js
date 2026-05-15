@@ -384,14 +384,4 @@ function renderSidebar() {
 }
 
 /* ── Init ─────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', function() {
-  renderSidebar();
-
-  // Scroll the active sidebar item into view so it's always visible
-  requestAnimationFrame(function() {
-    const activeItem = document.querySelector('#rkc-sidebar .sb-item.active');
-    if (activeItem) {
-      activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }
-  });
-});
+document.addEventListener('DOMContentLoaded', renderSidebar);
