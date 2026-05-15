@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTTP Trigger — Build an API | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions HTTP trigger — build REST APIs, handle GET/POST, route parameters, authentication levels, and return responses." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">HTTP Trigger</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">HTTP Trigger — Build an API with Azure Functions</h1>
+      <p class="page-intro">The HTTP trigger is the most commonly used Azure Functions trigger — it turns a function into a REST API endpoint. When an HTTP request hits the function URL, your code executes and returns a response. It's the fastest way to build a serverless API that scales automatically and costs nothing when idle.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        HTTP trigger configuration · Authorization levels (anonymous, function, admin) · Handling GET and POST requests · Route parameters and query strings · Returning HTTP responses and status codes · CORS configuration · Creating an HTTP function via CLI · Real API example
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#authorization-levels">Authorization Levels</a></li>
+        <li><a href="#http-methods">HTTP Methods</a></li>
+        <li><a href="#route-parameters">Route Parameters</a></li>
+        <li><a href="#request-response">Request and Response</a></li>
+        <li><a href="#cors">CORS Configuration</a></li>
+        <li><a href="#creating">Creating an HTTP Function</a></li>
+        <li><a href="#api-example">Full API Example</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="authorization-levels">Authorization Levels</h2>
+        <p>HTTP triggers have three authorization levels controlling who can call the function:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Level</th><th>Access</th><th>Key Required</th><th>Use When</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Anonymous</strong></td><td>Anyone — no authentication</td><td>None</td><td>Public APIs, webhooks</td></tr>
+            <tr><td><strong>Function</strong></td><td>Caller must provide a function-level key</td><td>Function key</td><td>Internal APIs, restrict to known clients</td></tr>
+            <tr><td><strong>Admin</strong></td><td>Caller must provide the master host key</td><td>Master key</td><td>Admin operations only</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Passing Keys</strong> Function keys are passed in the URL as a query parameter (<code>?code=YOUR_KEY</code>) or in the <code>x-functions-key</code> header. Never expose function keys in client-side JavaScript — use anonymous or Azure AD authentication for browser-facing APIs.</div>
+        </div>
+
+        <h2 id="http-methods">HTTP Methods</h2>
+        <p>Specify which HTTP methods the trigger accepts. By default HTTP triggers accept GET and POST. You can restrict to specific methods:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">HTTP trigger — GET and POST only</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+import json
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+@app.route(route="products", methods=["GET", "POST"])
+def products(req: func.HttpRequest) -> func.HttpResponse:
+    if req.method == "GET":
+        # Return list of products
+        products = [{"id": 1, "name": "Widget"}, {"id": 2, "name": "Gadget"}]
+        return func.HttpResponse(
+            json.dumps(products),
+            mimetype="application/json",
+            status_code=200
+        )
+    elif req.method == "POST":
+        body = req.get_json()
+        # Create product logic here
+        return func.HttpResponse(
+            json.dumps({"created": True, "id": 3}),
+            mimetype="application/json",
+            status_code=201
+        )</code></pre>
+        </div>
+
+        <h2 id="route-parameters">Route Parameters and Query Strings</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Route parameters and query strings</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@app.route(route="products/{productId}")   # {productId} is a route parameter
+def get_product(req: func.HttpRequest) -> func.HttpResponse:
+    # Get route parameter
+    product_id = req.route_params.get("productId")
+
+    # Get query string parameter: /products/123?include=details
+    include = req.params.get("include", "basic")
+
+    return func.HttpResponse(
+        json.dumps({"id": product_id, "detail_level": include}),
+        mimetype="application/json"
+    )</code></pre>
+        </div>
+
+        <h2 id="request-response">Request and Response</h2>
+        <h3>Reading the Request</h3>
+        <ul>
+          <li><code>req.method</code> — HTTP method (GET, POST, PUT, DELETE)</li>
+          <li><code>req.params</code> — Query string parameters dict</li>
+          <li><code>req.route_params</code> — Route template parameters dict</li>
+          <li><code>req.headers</code> — Request headers</li>
+          <li><code>req.get_body()</code> — Raw body as bytes</li>
+          <li><code>req.get_json()</code> — Parse body as JSON</li>
+        </ul>
+
+        <h3>Building the Response</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Response examples</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># 200 OK with JSON body
+return func.HttpResponse(json.dumps(data), mimetype="application/json", status_code=200)
+
+# 201 Created
+return func.HttpResponse(json.dumps({"id": new_id}), mimetype="application/json", status_code=201)
+
+# 400 Bad Request
+return func.HttpResponse("Missing required field: name", status_code=400)
+
+# 404 Not Found
+return func.HttpResponse("Product not found", status_code=404)
+
+# 500 Internal Server Error
+return func.HttpResponse("Internal error", status_code=500)</code></pre>
+        </div>
+
+        <h2 id="cors">CORS Configuration</h2>
+        <p>If your HTTP function is called from a browser (JavaScript frontend), you need to configure CORS (Cross-Origin Resource Sharing) to allow requests from your frontend domain.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Configure CORS for a Function App</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az functionapp cors add \
+  --name myfunctionapp-2026 \
+  --resource-group myRG \
+  --allowed-origins "https://www.contoso.com" "https://app.contoso.com"
+
+# Allow all origins (dev only — not recommended for production)
+az functionapp cors add \
+  --name myfunctionapp-2026 \
+  --resource-group myRG \
+  --allowed-origins "*"</code></pre>
+        </div>
+
+        <h2 id="creating">Creating an HTTP Function</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create Function App and deploy</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create a storage account (required for Function App)
+az storage account create \
+  --name myfuncstore2026 \
+  --resource-group myRG \
+  --location centralindia \
+  --sku Standard_LRS
+
+# Create Function App (Python, Consumption plan)
+az functionapp create \
+  --name myfunctionapp-2026 \
+  --resource-group myRG \
+  --consumption-plan-location centralindia \
+  --runtime python \
+  --runtime-version 3.11 \
+  --functions-version 4 \
+  --storage-account myfuncstore2026 \
+  --os-type linux</code></pre>
+        </div>
+
+        <h2 id="api-example">Full API Example</h2>
+        <p>A complete serverless REST API for a products resource:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">products_api/function_app.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+import json
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+
+# In-memory store (replace with database in production)
+products_db = {
+    "1": {"id": "1", "name": "Widget", "price": 9.99},
+    "2": {"id": "2", "name": "Gadget", "price": 24.99},
+}
+
+@app.route(route="products", methods=["GET"])
+def list_products(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        json.dumps(list(products_db.values())),
+        mimetype="application/json"
+    )
+
+@app.route(route="products/{id}", methods=["GET"])
+def get_product(req: func.HttpRequest) -> func.HttpResponse:
+    product_id = req.route_params.get("id")
+    product = products_db.get(product_id)
+    if not product:
+        return func.HttpResponse("Not found", status_code=404)
+    return func.HttpResponse(json.dumps(product), mimetype="application/json")
+
+@app.route(route="products", methods=["POST"])
+def create_product(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        body = req.get_json()
+        new_id = str(len(products_db) + 1)
+        body["id"] = new_id
+        products_db[new_id] = body
+        return func.HttpResponse(json.dumps(body), mimetype="application/json", status_code=201)
+    except ValueError:
+        return func.HttpResponse("Invalid JSON", status_code=400)</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know the three authorization levels (anonymous, function, admin). Know that function keys are passed as <code>?code=</code> query parameter or <code>x-functions-key</code> header. Know that CORS must be configured for browser-based clients. Know route parameters use <code>{paramName}</code> syntax in the route template.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which HTTP trigger authorization level requires no key and allows any caller?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Anonymous authorization level requires no key — any HTTP request to the function URL will execute the function. Use for public APIs and webhooks where you handle authentication in your own code or via Azure AD.')">A — Anonymous</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function level requires a function-level key to be provided with each request.')">B — Function</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Admin level requires the master host key — the most restrictive level.')">C — Admin</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "Public" authorization level — the levels are Anonymous, Function, and Admin.')">D — Public</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> How do you pass a function key when calling an HTTP-triggered function?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Function keys can be passed either as a query parameter (?code=YOUR_KEY) or in the x-functions-key HTTP header. Both methods are equivalent and supported.')">A — As a ?code= query parameter or x-functions-key header</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function keys are passed as query parameters or headers — not in the request body.')">B — In the JSON request body as a "key" field</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function keys use the x-functions-key header — not Authorization Bearer token (that\'s for Azure AD auth).')">C — As an Authorization Bearer token</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function keys are passed per-request — not in a cookie.')">D — As a cookie named "functionKey"</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> A frontend JavaScript app at https://app.contoso.com calls an Azure Function API. The calls fail with CORS errors. What should you do?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Changing to anonymous auth does not fix CORS errors — CORS is a separate browser security mechanism.')">A — Change the function authorization level to Anonymous</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! CORS must be configured on the Function App to allow cross-origin requests from the frontend domain. Add https://app.contoso.com to the allowed origins in CORS settings. Without this, browsers block the response even though the function executes successfully.')">B — Add https://app.contoso.com to the Function App CORS allowed origins</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Adding CORS headers manually in the function code is not the recommended approach — use the built-in CORS configuration.')">C — Manually add CORS headers in every function response</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Deploying to the same domain as the frontend is not necessary — CORS configuration is the correct solution.')">D — Deploy the Function App to the same domain as the frontend</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> In a route template "products/{productId}", how do you access the productId value in Python?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Route parameters defined in curly braces in the route template are accessed via req.route_params.get("productId") in Python. Query string parameters use req.params.get() instead.')">A — req.route_params.get("productId")</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. req.params is for query string parameters — not route template parameters.')">B — req.params.get("productId")</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. req.headers is for HTTP request headers — not route parameters.')">C — req.headers.get("productId")</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. req.get_json() parses the request body as JSON — it has nothing to do with route parameters.')">D — req.get_json()["productId"]</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What HTTP status code should an HTTP function return when successfully creating a new resource?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 200 OK indicates success but is more appropriate for GET requests that return existing data — 201 is the standard for successful resource creation.')">A — 200 OK</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! 201 Created is the correct HTTP status code when a new resource has been successfully created. It indicates that the request was fulfilled and a new resource was created as a result.')">B — 201 Created</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 204 No Content is returned when a request succeeds but there is no response body (e.g., successful DELETE) — not for resource creation.')">C — 204 No Content</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 202 Accepted indicates that the request has been accepted for processing but processing is not yet complete — appropriate for async operations, not immediate creation.')">D — 202 Accepted</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="functions-overview.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">What is Azure Functions?</span></a>
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+        <a class="related-card" href="cold-starts.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Cold Starts Explained</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="functions-overview.html"><span class="nav-label">← Previous</span><span class="nav-title">What is Azure Functions?</span></a>
+        <a class="nav-card next" href="timer-trigger.html"><span class="nav-label">Next →</span><span class="nav-title">Timer Trigger — Scheduled Jobs</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

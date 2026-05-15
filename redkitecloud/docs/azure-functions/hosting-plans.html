@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functions Hosting Plans | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions hosting plans — Consumption, Premium, and Dedicated (App Service) plans compared with costs and when to choose each." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Functions Hosting Plans</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Azure Functions Hosting Plans</h1>
+      <p class="page-intro">Where your Functions run determines how they scale, what features are available, and what you pay. Azure Functions offers three hosting plans — Consumption (pure serverless), Premium (always warm, VNet), and Dedicated (run on App Service Plan). Choosing the wrong plan is one of the most common mistakes in Functions deployments.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Consumption plan — how it works, limits, cold starts · Premium plan — always warm, VNet, unlimited execution · Dedicated (App Service) plan — always-on, predictable cost · Flex Consumption plan (new) · Feature comparison table · Cost comparison · When to choose each plan
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#consumption">Consumption Plan</a></li>
+        <li><a href="#premium">Premium Plan</a></li>
+        <li><a href="#dedicated">Dedicated (App Service) Plan</a></li>
+        <li><a href="#flex-consumption">Flex Consumption Plan</a></li>
+        <li><a href="#comparison">Full Comparison Table</a></li>
+        <li><a href="#cost-comparison">Cost Comparison</a></li>
+        <li><a href="#choosing">Choosing the Right Plan</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="consumption">Consumption Plan</h2>
+        <p>The classic serverless plan — scales to zero, pay per execution. Microsoft manages all scaling automatically.</p>
+
+        <h3>Key Characteristics</h3>
+        <ul>
+          <li><strong>Scales to zero</strong> — no instances when not running, no compute cost when idle</li>
+          <li><strong>Auto-scale</strong> — scales from 0 to 200 instances automatically</li>
+          <li><strong>Cold starts</strong> — first execution after idle has startup delay (seconds)</li>
+          <li><strong>Max execution timeout</strong> — 5 minutes (default), up to 10 minutes</li>
+          <li><strong>No VNet integration</strong> — apps run on shared infrastructure</li>
+          <li><strong>Max memory</strong> — 1.5 GB per instance</li>
+        </ul>
+
+        <h3>Billing</h3>
+        <ul>
+          <li>Per execution: first 1 million executions/month free, then ~₹0.17 per million</li>
+          <li>Per GB-second: first 400,000 GB-seconds free, then ~₹0.014 per GB-second</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Best for sporadic workloads</strong> If your function runs a few hundred thousand times per month and can tolerate occasional cold starts, Consumption is the cheapest option — often nearly free within the generous free tier.</div>
+        </div>
+
+        <h2 id="premium">Premium Plan</h2>
+        <p>The Premium plan eliminates cold starts by keeping at least one instance always warm — while still scaling out automatically for load spikes.</p>
+
+        <h3>Key Characteristics</h3>
+        <ul>
+          <li><strong>Pre-warmed instances</strong> — configurable minimum of 1+ always-warm instances (no cold starts)</li>
+          <li><strong>VNet Integration</strong> — connect to private VNets for database/service access</li>
+          <li><strong>Unlimited execution duration</strong> — no 10-minute timeout limit</li>
+          <li><strong>Larger instances</strong> — up to 14 GB memory, 4 vCPU</li>
+          <li><strong>VNET-triggered scaling</strong> — scale based on Service Bus, Event Hubs</li>
+          <li><strong>Up to 100 instances</strong> — scale out limit</li>
+        </ul>
+
+        <h3>Billing</h3>
+        <p>Charged per vCPU-second and GB-second — continuously for pre-warmed instances plus additional instances during scale-out. Minimum monthly cost: ~₹5,000–8,000 (for EP1, 1 always-warm instance).</p>
+
+        <h2 id="dedicated">Dedicated (App Service) Plan</h2>
+        <p>Run Functions on a regular App Service Plan — the same VMs that host Web Apps. Functions share the plan's compute with other apps.</p>
+
+        <h3>Key Characteristics</h3>
+        <ul>
+          <li><strong>Always on</strong> — no cold starts, always running</li>
+          <li><strong>Predictable cost</strong> — fixed hourly rate regardless of executions</li>
+          <li><strong>Manual or auto-scaling</strong> — same as App Service scaling</li>
+          <li><strong>Unlimited execution duration</strong> — no timeout limit</li>
+          <li><strong>Share plan with Web Apps</strong> — put functions alongside your web app</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Use Always On Setting</strong> On Dedicated plans, enable Always On to prevent the Functions host from going idle. Without it, functions may have cold start delays similar to Consumption plan.</div>
+        </div>
+
+        <h2 id="flex-consumption">Flex Consumption Plan</h2>
+        <p>A newer plan (preview/GA depending on region) that combines Consumption-style per-execution billing with configurable concurrency, faster cold starts, and VNet support — addressing many Consumption plan limitations without Premium plan costs.</p>
+
+        <h2 id="comparison">Full Comparison Table</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>Consumption</th><th>Premium</th><th>Dedicated</th></tr></thead>
+          <tbody>
+            <tr><td>Cold starts</td><td>Yes</td><td>No (pre-warmed)</td><td>No (always on)</td></tr>
+            <tr><td>Scale to zero</td><td>✅ Yes</td><td>❌ No</td><td>❌ No</td></tr>
+            <tr><td>Max timeout</td><td>10 minutes</td><td>Unlimited</td><td>Unlimited</td></tr>
+            <tr><td>VNet Integration</td><td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+            <tr><td>Max instances</td><td>200</td><td>100</td><td>Plan limit</td></tr>
+            <tr><td>Max memory</td><td>1.5 GB</td><td>14 GB</td><td>Plan VM size</td></tr>
+            <tr><td>Billing</td><td>Per execution</td><td>Per vCPU-second</td><td>Per hour</td></tr>
+            <tr><td>Min cost</td><td>~₹0 (free tier)</td><td>~₹5,000/month</td><td>~₹1,200/month</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="cost-comparison">Cost Comparison</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scenario</th><th>Consumption</th><th>Premium (EP1)</th><th>Dedicated (B1)</th></tr></thead>
+          <tbody>
+            <tr><td>100K executions/month, 200ms each</td><td>~₹0 (free tier)</td><td>~₹5,000</td><td>~₹1,200</td></tr>
+            <tr><td>10M executions/month, 500ms each</td><td>~₹500</td><td>~₹5,000</td><td>~₹1,200</td></tr>
+            <tr><td>100M executions/month, 1s each</td><td>~₹8,000</td><td>~₹8,000</td><td>~₹3,000+</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="choosing">Choosing the Right Plan</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Choose</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Consumption</strong></td><td>Sporadic/infrequent executions, cold starts acceptable, low cost priority</td></tr>
+            <tr><td><strong>Premium</strong></td><td>No cold starts required, need VNet, long-running functions, high concurrency</td></tr>
+            <tr><td><strong>Dedicated</strong></td><td>Already have an App Service Plan, predictable load, co-locate with web app</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> This is heavily tested. Know that Consumption plan scales to zero (cold starts possible) with 10-minute max timeout. Know that Premium keeps pre-warmed instances (no cold starts) and supports VNet. Know that Dedicated runs on an App Service Plan with predictable hourly billing. Know Consumption has a generous free tier.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which hosting plan scales Azure Functions to zero instances when idle?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Consumption plan scales to zero — no instances run when there are no requests, so there is no compute cost when idle. This is the defining characteristic of the Consumption plan and why it can be nearly free for low-volume workloads.')">A — Consumption plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium plan keeps at least one always-warm instance — it never scales to zero.')">B — Premium plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dedicated plan runs on an App Service Plan — it is always running and does not scale to zero.')">C — Dedicated (App Service) plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. All three plans scale differently — only Consumption scales to zero.')">D — All plans scale to zero</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A Function App needs to access an Azure SQL Database in a private VNet with no public endpoint. Which hosting plan supports this?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Consumption plan does not support VNet Integration — it runs on shared infrastructure without private network access.')">A — Consumption plan</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Both Premium and Dedicated (App Service) plans support VNet Integration, allowing the Function App to access resources in a private VNet. The Consumption plan does not support VNet integration.')">B — Premium or Dedicated plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. All plans can run on Linux — VNet support is the differentiator here, not OS type.')">C — Only plans running on Linux</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VNet Integration is not available on Consumption plan regardless of function language.')">D — Any plan with Python runtime</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the maximum execution timeout for Azure Functions on the Consumption plan?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The default timeout is 5 minutes — but the maximum on Consumption is 10 minutes.')">A — 5 minutes (cannot be extended)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! On the Consumption plan, the default timeout is 5 minutes but can be extended to a maximum of 10 minutes in host.json. For functions that need to run longer, use Premium or Dedicated plan which have unlimited execution duration.')">B — 10 minutes maximum</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Unlimited execution is a feature of Premium and Dedicated plans — Consumption has a 10-minute maximum.')">C — Unlimited</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum on Consumption plan is 10 minutes — not 30 minutes.')">D — 30 minutes</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What feature of the Premium plan eliminates cold starts?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Premium plan maintains pre-warmed instances — a configurable minimum number of always-ready instances that are never scaled to zero. When a request arrives, it immediately goes to a pre-warmed instance with no startup delay.')">A — Pre-warmed instances — a minimum number of always-ready instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Faster hardware reduces cold start duration but doesn\'t eliminate it — pre-warmed instances eliminate cold starts by keeping instances always running.')">B — Faster hardware with lower startup time</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Caching is unrelated to cold starts — cold starts are about instance initialisation time.')">C — Automatic caching of function code</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SSD storage doesn\'t eliminate cold starts — pre-warmed instances do.')">D — SSD storage for faster code loading</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A team already has a Standard S2 App Service Plan running their web app. They want to add some background processing functions. What is the most cost-effective approach?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating a separate Consumption plan adds complexity and may have cold start issues — running on the existing plan is simpler and free.')">A — Create a new Consumption plan Function App</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating a Premium plan adds ~₹5,000+/month unnecessary cost when they already have an App Service Plan.')">B — Create a Premium plan Function App</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Running the Function App on the existing S2 App Service Plan (Dedicated hosting) costs nothing extra — the plan\'s compute is already paid for. The functions share the plan\'s resources with the web app. This is the most cost-effective option.')">C — Run the Function App on the existing S2 App Service Plan at no extra cost</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Apps would add new infrastructure costs — the existing App Service Plan is the free option.')">D — Deploy the functions to Azure Container Apps</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="cold-starts.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Cold Starts Explained</span></a>
+        <a class="related-card" href="functions-pricing.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Pricing</span></a>
+        <a class="related-card" href="functions-overview.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">What is Azure Functions?</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="queue-trigger.html"><span class="nav-label">← Previous</span><span class="nav-title">Queue Trigger</span></a>
+        <a class="nav-card next" href="durable-functions.html"><span class="nav-label">Next →</span><span class="nav-title">Durable Functions</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

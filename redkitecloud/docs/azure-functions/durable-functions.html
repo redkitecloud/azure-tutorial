@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Durable Functions | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Durable Functions — stateful workflows, orchestrator/activity/entity functions, fan-out/fan-in, chaining, and human interaction patterns." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Durable Functions</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 13 min read</span></div>
+
+      <h1 class="page-title">Durable Functions</h1>
+      <p class="page-intro">Regular Azure Functions are stateless — each execution is independent and forgets everything when it finishes. Durable Functions extend Azure Functions to support stateful, long-running workflows. They let you write complex multi-step orchestrations in code — chaining functions together, running them in parallel, waiting for human approval, and resuming after days or weeks — all without managing state yourself.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What makes Durable Functions different · Function types — Orchestrator, Activity, Entity, Client · Application patterns — chaining, fan-out/fan-in, async HTTP, human interaction · How state is persisted · Orchestrator constraints · Real workflow example
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-are-durable">What Makes Durable Functions Different</a></li>
+        <li><a href="#function-types">Function Types</a></li>
+        <li><a href="#patterns">Application Patterns</a></li>
+        <li><a href="#state-storage">How State is Persisted</a></li>
+        <li><a href="#orchestrator-constraints">Orchestrator Constraints</a></li>
+        <li><a href="#example">Full Workflow Example</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-are-durable">What Makes Durable Functions Different</h2>
+        <p>Regular Functions: stateless, short-lived, forget everything after execution.</p>
+        <p>Durable Functions: stateful, can run for hours/days/months, automatically checkpoint state so they survive restarts, and can coordinate multiple functions working together.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Regular Functions</th><th>Durable Functions</th></tr></thead>
+          <tbody>
+            <tr><td>State</td><td>None — stateless</td><td>Automatic — checkpointed in storage</td></tr>
+            <tr><td>Duration</td><td>Max 10 min (Consumption)</td><td>Days, months, unlimited</td></tr>
+            <tr><td>Coordination</td><td>Manual (queues, events)</td><td>Built-in — call activities, wait, fan-out</td></tr>
+            <tr><td>Retries</td><td>Manual</td><td>Built-in retry policies</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="function-types">Function Types</h2>
+
+        <h3>Orchestrator Function</h3>
+        <p>The coordinator — defines the workflow logic. Calls activity functions, waits for results, handles retries. Must be deterministic (no random, no DateTime.Now, no async I/O directly).</p>
+
+        <h3>Activity Function</h3>
+        <p>The worker — does the actual work (call an API, write to database, send an email). Called by the orchestrator. Can use any I/O, non-deterministic operations.</p>
+
+        <h3>Entity Function</h3>
+        <p>Manages a piece of durable state — like a counter, a shopping cart, or a running total. Can be read and updated from orchestrators or other functions.</p>
+
+        <h3>Client Function</h3>
+        <p>Starts, queries, terminates, or sends events to orchestration instances. Usually an HTTP-triggered function that kicks off a workflow.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Durable Functions — basic chaining pattern</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+import azure.durable_functions as df
+
+app = func.FunctionApp()
+bp = df.Blueprint()
+
+# 1. Client — starts the orchestration via HTTP
+@app.route(route="start-workflow")
+@app.durable_client_input(client_name="client")
+async def start_workflow(req: func.HttpRequest, client: df.DurableOrchestrationClient):
+    instance_id = await client.start_new("order_workflow", None, req.get_json())
+    return client.create_check_status_response(req, instance_id)
+
+# 2. Orchestrator — defines the workflow
+@bp.orchestration_trigger(context_name="context")
+def order_workflow(context: df.DurableOrchestrationContext):
+    order = context.get_input()
+
+    # Step 1: Validate
+    validated = yield context.call_activity("validate_order", order)
+
+    # Step 2: Charge payment
+    payment = yield context.call_activity("charge_payment", validated)
+
+    # Step 3: Send confirmation
+    yield context.call_activity("send_confirmation", payment)
+
+    return {"status": "complete", "orderId": order["id"]}
+
+# 3. Activity — does actual work
+@bp.activity_trigger(input_name="order")
+def validate_order(order: dict) -> dict:
+    # Validate order fields, check inventory...
+    order["validated"] = True
+    return order</code></pre>
+        </div>
+
+        <h2 id="patterns">Application Patterns</h2>
+
+        <h3>Pattern 1: Function Chaining</h3>
+        <p>Execute functions in sequence — output of one is input to the next. The simplest Durable pattern — used in the example above.</p>
+
+        <h3>Pattern 2: Fan-Out / Fan-In</h3>
+        <p>Execute multiple functions in parallel, then wait for all to complete and aggregate results. Perfect for processing a list of items concurrently:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Fan-out/fan-in — process items in parallel</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@bp.orchestration_trigger(context_name="context")
+def process_batch(context: df.DurableOrchestrationContext):
+    items = context.get_input()  # List of items to process
+
+    # Fan-out: start all in parallel
+    tasks = [context.call_activity("process_item", item) for item in items]
+
+    # Fan-in: wait for ALL to complete
+    results = yield context.task_all(tasks)
+
+    return {"processed": len(results), "results": results}</code></pre>
+        </div>
+
+        <h3>Pattern 3: Async HTTP API</h3>
+        <p>Start a long-running operation and return a status URL immediately. Client polls for completion. Built into Durable Functions via <code>create_check_status_response</code>.</p>
+
+        <h3>Pattern 4: Human Interaction</h3>
+        <p>Pause the workflow and wait for a human to approve — with a timeout fallback:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Wait for human approval with timeout</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@bp.orchestration_trigger(context_name="context")
+def approval_workflow(context: df.DurableOrchestrationContext):
+    request = context.get_input()
+
+    # Notify approver
+    yield context.call_activity("send_approval_email", request)
+
+    # Wait up to 48 hours for approval event
+    deadline = context.current_utc_datetime + timedelta(hours=48)
+    approval_event = context.wait_for_external_event("Approval")
+    timeout = context.create_timer(deadline)
+
+    winner = yield context.task_any([approval_event, timeout])
+
+    if winner == approval_event:
+        return {"approved": True}
+    else:
+        # Timed out — auto-reject
+        yield context.call_activity("notify_timeout", request)
+        return {"approved": False, "reason": "timeout"}</code></pre>
+        </div>
+
+        <h3>Pattern 5: Aggregator (Stateful Entity)</h3>
+        <p>Accumulate events over time into a stateful entity — like a running counter or a shopping cart that persists across multiple function calls.</p>
+
+        <h2 id="state-storage">How State is Persisted</h2>
+        <p>Durable Functions use Azure Storage (Tables, Queues, Blobs) as a backing store — called the Task Hub. The orchestrator's execution history is written to storage as events. When an orchestrator resumes (e.g., after an activity completes), it replays the history to reconstruct its current state.</p>
+
+        <h2 id="orchestrator-constraints">Orchestrator Constraints</h2>
+        <p>Because orchestrators replay their history, they must be deterministic. Do NOT use in orchestrators:</p>
+        <ul>
+          <li>Random number generation</li>
+          <li>Current date/time (<code>datetime.now()</code>) — use <code>context.current_utc_datetime</code></li>
+          <li>Direct async I/O (HTTP calls, database queries) — put in activity functions</li>
+          <li>Global state that changes between replays</li>
+        </ul>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>All non-deterministic operations go in Activity Functions</strong> Orchestrators must produce the same output when replayed with the same history. API calls, DB queries, random values — all belong in Activity functions, not the Orchestrator.</div>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know the four function types: Orchestrator (defines workflow), Activity (does work), Entity (manages state), Client (starts/monitors). Know the patterns — especially fan-out/fan-in and human interaction. Know that orchestrators must be deterministic. Know that state is stored in Azure Storage (Task Hub).</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is the role of an Activity function in Durable Functions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Orchestrator defines the workflow logic — the Activity does the actual work.')">A — Defines the overall workflow logic and sequence</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Activity functions do the actual work — making API calls, writing to databases, sending emails. They are called by the Orchestrator and can use any I/O or non-deterministic operations. The Activity is the safe place for side effects.')">B — Performs the actual work — API calls, database writes, emails</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Starting orchestrations is the role of the Client function — not Activity functions.')">C — Starts and monitors orchestration instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Persisting state between calls is the role of Entity functions — Activity functions do work but don\'t maintain ongoing state.')">D — Persists state between workflow steps</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A workflow needs to process 100 items simultaneously and wait for all to complete before proceeding. Which Durable Functions pattern should you use?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function chaining executes functions sequentially — not in parallel.')">A — Function chaining</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Fan-out/fan-in executes multiple activity functions in parallel (fan-out) and then waits for all to complete using task_all() before continuing (fan-in). Perfect for processing a batch of items concurrently.')">B — Fan-out/fan-in</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Human interaction is for waiting for external approval — not for parallel processing.')">C — Human interaction pattern</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Async HTTP API is for returning a status URL for long-running operations — not for parallel processing.')">D — Async HTTP API</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Why must Orchestrator functions be deterministic?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Orchestrators replay history for state reconstruction — not for security reasons.')">A — For security — non-deterministic code could introduce vulnerabilities</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Orchestrators replay their execution history to reconstruct current state. If the orchestrator produces different results on replay (e.g., random values, different timestamps), the replayed state won\'t match the original, causing incorrect behaviour. All non-deterministic operations must go in Activity functions.')">B — Orchestrators replay history to reconstruct state — non-deterministic code would produce different results on replay</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Orchestrator performance is not why they must be deterministic — replay correctness is the reason.')">C — For performance — deterministic code runs faster</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Orchestrators can run in parallel with other orchestrators — determinism is about replay correctness, not parallelism.')">D — To prevent multiple orchestrators from running in parallel</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div name="question-text"><span class="question-num">Q4.</span> Where does Durable Functions store its state (execution history)?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Durable Functions uses Azure Storage (Tables, Queues, and Blobs) as the backing store — called the Task Hub. The orchestration history, instance status, and messages are all stored there. This is why a Storage Account is required for Durable Functions.')">A — Azure Storage (Tables, Queues, Blobs) — the Task Hub</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Durable Functions use Azure Storage — not Azure SQL Database.')">B — Azure SQL Database</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. State is stored in Azure Storage — not in the function\'s runtime memory.')">C — In-memory on the function runtime</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cosmos DB can be used as an alternative backend but the default and primary storage is Azure Storage.')">D — Azure Cosmos DB</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which Durable Functions pattern is best for a workflow that requires manager approval before proceeding?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Fan-out/fan-in is for parallel processing — not waiting for human approval.')">A — Fan-out/fan-in</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function chaining runs steps sequentially — it doesn\'t have built-in support for waiting for external events like human approval.')">B — Function chaining</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Human Interaction pattern uses wait_for_external_event() to pause the orchestration indefinitely (or with a timeout) until an external event (like a manager clicking "Approve") is sent to the orchestration instance. The workflow resumes when the event arrives.')">C — Human interaction (wait for external event)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Async HTTP API returns status URLs for long-running operations — it doesn\'t specifically handle human approval workflows.')">D — Async HTTP API pattern</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="functions-overview.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">What is Azure Functions?</span></a>
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+        <a class="related-card" href="queue-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Queue Trigger</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="hosting-plans.html"><span class="nav-label">← Previous</span><span class="nav-title">Functions Hosting Plans</span></a>
+        <a class="nav-card next" href="cold-starts.html"><span class="nav-label">Next →</span><span class="nav-title">Cold Starts Explained</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timer Trigger — Scheduled Jobs | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions Timer trigger — cron expressions, scheduled jobs, timezone handling, and real-world examples." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Timer Trigger</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Timer Trigger — Scheduled Jobs with Azure Functions</h1>
+      <p class="page-intro">The Timer trigger lets you run Azure Functions on a schedule — like a cloud cron job. No always-on server required. Need to send a daily report at 8am, clean up old records every Sunday, or ping an API every 5 minutes? Timer triggers handle all of this with a single cron expression, and you pay only for the execution time.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        NCRONTAB cron expression format · Common cron schedules · The TimerInfo object · Timezone configuration · Missed schedule handling · RunOnStartup flag · Real-world scheduled job examples
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#cron-format">NCRONTAB Cron Format</a></li>
+        <li><a href="#common-schedules">Common Schedule Examples</a></li>
+        <li><a href="#timer-info">The TimerInfo Object</a></li>
+        <li><a href="#timezones">Timezone Configuration</a></li>
+        <li><a href="#missed-schedules">Missed Schedules</a></li>
+        <li><a href="#run-on-startup">RunOnStartup</a></li>
+        <li><a href="#examples">Real-World Examples</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="cron-format">NCRONTAB Cron Format</h2>
+        <p>Azure Functions uses NCRONTAB — a 6-field cron expression (unlike the standard 5-field Unix cron). The extra field is for seconds:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Format</span><span class="code-label">NCRONTAB expression — 6 fields</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>{second} {minute} {hour} {day} {month} {day-of-week}
+
+Examples:
+0 0 * * * *        Every hour (at minute 0, second 0)
+0 */5 * * * *      Every 5 minutes
+0 0 8 * * *        Every day at 8:00 AM
+0 0 8 * * 1-5      Weekdays at 8:00 AM (1=Monday, 5=Friday)
+0 0 0 1 * *        First day of every month at midnight
+0 0 9 * * 1        Every Monday at 9:00 AM</code></pre>
+        </div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>6 Fields, Not 5</strong> Standard Unix cron has 5 fields (minute to day-of-week). Azure Functions NCRONTAB has 6 fields — the first field is seconds. Don't forget the leading second field or your schedule will be off by one position.</div>
+        </div>
+
+        <h2 id="common-schedules">Common Schedule Examples</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Schedule</th><th>Cron Expression</th></tr></thead>
+          <tbody>
+            <tr><td>Every minute</td><td><code>0 * * * * *</code></td></tr>
+            <tr><td>Every 5 minutes</td><td><code>0 */5 * * * *</code></td></tr>
+            <tr><td>Every 30 minutes</td><td><code>0 */30 * * * *</code></td></tr>
+            <tr><td>Every hour</td><td><code>0 0 * * * *</code></td></tr>
+            <tr><td>Daily at midnight</td><td><code>0 0 0 * * *</code></td></tr>
+            <tr><td>Daily at 8am</td><td><code>0 0 8 * * *</code></td></tr>
+            <tr><td>Weekdays at 9am</td><td><code>0 0 9 * * 1-5</code></td></tr>
+            <tr><td>Every Sunday at 2am</td><td><code>0 0 2 * * 0</code></td></tr>
+            <tr><td>1st of every month</td><td><code>0 0 0 1 * *</code></td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="timer-info">The TimerInfo Object</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Timer trigger function</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+import logging
+from datetime import datetime
+
+app = func.FunctionApp()
+
+@app.timer_trigger(schedule="0 0 8 * * *", arg_name="timer", run_on_startup=False)
+def daily_report(timer: func.TimerRequest) -> None:
+    if timer.past_due:
+        logging.warning("Timer is running late — was scheduled earlier")
+
+    logging.info(f"Daily report triggered at {datetime.utcnow()}")
+
+    # Your scheduled job logic here
+    # e.g., generate report, send email, clean up old records</code></pre>
+        </div>
+
+        <p>The <code>TimerRequest</code> object provides:</p>
+        <ul>
+          <li><code>timer.past_due</code> — True if the function is running later than scheduled (e.g., after a cold start)</li>
+          <li><code>timer.schedule_status</code> — Object with last, next, and last_updated timestamps</li>
+        </ul>
+
+        <h2 id="timezones">Timezone Configuration</h2>
+        <p>By default, Timer triggers run in UTC. To run in a specific timezone, set the <code>WEBSITE_TIME_ZONE</code> app setting:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Set timezone for timer trigger</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Run schedule in India Standard Time (UTC+5:30)
+az functionapp config appsettings set \
+  --name myfunctionapp-2026 \
+  --resource-group myRG \
+  --settings WEBSITE_TIME_ZONE="India Standard Time"
+
+# Other common timezones:
+# "Eastern Standard Time"    (US Eastern, UTC-5/-4)
+# "UTC"                      (always UTC)
+# "GMT Standard Time"        (UK)</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>IST Note</strong> For India Standard Time (UTC+5:30), set <code>WEBSITE_TIME_ZONE=India Standard Time</code>. A schedule of <code>0 0 8 * * *</code> will then fire at 8:00 AM IST (2:30 AM UTC) — useful for morning reports and business-hours tasks.</div>
+        </div>
+
+        <h2 id="missed-schedules">Missed Schedules</h2>
+        <p>If the Function App is down during a scheduled execution (e.g., redeployment, scaling), the schedule is missed. Azure does not automatically run missed executions when the app comes back up. Check <code>timer.past_due</code> to detect if the current run is late and handle accordingly.</p>
+
+        <h2 id="run-on-startup">RunOnStartup</h2>
+        <p>Setting <code>run_on_startup=True</code> makes the function run immediately when the Function App starts — in addition to its scheduled runs. Useful for testing but avoid in production — every cold start and redeployment will trigger the function unexpectedly.</p>
+
+        <h2 id="examples">Real-World Examples</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Nightly database cleanup</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@app.timer_trigger(schedule="0 0 2 * * *", arg_name="timer")  # 2am daily
+def cleanup_old_records(timer: func.TimerRequest) -> None:
+    """Delete records older than 90 days"""
+    import pyodbc
+    conn = pyodbc.connect(os.environ["SQL_CONNECTION"])
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM logs WHERE created_at < DATEADD(day, -90, GETDATE())")
+    deleted = cursor.rowcount
+    conn.commit()
+    logging.info(f"Cleanup complete: deleted {deleted} old log records")</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that NCRONTAB has 6 fields (seconds first). Know that schedules run in UTC by default — use WEBSITE_TIME_ZONE to change. Know that <code>past_due</code> indicates a late execution. Know that RunOnStartup should not be used in production.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> How many fields does an Azure Functions NCRONTAB cron expression have?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard Unix cron has 5 fields — Azure Functions NCRONTAB has 6.')">A — 5</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Functions uses NCRONTAB with 6 fields: {second} {minute} {hour} {day} {month} {day-of-week}. The extra first field is for seconds — unlike standard 5-field Unix cron which starts with minutes.')">B — 6</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NCRONTAB has 6 fields — not 7.')">C — 7</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NCRONTAB has a fixed 6 fields — not variable.')">D — Variable — depends on the schedule type</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What cron expression runs a function every day at 8:00 AM?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 0 8 * * * * has only 6 fields but the field positions are wrong — this would run every minute of the 8th hour.')">A — 0 8 * * * *</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! 0 0 8 * * * means: at second 0, minute 0, hour 8, any day, any month, any day of week — which fires once daily at 8:00:00 AM.')">B — 0 0 8 * * *</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. * 8 * * * * would fire every second of minute 8 of every hour — not daily at 8am.')">C — * 8 * * * *</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 0 * 8 * * * fires every minute during the 8th hour — not once at 8:00 AM.')">D — 0 * 8 * * *</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> A timer function is configured to run at midnight UTC. The team is in India (IST, UTC+5:30) and wants it to run at midnight IST instead. What should they change?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Changing the cron expression to 0 0 18 * * * would work (midnight IST = 18:30 UTC) but the correct Azure approach is to set the timezone app setting.')">A — Change the cron expression to account for the UTC offset manually</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Set the WEBSITE_TIME_ZONE app setting to "India Standard Time". The cron expression 0 0 0 * * * will then be interpreted as midnight IST rather than midnight UTC — no need to manually offset the cron expression.')">B — Set WEBSITE_TIME_ZONE app setting to "India Standard Time"</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no "IST" timezone identifier — the correct value is "India Standard Time".')">C — Set WEBSITE_TIME_ZONE to "IST"</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Timer triggers can be configured to run in any timezone using WEBSITE_TIME_ZONE — it is not locked to UTC.')">D — Timer triggers always run in UTC — this cannot be changed</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What does timer.past_due indicate in a timer-triggered function?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. past_due relates to schedule timing — not pending executions in a queue.')">A — There are pending timer executions in a queue</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! timer.past_due is True when the function is running later than its scheduled time — for example, if the Function App was down during the scheduled execution and the timer fires when the app comes back up. You can use this to handle catch-up logic.')">B — The function is running later than its scheduled time</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. past_due indicates late execution — not whether the function exceeded a time limit.')">C — The function exceeded its execution time limit</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. past_due is about schedule timing — not billing.')">D — The Azure subscription payment is overdue</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Why should RunOnStartup=True be avoided in production?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RunOnStartup does not affect performance or cold start time significantly.')">A — It slows down cold starts significantly</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! RunOnStartup=True causes the function to execute every time the Function App starts — including deployments, scaling events, and cold starts. In production, this can cause unexpected executions of jobs that should only run on schedule (e.g., running a "daily report" multiple times per day).')">B — It triggers the function on every deployment and scaling event, not just the schedule</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RunOnStartup does not cause billing issues beyond the extra execution cost — the main problem is unexpected executions.')">C — It causes excessive billing charges</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. RunOnStartup is a supported feature — it does not break the cron schedule.')">D — It disables the cron schedule entirely</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="http-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">HTTP Trigger</span></a>
+        <a class="related-card" href="queue-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Queue Trigger</span></a>
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="http-trigger.html"><span class="nav-label">← Previous</span><span class="nav-title">HTTP Trigger</span></a>
+        <a class="nav-card next" href="blob-trigger.html"><span class="nav-label">Next →</span><span class="nav-title">Blob Storage Trigger</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

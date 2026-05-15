@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blob Storage Trigger | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions Blob Storage trigger — process files on upload, path patterns, input/output bindings, and real-world image processing examples." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Blob Storage Trigger</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Blob Storage Trigger</h1>
+      <p class="page-intro">The Blob Storage trigger fires your function whenever a file is created or updated in an Azure Blob Storage container. It's the standard pattern for file processing pipelines — a user uploads an image, CSV, or document, and your function automatically processes it. No polling, no queues to manage — Azure handles the event detection for you.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        How the Blob trigger works · Path patterns and wildcards · Blob input and output bindings · Accessing blob metadata · Trigger vs Event Grid trigger · Large-scale blob processing · Real example — image resizing pipeline
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#how-it-works">How the Blob Trigger Works</a></li>
+        <li><a href="#path-patterns">Path Patterns</a></li>
+        <li><a href="#blob-bindings">Blob Input and Output Bindings</a></li>
+        <li><a href="#metadata">Accessing Blob Metadata</a></li>
+        <li><a href="#blob-vs-eventgrid">Blob Trigger vs Event Grid Trigger</a></li>
+        <li><a href="#example">Real Example — File Processing Pipeline</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="how-it-works">How the Blob Trigger Works</h2>
+        <p>The Blob trigger uses Azure Storage's blob change feed or polling to detect new/updated blobs. When a matching blob is created or updated:</p>
+        <ol>
+          <li>Azure detects the new blob in the monitored container/path</li>
+          <li>Azure passes the blob content and metadata to your function</li>
+          <li>Your function processes the file</li>
+          <li>Results can be written to another blob, database, or queue via output bindings</li>
+        </ol>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Blob Trigger Latency</strong> On the Consumption plan, Blob triggers can have up to 10 minutes of latency — Azure polls for new blobs rather than reacting instantly. For near-real-time processing, use an Event Grid trigger instead (fires within seconds). On Premium and Dedicated plans, latency is much lower.</div>
+        </div>
+
+        <h2 id="path-patterns">Path Patterns</h2>
+        <p>The path pattern defines which blobs trigger the function:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Path Patterns</span><span class="code-label">Blob trigger path examples</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>uploads/{name}              # Any blob in "uploads" container
+uploads/{name}.{ext}        # Blobs with any extension — ext captures extension
+uploads/images/{name}.jpg   # Only .jpg files in uploads/images/
+uploads/{blobname}          # Capture full blob name including path</code></pre>
+        </div>
+
+        <h2 id="blob-bindings">Blob Trigger and Bindings</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Blob trigger — process uploaded CSV</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+import logging
+import csv
+import io
+
+app = func.FunctionApp()
+
+@app.blob_trigger(arg_name="inputBlob",
+                  path="uploads/{name}",
+                  connection="AzureWebJobsStorage")
+@app.blob_output(arg_name="outputBlob",
+                 path="processed/{name}",
+                 connection="AzureWebJobsStorage")
+def process_csv(inputBlob: func.InputStream,
+                outputBlob: func.Out[str]) -> None:
+
+    # Read the uploaded CSV
+    content = inputBlob.read().decode("utf-8")
+    reader = csv.DictReader(io.StringIO(content))
+
+    # Process rows
+    results = []
+    for row in reader:
+        # Apply transformation logic
+        row["processed"] = True
+        results.append(row)
+
+    # Write processed data to output container
+    output = csv.DictWriter(io.StringIO(), fieldnames=results[0].keys())
+    output_str = io.StringIO()
+    writer = csv.DictWriter(output_str, fieldnames=results[0].keys())
+    writer.writeheader()
+    writer.writerows(results)
+    outputBlob.set(output_str.getvalue())
+
+    logging.info(f"Processed {len(results)} rows from {inputBlob.name}")</code></pre>
+        </div>
+
+        <h2 id="metadata">Accessing Blob Metadata</h2>
+        <p>The <code>InputStream</code> object provides useful metadata about the blob:</p>
+        <ul>
+          <li><code>inputBlob.name</code> — Full blob path (e.g., uploads/myfile.csv)</li>
+          <li><code>inputBlob.length</code> — File size in bytes</li>
+          <li><code>inputBlob.uri</code> — Full blob URI</li>
+          <li><code>inputBlob.read()</code> — Read entire content as bytes</li>
+        </ul>
+
+        <h2 id="blob-vs-eventgrid">Blob Trigger vs Event Grid Trigger</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Blob Trigger</th><th>Event Grid Trigger</th></tr></thead>
+          <tbody>
+            <tr><td>Latency (Consumption)</td><td>Up to 10 minutes</td><td>Near-instant (seconds)</td></tr>
+            <tr><td>Setup complexity</td><td>Simple — just configure path</td><td>More complex — needs Event Grid subscription</td></tr>
+            <tr><td>Missed events</td><td>Handles missed events via polling</td><td>May miss events if function is down</td></tr>
+            <tr><td>Best for</td><td>Non-time-sensitive processing, batch</td><td>Real-time processing, customer-facing</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="example">Real Example — Image Processing Pipeline</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Auto-generate thumbnail on image upload</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+from PIL import Image
+import io
+
+app = func.FunctionApp()
+
+@app.blob_trigger(arg_name="image",
+                  path="images/{name}",
+                  connection="AzureWebJobsStorage")
+@app.blob_output(arg_name="thumbnail",
+                 path="thumbnails/{name}",
+                 connection="AzureWebJobsStorage")
+def generate_thumbnail(image: func.InputStream,
+                       thumbnail: func.Out[bytes]) -> None:
+    # Open original image
+    img = Image.open(io.BytesIO(image.read()))
+
+    # Resize to thumbnail
+    img.thumbnail((200, 200))
+
+    # Save to bytes
+    output = io.BytesIO()
+    img.save(output, format=img.format or "JPEG")
+    thumbnail.set(output.getvalue())
+
+    logging.info(f"Thumbnail created for {image.name}")</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that Blob trigger can have up to 10 minutes latency on Consumption plan — use Event Grid trigger for near-real-time. Know path patterns use curly braces to capture values ({name}). Know that Blob input bindings read a specific blob; output bindings write to a blob.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is the maximum latency for a Blob trigger on the Consumption plan?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob triggers on Consumption plan can have up to 10 minutes latency — not seconds.')">A — A few seconds</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum latency is up to 10 minutes — not 1 minute.')">B — 1 minute</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! On the Consumption plan, Blob triggers poll for new blobs and can have up to 10 minutes of latency. For near-real-time blob processing, use an Event Grid trigger instead, which fires within seconds.')">C — Up to 10 minutes</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The maximum latency is up to 10 minutes — not 1 hour.')">D — 1 hour</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> In a Blob trigger path "uploads/{name}", what does {name} capture?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! {name} in a blob path pattern captures the blob name — the filename including extension. For example, if a blob at uploads/report.csv is created, name = "report.csv". You can use this captured value to build output paths or for logging.')">A — The full blob name including extension (e.g., report.csv)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. {name} captures the full blob name — to capture only the extension use a pattern like {name}.{ext}.')">B — Only the file extension</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. {name} captures the blob name — not the container name.')">C — The container name</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. {name} captures the blob name as a string — not the blob size.')">D — The blob size in bytes</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> When should you use an Event Grid trigger instead of a Blob trigger?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. For batch nightly processing, Blob trigger with its polling approach is perfectly adequate.')">A — For batch nightly processing of uploaded files</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Event Grid trigger provides near-instant (seconds) notification when a blob is created, compared to up to 10 minutes for Blob trigger on Consumption plan. For customer-facing scenarios where users expect immediate feedback after uploading, Event Grid is essential.')">B — When near-real-time processing is required (e.g., customer uploads and immediately expects results)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob trigger handles large files fine — Event Grid is about latency, not file size.')">C — When processing very large files over 1 GB</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Blob trigger works fine in all Azure regions — Event Grid is not region-specific.')">D — When the Function App is in a specific Azure region</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What property of the InputStream object gives you the full blob path?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! inputBlob.name returns the full blob path including the container and blob name (e.g., uploads/subfolder/report.csv). This is useful for logging, building output paths, or conditional logic based on filename.')">A — inputBlob.name</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. inputBlob.path is not a property of InputStream — use inputBlob.name for the blob path.')">B — inputBlob.path</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. inputBlob.uri returns the full URL of the blob — inputBlob.name returns just the path.')">C — inputBlob.uri</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. inputBlob.read() returns the blob content as bytes — not the path.')">D — inputBlob.read()</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A Blob trigger is configured with path "images/{name}.jpg". What happens when a PNG file is uploaded to the images container?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The path pattern includes .jpg — a PNG file does not match this pattern and the function does not fire.')">A — The function fires and processes the PNG file</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The path pattern "images/{name}.jpg" only matches files with a .jpg extension. A PNG file uploaded to the images container does not match this pattern, so the function is not triggered.')">B — The function does not fire — the PNG does not match the .jpg path pattern</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The path pattern filters which blobs trigger the function — a mismatch simply means no trigger, not an error.')">C — An error is thrown and the PNG upload fails</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The function is not triggered for PNG files — there is no fallback behaviour for pattern mismatches.')">D — The function fires but with an error indicating wrong file type</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="queue-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Queue Trigger</span></a>
+        <a class="related-card" href="timer-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Timer Trigger</span></a>
+        <a class="related-card" href="functions-overview.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">What is Azure Functions?</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="timer-trigger.html"><span class="nav-label">← Previous</span><span class="nav-title">Timer Trigger</span></a>
+        <a class="nav-card next" href="queue-trigger.html"><span class="nav-label">Next →</span><span class="nav-title">Queue Trigger</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

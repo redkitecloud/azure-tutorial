@@ -294,7 +294,12 @@ function getRootPath() {
 
 function getCurrentPage() {
   const parts = window.location.pathname.split('/').filter(Boolean);
-  const file  = parts[parts.length - 1] || '';
+  let file  = parts[parts.length - 1] || '';
+
+  // Normalise: add .html if missing, remove trailing slash
+  if (file && !file.includes('.')) file = file + '.html';
+  if (!file) file = 'index.html';
+
   const rootPages = ['certifications.html', 'practice.html', 'index.html'];
   if (rootPages.includes(file)) {
     return { module: '', file };
@@ -379,4 +384,14 @@ function renderSidebar() {
 }
 
 /* ── Init ─────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', renderSidebar);
+document.addEventListener('DOMContentLoaded', function() {
+  renderSidebar();
+
+  // Scroll the active sidebar item into view so it's always visible
+  requestAnimationFrame(function() {
+    const activeItem = document.querySelector('#rkc-sidebar .sb-item.active');
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  });
+});

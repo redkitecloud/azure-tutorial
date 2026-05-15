@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What is Azure Functions? | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete overview of Azure Functions — serverless computing, event-driven architecture, triggers, bindings, and when to use Functions vs App Service." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">What is Azure Functions?</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">What is Azure Functions?</h1>
+      <p class="page-intro">Azure Functions is a serverless compute service that lets you run small pieces of code — called functions — without managing any infrastructure. You write the code, Azure handles everything else: servers, scaling, OS patching, and availability. You're billed only for the time your code actually runs — down to the millisecond. It's the cloud's answer to "I just need to run this piece of code when something happens."</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What serverless means · How Azure Functions works · Triggers and bindings · Supported languages · Functions runtime versions · Functions vs App Service vs Logic Apps · When to use Functions · The Functions programming model
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-serverless">What is Serverless?</a></li>
+        <li><a href="#how-functions-work">How Azure Functions Works</a></li>
+        <li><a href="#triggers-bindings">Triggers and Bindings</a></li>
+        <li><a href="#languages">Supported Languages</a></li>
+        <li><a href="#runtime-versions">Runtime Versions</a></li>
+        <li><a href="#functions-vs-alternatives">Functions vs Alternatives</a></li>
+        <li><a href="#when-to-use">When to Use Functions</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-serverless">What is Serverless?</h2>
+        <p>Serverless doesn't mean no servers — it means you don't manage servers. The cloud provider provisions, scales, and maintains all the compute infrastructure automatically. You focus purely on your code.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Traditional</th><th>App Service (PaaS)</th><th>Functions (Serverless)</th></tr></thead>
+          <tbody>
+            <tr><td>Manage servers?</td><td>Yes</td><td>No</td><td>No</td></tr>
+            <tr><td>Always running?</td><td>Yes</td><td>Yes</td><td>No — runs on demand</td></tr>
+            <tr><td>Billing</td><td>Per hour (always)</td><td>Per hour (always)</td><td>Per execution + duration</td></tr>
+            <tr><td>Scaling</td><td>Manual</td><td>Manual/auto</td><td>Automatic and instant</td></tr>
+            <tr><td>Best for</td><td>Any workload</td><td>Web apps, APIs</td><td>Event-driven, short tasks</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="how-functions-work">How Azure Functions Works</h2>
+        <p>A Function is a piece of code that runs in response to an event (called a trigger). The lifecycle is:</p>
+        <ol>
+          <li>An event occurs — HTTP request arrives, a message lands in a queue, a file is uploaded</li>
+          <li>Azure detects the trigger and allocates a compute instance (may already be warm)</li>
+          <li>Your function code executes</li>
+          <li>The result is returned or written to an output binding</li>
+          <li>Billing stops — you pay only for execution time</li>
+        </ol>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Function App vs Function</strong> A <strong>Function App</strong> is the container — the Azure resource that hosts one or more functions. All functions in a Function App share the same hosting plan, runtime, and settings. Individual <strong>Functions</strong> are the actual code files inside the Function App.</div>
+        </div>
+
+        <h2 id="triggers-bindings">Triggers and Bindings</h2>
+        <p>Triggers and bindings are the magic of Azure Functions — they connect your code to Azure services without you writing plumbing code.</p>
+
+        <h3>Triggers</h3>
+        <p>Every function has exactly one trigger — the event that causes it to run:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Trigger</th><th>Fires When</th></tr></thead>
+          <tbody>
+            <tr><td><strong>HTTP</strong></td><td>An HTTP request hits the function URL</td></tr>
+            <tr><td><strong>Timer</strong></td><td>A cron schedule fires (e.g., every hour)</td></tr>
+            <tr><td><strong>Blob Storage</strong></td><td>A file is created/updated in a container</td></tr>
+            <tr><td><strong>Queue Storage</strong></td><td>A message is added to a storage queue</td></tr>
+            <tr><td><strong>Service Bus</strong></td><td>A message arrives on a Service Bus queue/topic</td></tr>
+            <tr><td><strong>Event Hub</strong></td><td>Events arrive at an Event Hub</td></tr>
+            <tr><td><strong>Cosmos DB</strong></td><td>Documents are inserted/updated (change feed)</td></tr>
+            <tr><td><strong>Event Grid</strong></td><td>An Event Grid event is published</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Bindings</h3>
+        <p>Bindings declaratively connect your function to other services — reading from or writing to them without connection boilerplate code:</p>
+        <ul>
+          <li><strong>Input bindings</strong> — Read data into your function (e.g., read a Cosmos DB document)</li>
+          <li><strong>Output bindings</strong> — Write data from your function (e.g., write to a queue, send an email)</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">HTTP trigger with Blob output binding</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+
+app = func.FunctionApp()
+
+@app.function_name("ProcessUpload")
+@app.route(route="upload")                              # HTTP trigger
+@app.blob_output(arg_name="outputBlob",                # Blob output binding
+                 path="processed/{rand-guid}.json",
+                 connection="AzureWebJobsStorage")
+def main(req: func.HttpRequest, outputBlob: func.Out[str]) -> func.HttpResponse:
+    data = req.get_body().decode()
+    outputBlob.set(data)          # Write to Blob — no storage SDK needed
+    return func.HttpResponse("Saved!", status_code=200)</code></pre>
+        </div>
+
+        <h2 id="languages">Supported Languages</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Language</th><th>Versions</th><th>Model</th></tr></thead>
+          <tbody>
+            <tr><td>C#</td><td>.NET 6, 8, isolated worker</td><td>In-process or isolated</td></tr>
+            <tr><td>JavaScript / TypeScript</td><td>Node.js 18, 20</td><td>v4 programming model</td></tr>
+            <tr><td>Python</td><td>3.9, 3.10, 3.11</td><td>v2 programming model</td></tr>
+            <tr><td>Java</td><td>Java 8, 11, 17, 21</td><td>Java worker</td></tr>
+            <tr><td>PowerShell</td><td>7.2, 7.4</td><td>PowerShell worker</td></tr>
+            <tr><td>Custom handlers</td><td>Any language</td><td>HTTP-based custom worker</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="runtime-versions">Runtime Versions</h2>
+        <p>The Azure Functions runtime determines which features and language versions are available. Always use the latest:</p>
+        <ul>
+          <li><strong>Functions v4</strong> — Current, recommended. Supports all modern language versions.</li>
+          <li><strong>Functions v3</strong> — Legacy, still supported but plan to migrate.</li>
+          <li><strong>Functions v1/v2</strong> — End of life — do not use for new projects.</li>
+        </ul>
+
+        <h2 id="functions-vs-alternatives">Functions vs Alternatives</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Service</th><th>Best For</th><th>Billing</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Azure Functions</strong></td><td>Event-driven, short-lived, sporadic tasks</td><td>Per execution</td></tr>
+            <tr><td><strong>App Service</strong></td><td>Always-on web apps and APIs</td><td>Per hour (plan)</td></tr>
+            <tr><td><strong>Logic Apps</strong></td><td>Low-code workflow orchestration, integration</td><td>Per action</td></tr>
+            <tr><td><strong>Container Apps</strong></td><td>Containerised microservices, longer running</td><td>Per vCPU/memory second</td></tr>
+            <tr><td><strong>AKS</strong></td><td>Complex container orchestration, full control</td><td>Per node hour</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="when-to-use">When to Use Functions</h2>
+        <ul>
+          <li>Processing files after they're uploaded to Blob Storage</li>
+          <li>Running scheduled jobs (nightly reports, cleanup tasks)</li>
+          <li>Building lightweight REST APIs or webhooks</li>
+          <li>Reacting to queue messages or events</li>
+          <li>Integrating services (glue code between systems)</li>
+          <li>Any task that runs infrequently and completes in under 10 minutes</li>
+        </ul>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Not Great For...</strong> Long-running processes (&gt;10 min on Consumption plan), applications needing persistent connections, or workloads with very consistent high traffic (App Service is cheaper for always-on scenarios).</div>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that every function has exactly one trigger. Know the common trigger types (HTTP, Timer, Blob, Queue). Know that bindings connect functions to services without SDK code. Know that a Function App hosts multiple functions and shares one hosting plan.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> How many triggers can a single Azure Function have?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Every Azure Function has exactly one trigger — the single event that causes it to execute. You can have multiple input and output bindings, but only one trigger. If you need a function to respond to multiple events, create multiple functions.')">A — Exactly one</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A function has exactly one trigger — multiple triggers are not supported on a single function.')">B — Up to 3</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A function has exactly one trigger — not unlimited.')">C — Unlimited</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A function always has exactly one trigger — zero triggers would mean the function never runs.')">D — Zero or one</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the difference between a Function App and a Function?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Function App hosts multiple functions — it is not the same as a single function.')">A — They are the same thing — different names for the same resource</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Function App is the Azure resource container that hosts one or more individual Functions. All Functions within a Function App share the same hosting plan, runtime version, app settings, and deployment. Individual Functions are the actual code files inside.')">B — A Function App is the Azure resource hosting one or more Functions; a Function is the individual code unit</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function App and individual Functions are different concepts — Function App is the container resource.')">C — A Function is the Azure resource; a Function App is a single code execution</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Function Apps can host many functions — there is no one-to-one restriction.')">D — Each Function App can only contain one Function</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What do output bindings do in Azure Functions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Output bindings write data out — input bindings read data into the function.')">A — Read data from external services into the function</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Output bindings declaratively write data from your function to external services (queues, blobs, databases, emails) without writing SDK connection code. You just set a value on the binding parameter and Azure handles the rest.')">B — Write data from the function to external services without SDK connection code</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Output bindings handle writing data — not triggering function execution.')">C — Trigger additional function executions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Output bindings are declarative connectors — not related to scaling.')">D — Scale the function to more instances</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> When is Azure Functions a better choice than Azure App Service?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. For always-on high-traffic APIs, App Service is more cost-effective — Functions billed per-execution can be expensive at high sustained volume.')">A — For an always-on high-traffic REST API</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Functions is ideal for event-driven, sporadic tasks like processing files after upload. It scales to zero when not running (no cost) and instantly scales to handle bursts. App Service would charge continuously even when no files are being processed.')">B — For processing files triggered by Blob Storage uploads (sporadic, event-driven)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. For a full web application requiring persistent connections and stateful sessions, App Service is the better choice.')">C — For a full web application requiring persistent user sessions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. For complex microservices requiring container orchestration, AKS or Container Apps are more appropriate.')">D — For complex container orchestration with Kubernetes</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which Azure Functions runtime version should you use for new projects?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. v1 is end of life — do not use for new projects.')">A — v1</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. v2 is end of life — do not use for new projects.')">B — v2</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. v3 is legacy — it still works but v4 is the current recommended version.')">C — v3</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Functions v4 is the current recommended runtime version. It supports all modern language versions, the latest programming models (Python v2, Node.js v4), and all new features. Always use v4 for new projects.')">D — v4</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="http-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">HTTP Trigger — Build an API</span></a>
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+        <a class="related-card" href="cold-starts.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Cold Starts Explained</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <div></div>
+        <a class="nav-card next" href="http-trigger.html"><span class="nav-label">Next →</span><span class="nav-title">HTTP Trigger — Build an API</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

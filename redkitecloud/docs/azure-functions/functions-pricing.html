@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functions Pricing | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions pricing — Consumption, Premium, and Dedicated plan costs, free tier, real examples, and cost-saving tips." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Functions Pricing</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Azure Functions Pricing</h1>
+      <p class="page-intro">Azure Functions pricing depends heavily on which hosting plan you choose. Consumption plan is nearly free for low-volume workloads thanks to a generous free tier. Premium plan has a fixed minimum monthly cost. Dedicated plan charges by the hour like App Service. Understanding each model prevents billing surprises and helps you choose the right plan for your workload.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Consumption plan billing model and free tier · Premium plan billing · Dedicated plan billing · Real-world cost examples for each plan · Functions vs App Service cost breakeven · Top 7 cost-saving tips · Using the pricing calculator
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#consumption-pricing">Consumption Plan Pricing</a></li>
+        <li><a href="#premium-pricing">Premium Plan Pricing</a></li>
+        <li><a href="#dedicated-pricing">Dedicated Plan Pricing</a></li>
+        <li><a href="#real-examples">Real-World Cost Examples</a></li>
+        <li><a href="#breakeven">Functions vs App Service Breakeven</a></li>
+        <li><a href="#cost-tips">Top 7 Cost-Saving Tips</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="consumption-pricing">Consumption Plan Pricing</h2>
+        <p>The Consumption plan has two billing dimensions — executions and GB-seconds (memory × time):</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Dimension</th><th>Free Tier (monthly)</th><th>Price Beyond Free</th></tr></thead>
+          <tbody>
+            <tr><td>Executions</td><td>1,000,000 executions</td><td>~₹17 per million executions</td></tr>
+            <tr><td>GB-seconds</td><td>400,000 GB-seconds</td><td>~₹1.40 per 100,000 GB-seconds</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>GB-Seconds Explained</strong> GB-seconds = memory used (GB) × execution duration (seconds). A function using 512 MB (0.5 GB) for 2 seconds = 1 GB-second. The free tier's 400,000 GB-seconds = a 512 MB function running for ~222 hours/month — very generous.</div>
+        </div>
+
+        <h3>Consumption Plan Cost Examples</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scenario</th><th>Executions/month</th><th>Avg Duration</th><th>Memory</th><th>Monthly Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Light webhook</td><td>500K</td><td>200ms</td><td>128 MB</td><td>₹0 (within free tier)</td></tr>
+            <tr><td>Moderate API</td><td>5M</td><td>300ms</td><td>256 MB</td><td>~₹100</td></tr>
+            <tr><td>Heavy processing</td><td>50M</td><td>1s</td><td>512 MB</td><td>~₹2,000</td></tr>
+            <tr><td>Very high volume</td><td>500M</td><td>500ms</td><td>256 MB</td><td>~₹8,000</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="premium-pricing">Premium Plan Pricing</h2>
+        <p>Premium plan charges by vCPU-second and GB-second — continuously for pre-warmed instances even when idle:</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>SKU</th><th>vCPU</th><th>Memory</th><th>Approx. Monthly Cost (1 instance)</th></tr></thead>
+          <tbody>
+            <tr><td>EP1</td><td>1</td><td>3.5 GB</td><td>~₹5,500</td></tr>
+            <tr><td>EP2</td><td>2</td><td>7 GB</td><td>~₹11,000</td></tr>
+            <tr><td>EP3</td><td>4</td><td>14 GB</td><td>~₹22,000</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Premium Minimum Cost</strong> Even with zero executions, Premium plan charges for the pre-warmed instance. EP1 minimum cost is ~₹5,500/month. This is the "always warm" tax — you're paying for guaranteed availability.</div>
+        </div>
+
+        <h2 id="dedicated-pricing">Dedicated Plan Pricing</h2>
+        <p>Dedicated (App Service) plan charges the regular App Service Plan hourly rate — same as hosting Web Apps. No extra cost for adding Functions to an existing plan.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Plan</th><th>Approx. Monthly Cost</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Basic B1</td><td>~₹1,200</td><td>1 vCPU, 1.75 GB RAM</td></tr>
+            <tr><td>Standard S1</td><td>~₹1,500</td><td>Auto-scale, deployment slots</td></tr>
+            <tr><td>Premium P1v3</td><td>~₹5,500</td><td>2 vCPU, 8 GB RAM, zone redundancy</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="real-examples">Real-World Cost Examples</h2>
+
+        <h3>Example 1 — Internal webhook processor (low traffic)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Detail</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Executions</td><td>200,000/month</td></tr>
+            <tr><td>Duration</td><td>500ms average</td></tr>
+            <tr><td>Memory</td><td>256 MB</td></tr>
+            <tr><td>Plan</td><td>Consumption</td></tr>
+            <tr><td><strong>Monthly cost</strong></td><td><strong>₹0 — within free tier</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Example 2 — Customer-facing API (medium traffic, no cold starts)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Detail</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Executions</td><td>10M/month</td></tr>
+            <tr><td>Plan</td><td>Premium EP1 (1 pre-warmed instance)</td></tr>
+            <tr><td>Additional instances during peaks</td><td>2 extra × 50 hours</td></tr>
+            <tr><td><strong>Monthly cost</strong></td><td><strong>~₹6,500</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Example 3 — Nightly batch jobs on existing App Service Plan</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Detail</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Function App on existing S1 plan</td><td>No extra cost</td></tr>
+            <tr><td>Storage account for Functions</td><td>~₹50/month</td></tr>
+            <tr><td><strong>Monthly cost</strong></td><td><strong>~₹50</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="breakeven">Functions vs App Service Breakeven</h2>
+        <p>At what traffic volume does Consumption plan become more expensive than an App Service Basic B1 (~₹1,200/month)?</p>
+        <ul>
+          <li>B1 costs ~₹1,200/month flat regardless of traffic</li>
+          <li>Consumption at ~100M executions/month (300ms, 256 MB) costs ~₹1,500</li>
+          <li><strong>Breakeven: roughly 80–100 million executions/month</strong></li>
+        </ul>
+        <p>Below that level, Consumption is cheaper. Above it, Dedicated becomes more cost-effective.</p>
+
+        <h2 id="cost-tips">Top 7 Cost-Saving Tips</h2>
+
+        <h3>1. Stay Within the Free Tier</h3>
+        <p>1 million executions + 400,000 GB-seconds free every month. Low-volume functions often cost nothing.</p>
+
+        <h3>2. Reduce Memory Allocation</h3>
+        <p>GB-seconds = memory × time. Reducing memory from 512 MB to 128 MB for a function that doesn't need it cuts GB-second cost by 75%.</p>
+
+        <h3>3. Optimise Function Duration</h3>
+        <p>Shorter execution = fewer GB-seconds. Optimise slow queries, use async patterns, avoid unnecessary waits.</p>
+
+        <h3>4. Use Consumption for Sporadic Workloads</h3>
+        <p>Timer jobs, webhook processors, and batch jobs that run infrequently are almost always cheapest on Consumption.</p>
+
+        <h3>5. Use Dedicated Plan if You Already Have App Service</h3>
+        <p>Adding Functions to an existing App Service Plan is free — the plan is already paid for.</p>
+
+        <h3>6. Right-Size Premium Plan Instances</h3>
+        <p>Don't use EP3 if EP1 is sufficient. Monitor actual CPU and memory usage before choosing Premium SKU.</p>
+
+        <h3>7. Monitor with Azure Cost Analysis</h3>
+        <p>Check monthly Functions cost breakdowns — execution count, GB-seconds, and plan costs — in Azure Cost Management. Set budget alerts before costs spike.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that Consumption has 1M free executions and 400K free GB-seconds monthly. Know that Premium charges continuously for pre-warmed instances (~₹5,500+/month minimum). Know that Dedicated is charged per hour like App Service. Know that GB-seconds = memory (GB) × duration (seconds).</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> How many free executions does the Consumption plan provide per month?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The free tier is much more generous than 100,000 executions.')">A — 100,000</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Consumption plan provides 1 million free executions per month — and 400,000 GB-seconds of compute time. This generous free tier means many low-volume functions cost nothing at all.')">B — 1,000,000 (1 million)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The free tier is 1 million executions — not 10 million.')">C — 10,000,000 (10 million)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is a specific free tier of 1 million executions — not unlimited.')">D — Unlimited</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A function runs 500,000 times per month with an average duration of 200ms using 128 MB memory. How much does it cost on the Consumption plan?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! 500,000 executions is within the 1 million free tier. GB-seconds used = 0.128 GB × 0.2s × 500,000 = 12,800 GB-seconds — well within the 400,000 free GB-seconds. Total cost: ₹0.')">A — ₹0 — within the free tier for both executions and GB-seconds</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 500K executions and 12,800 GB-seconds are both within the free tier — the cost is ₹0.')">B — ~₹50/month</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This workload is comfortably within the free tier — the cost is ₹0, not ₹200.')">C — ~₹200/month</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. This lightweight function is well within the free tier — there is no per-function monthly fee.')">D — ₹500/month fixed fee</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is GB-seconds in Azure Functions Consumption billing?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GB-seconds measures compute time (memory × duration) — not data transfer.')">A — Gigabytes of data transferred per second</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! GB-seconds = memory allocated (in GB) × execution duration (in seconds). A function using 512 MB (0.5 GB) for 2 seconds = 1 GB-second. The free tier covers 400,000 GB-seconds per month.')">B — Memory (GB) × execution duration (seconds) — measures compute consumed</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GB-seconds measures function compute consumption — not storage capacity.')">C — Storage capacity per second of access time</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. GB-seconds measures execution compute — not the number of instances.')">D — Number of running instances per second</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> A company already pays for an Azure App Service Standard S1 plan. They want to add nightly batch processing jobs using Functions. What is the most cost-effective hosting approach?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating a new Consumption plan adds unnecessary complexity when there\'s already an App Service Plan available.')">A — Create a new Consumption plan Function App</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium plan adds ₹5,500+/month when they already have an App Service Plan that can host Functions for free.')">B — Create a Premium plan Function App</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Running Functions on an existing App Service Plan is free — the plan compute is already paid for. For nightly batch jobs, cold starts don\'t matter, and the existing S1 plan provides more than enough compute.')">C — Add Functions to the existing S1 App Service Plan — no extra compute cost</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Instances would add new infrastructure costs when the App Service Plan is already available.')">D — Deploy to Azure Container Instances</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Does the Premium plan charge even when no functions are executing?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Premium plan charges continuously for pre-warmed instances — even when zero functions are executing. You are paying for guaranteed warm instances. The minimum monthly cost for EP1 is ~₹5,500 regardless of execution count. This is the trade-off for eliminating cold starts.')">A — Yes — pre-warmed instances charge continuously even with zero executions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Unlike Consumption plan which scales to zero, Premium plan always has running instances and always charges.')">B — No — Premium plan only charges for actual executions like Consumption</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium plan charges continuously — it does not have a free tier for idle instances.')">C — Only the first 1 million idle seconds are free</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Premium plan always charges for pre-warmed instances — there is no 30-minute grace period.')">D — No charge for the first 30 minutes of idle time</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+        <a class="related-card" href="cold-starts.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Cold Starts Explained</span></a>
+        <a class="related-card" href="functions-overview.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">What is Azure Functions?</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="cold-starts.html"><span class="nav-label">← Previous</span><span class="nav-title">Cold Starts Explained</span></a>
+        <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
