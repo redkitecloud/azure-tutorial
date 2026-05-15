@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Regions & Availability Zones | Azure Fundamentals | RedKiteCloud</title>
+  <meta name="description" content="Deep dive into Azure Regions and Availability Zones — how they work, how to design for high availability, and what the AZ-900 exam expects you to know." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+
+  <header class="topbar" id="rkc-topbar"></header>
+  <script src="../../js/topbar.js"></script>
+
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav>
+    <script src="../../js/sidebar.js"></script>
+
+    <main class="main">
+      <div class="content-area">
+
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="sep">›</span>
+          <a href="../../index.html">Azure Fundamentals</a>
+          <span class="sep">›</span>
+          <span class="current">Regions &amp; Availability Zones</span>
+        </div>
+
+        <div class="last-updated">Last updated: May 2026</div>
+
+        <div class="badge-row">
+          <span class="badge badge-module">Azure Fundamentals</span>
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-exam">AZ-900</span>
+          <span class="badge badge-read">⏱ 12 min read</span>
+        </div>
+
+        <h1 class="page-title">Azure Regions &amp; Availability Zones</h1>
+
+        <p class="page-intro">
+          In the previous tutorial on Global Infrastructure, we introduced regions and availability zones at a high level. This page goes deeper — covering how regions and AZs actually work, the difference between zonal and zone-redundant services, how SLAs improve when you use multiple zones, and how to design truly resilient applications on Azure.
+        </p>
+
+        <div class="learn-box">
+          <strong>What you'll learn</strong>
+          How Azure regions work in detail · What makes a region "recommended" vs "alternate" · Availability Zones explained — zonal vs zone-redundant services · SLA improvements with multiple zones · How to deploy zone-redundant resources · Which Azure services support AZs
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">Table of Contents</div>
+          <ol>
+            <li><a href="#regions-deep">Azure Regions — A Deeper Look</a></li>
+            <li><a href="#recommended-alternate">Recommended vs Alternate Regions</a></li>
+            <li><a href="#az-deep">Availability Zones — How They Work</a></li>
+            <li><a href="#zonal-vs-redundant">Zonal vs Zone-Redundant Services</a></li>
+            <li><a href="#sla">How AZs Improve Your SLA</a></li>
+            <li><a href="#supported-services">Azure Services That Support AZs</a></li>
+            <li><a href="#deploying">Deploying Zone-Redundant Resources</a></li>
+            <li><a href="#practice">Practice Questions</a></li>
+          </ol>
+        </div>
+
+        <div class="content">
+
+          <h2 id="regions-deep">Azure Regions — A Deeper Look</h2>
+          <p>An Azure region is a set of data centres deployed within a latency-defined perimeter and connected through a dedicated regional low-latency network. In plain terms: a region is a cluster of data centres close enough together that network latency between them is under 2 milliseconds.</p>
+          <p>This low latency is what makes a region feel like a single location from your application's perspective — even though it may physically span multiple buildings across a city.</p>
+
+          <h3>What Happens When You Deploy to a Region</h3>
+          <p>When you create a Virtual Machine in "Central India," you don't choose a specific data centre. Azure's platform automatically selects the best physical location within that region based on available capacity, hardware health, and your configuration. You only control the region — Azure controls the rest below that level.</p>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>Exception: Availability Zones</strong>
+              When you explicitly deploy to a specific Availability Zone (Zone 1, 2, or 3), you are controlling which data centre your resource goes to — because each zone maps to a specific physical building. This is why zone selection matters for resilience.
+            </div>
+          </div>
+
+          <h3>How Many Regions Does Azure Have?</h3>
+          <p>As of 2026, Azure has 60+ regions across 140+ countries. Microsoft continues to expand — new regions are regularly announced. You can always see the current list at <strong>azure.microsoft.com/global-infrastructure/geographies</strong>.</p>
+
+          <h2 id="recommended-alternate">Recommended vs Alternate Regions</h2>
+          <p>Not all Azure regions are equal in terms of available services and features. Microsoft classifies regions into two types:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Type</th><th>Description</th><th>Examples</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Recommended</strong></td>
+                  <td>Full set of Azure services available. Supports Availability Zones. Recommended for most workloads.</td>
+                  <td>East US, West Europe, Central India, Southeast Asia</td>
+                </tr>
+                <tr>
+                  <td><strong>Alternate</strong></td>
+                  <td>Extends Azure's footprint. May not support all services or Availability Zones. Used for data residency or DR scenarios.</td>
+                  <td>West India, South India (some services)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>For India</strong>
+              Central India (Pune) is a Recommended region — it supports Availability Zones and has the broadest service availability. If you're building a production workload for Indian users, start with Central India as your primary region.
+            </div>
+          </div>
+
+          <h2 id="az-deep">Availability Zones — How They Work</h2>
+          <p>An Availability Zone is a unique physical location within an Azure region. Each zone is made up of one or more data centres equipped with independent power, cooling, and networking. The zones within a region are connected by a high-speed, private optical network with round-trip latency under 2 milliseconds.</p>
+
+          <h3>The Physical Reality</h3>
+          <p>Imagine the Central India region as a city (Pune). Within that city, Microsoft has built three separate, reinforced buildings — each with:</p>
+          <ul>
+            <li>Its own electrical grid connections and backup generators</li>
+            <li>Its own cooling infrastructure</li>
+            <li>Its own network uplinks to the internet and to other zones</li>
+            <li>Physical separation of at least several kilometres</li>
+          </ul>
+          <p>These three buildings are Zones 1, 2, and 3. If Zone 1's entire building loses power due to a localised grid failure, Zones 2 and 3 are completely unaffected.</p>
+
+          <div class="box warning">
+            <span class="box-icon">⚠️</span>
+            <div class="box-body">
+              <strong>Zone Numbers Are Not Consistent Across Subscriptions</strong>
+              Azure randomly maps physical zones to zone numbers per subscription. "Zone 1" in your subscription may map to a different physical building than "Zone 1" in your colleague's subscription. This prevents all customers from concentrating in the same physical zone.
+            </div>
+          </div>
+
+          <h2 id="zonal-vs-redundant">Zonal vs Zone-Redundant Services</h2>
+          <p>Azure services that support Availability Zones come in two flavours — and understanding the difference is critical for designing resilient systems.</p>
+
+          <h3>Zonal Services</h3>
+          <p>A zonal service is pinned to a specific zone. You explicitly choose Zone 1, Zone 2, or Zone 3. The resource lives in that specific physical data centre.</p>
+          <ul>
+            <li>Example: A Virtual Machine deployed to Zone 1</li>
+            <li>Benefit: Predictable placement — you know exactly where it is</li>
+            <li>Risk: If that zone fails, your resource is down (unless you have copies in other zones)</li>
+          </ul>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>Best Practice for VMs</strong>
+              Deploy identical VMs in Zone 1, Zone 2, and Zone 3. Put an Azure Load Balancer in front. Now if any single zone fails, the other two VMs handle all traffic. This is a zone-redundant VM deployment using zonal services.
+            </div>
+          </div>
+
+          <h3>Zone-Redundant Services</h3>
+          <p>A zone-redundant service automatically spreads itself across all available zones. You don't choose a specific zone — Azure handles the distribution for you.</p>
+          <ul>
+            <li>Example: Azure SQL Database with zone-redundant backup, Azure Storage with ZRS (Zone-Redundant Storage)</li>
+            <li>Benefit: Built-in resilience — no manual placement decisions needed</li>
+            <li>How it works: The service replicates data synchronously across zones, so if one zone fails, the other zones already have your data</li>
+          </ul>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>Zonal</th><th>Zone-Redundant</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>You choose a zone?</td><td>Yes — Zone 1, 2, or 3</td><td>No — Azure distributes automatically</td></tr>
+                <tr><td>Resilience</td><td>Only if you deploy to multiple zones</td><td>Built in — survives zone failure automatically</td></tr>
+                <tr><td>Example</td><td>Azure Virtual Machines</td><td>Azure Zone-Redundant Storage (ZRS)</td></tr>
+                <tr><td>Extra cost?</td><td>Pay per VM in each zone</td><td>Usually a small premium over single-zone</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="sla">How Availability Zones Improve Your SLA</h2>
+          <p>SLA (Service Level Agreement) is Microsoft's guarantee of uptime. Deploying across Availability Zones dramatically improves this guarantee.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Deployment</th><th>SLA</th><th>Max Annual Downtime</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Single VM (Premium SSD)</td><td>99.9%</td><td>~8.7 hours/year</td></tr>
+                <tr><td>VMs in Availability Set</td><td>99.95%</td><td>~4.4 hours/year</td></tr>
+                <tr><td>VMs across 2+ Availability Zones</td><td>99.99%</td><td>~52 minutes/year</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box info">
+            <span class="box-icon">ℹ️</span>
+            <div class="box-body">
+              <strong>The Difference Between 99.9% and 99.99%</strong>
+              It sounds like a tiny difference — just 0.09%. But in practice: 99.9% allows ~8.7 hours of downtime per year. 99.99% allows only ~52 minutes per year. For a production e-commerce site, that's the difference between an acceptable and an unacceptable outage.
+            </div>
+          </div>
+
+          <h2 id="supported-services">Azure Services That Support Availability Zones</h2>
+          <p>Not every Azure service supports Availability Zones. Here are the most important ones that do:</p>
+
+          <h3>Compute</h3>
+          <ul>
+            <li>Azure Virtual Machines (zonal)</li>
+            <li>Azure Virtual Machine Scale Sets (zonal and zone-redundant)</li>
+            <li>Azure Kubernetes Service (zone-redundant node pools)</li>
+          </ul>
+
+          <h3>Storage</h3>
+          <ul>
+            <li>Azure Zone-Redundant Storage — ZRS (zone-redundant)</li>
+            <li>Azure Managed Disks (zonal)</li>
+          </ul>
+
+          <h3>Networking</h3>
+          <ul>
+            <li>Azure Load Balancer Standard (zone-redundant)</li>
+            <li>Azure Application Gateway v2 (zone-redundant)</li>
+            <li>Azure VPN Gateway (zone-redundant)</li>
+            <li>Azure Public IP addresses (zonal or zone-redundant)</li>
+          </ul>
+
+          <h3>Databases</h3>
+          <ul>
+            <li>Azure SQL Database (zone-redundant option)</li>
+            <li>Azure Cosmos DB (zone-redundant option)</li>
+            <li>Azure Cache for Redis (zone-redundant)</li>
+          </ul>
+
+          <h2 id="deploying">Deploying Zone-Redundant Resources</h2>
+          <p>When creating a VM in the Azure Portal, you'll see an "Availability options" section. Here's what each option means:</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Option</th><th>What It Does</th><th>Best For</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>No infrastructure redundancy</td><td>Single VM, single data centre, no guarantees on placement</td><td>Dev/test only</td></tr>
+                <tr><td>Availability Zone</td><td>Pin VM to a specific zone (1, 2, or 3)</td><td>Production — deploy across all 3 zones</td></tr>
+                <tr><td>Availability Set</td><td>Groups VMs across fault domains within a single data centre</td><td>Legacy approach — use zones instead where available</td></tr>
+                <tr><td>Virtual Machine Scale Set</td><td>Auto-scaling group — can span zones automatically</td><td>Variable-load production workloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create a VM in Availability Zone 1</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm create \
+  --resource-group myResourceGroup \
+  --name myVM-zone1 \
+  --image UbuntuLTS \
+  --zone 1 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Azure CLI</span>
+              <span class="code-label">Create identical VMs in Zones 2 and 3</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><code>az vm create \
+  --resource-group myResourceGroup \
+  --name myVM-zone2 \
+  --image UbuntuLTS \
+  --zone 2 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys
+
+az vm create \
+  --resource-group myResourceGroup \
+  --name myVM-zone3 \
+  --image UbuntuLTS \
+  --zone 3 \
+  --size Standard_B2s \
+  --admin-username azureuser \
+  --generate-ssh-keys</code></pre>
+          </div>
+
+          <div class="box tip">
+            <span class="box-icon">💡</span>
+            <div class="box-body">
+              <strong>AZ-900 Exam Tip</strong>
+              The exam tests whether you understand the purpose of Availability Zones (protection against data centre failures), not the CLI commands. Focus on knowing: AZs are physically separate · minimum 3 per region · independent power/cooling/networking · deploying across zones improves SLA to 99.99%.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section" id="practice">
+          <div class="practice-header">📝 Practice Questions</div>
+          <div class="practice-subtext">Click an option to check your answer. AZ-900 style questions.</div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q1.</span> What is the primary benefit of deploying Azure Virtual Machines across multiple Availability Zones?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Spreading VMs across zones does not reduce cost — it increases it because you are running more VMs.')">
+                <span class="option-label">A</span> It reduces the cost of running virtual machines
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. VMs in different zones are still in the same region — latency between zones is under 2ms, not significantly different from same-zone.')">
+                <span class="option-label">B</span> It significantly reduces network latency for users
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deploying across multiple Availability Zones protects your application against data centre-level failures. If one zone loses power or networking, VMs in the other zones continue serving traffic. This improves your SLA from 99.9% to 99.99%.')">
+                <span class="option-label">C</span> It protects the application against data centre failures, improving SLA to 99.99%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones protect against data centre failures within a region — not against an entire regional outage. For regional protection, you need Region Pairs.')">
+                <span class="option-label">D</span> It protects against an entire Azure region going offline
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q2.</span> What distinguishes a zone-redundant service from a zonal service in Azure?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Zone-redundant services are generally more expensive than single-zone services due to the added replication overhead.')">
+                <span class="option-label">A</span> Zone-redundant services are cheaper than zonal services
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A zone-redundant service automatically replicates itself across all available zones — you do not choose a specific zone. A zonal service is pinned to a zone you explicitly choose.')">
+                <span class="option-label">B</span> Zone-redundant services automatically spread across all zones; zonal services are pinned to a specific zone
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both zonal and zone-redundant services are available within the same regions that support Availability Zones.')">
+                <span class="option-label">C</span> Zone-redundant services are only available in specific countries
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both types of services can be used in production — zone-redundant is often preferred for managed services, zonal for compute like VMs.')">
+                <span class="option-label">D</span> Zone-redundant services are only for testing; zonal services are for production
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q3.</span> What SLA does Microsoft guarantee for Virtual Machines deployed across two or more Availability Zones?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 99.9% is the SLA for a single VM with Premium SSD storage — not for zone-redundant deployments.')">
+                <span class="option-label">A</span> 99.9%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 99.95% is the SLA for VMs in an Availability Set — not across Availability Zones.')">
+                <span class="option-label">B</span> 99.95%
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft guarantees a 99.99% SLA for Virtual Machines deployed across two or more Availability Zones. This translates to approximately 52 minutes of maximum downtime per year.')">
+                <span class="option-label">C</span> 99.99%
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 100% uptime is not guaranteed by any cloud provider — hardware failures, maintenance, and unforeseen events always carry some risk.')">
+                <span class="option-label">D</span> 100%
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q4.</span> A developer creates two identical VMs — both in Zone 1 of the Central India region. What level of redundancy do they have?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both VMs are in Zone 1 — the same physical data centre. A Zone 1 failure would take down both VMs simultaneously.')">
+                <span class="option-label">A</span> Full zone redundancy — one VM can fail and the other continues
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Both VMs are in the same Zone 1 data centre. If Zone 1 experiences a failure (power outage, cooling failure, fire), both VMs go down at the same time. To achieve zone redundancy, VMs must be in different zones.')">
+                <span class="option-label">B</span> No zone redundancy — both VMs would fail if Zone 1 has an outage
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Having two VMs in the same zone provides hardware-level redundancy (one VM can fail), but NOT zone-level redundancy.')">
+                <span class="option-label">C</span> Partial redundancy — protected against zone failure but not hardware failure
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Two VMs in Zone 1 do not provide regional redundancy — they are both in the same physical data centre.')">
+                <span class="option-label">D</span> Regional redundancy — protected if the entire Central India region fails
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+          <div class="question">
+            <div class="question-text"><span class="question-num">Q5.</span> Which of the following Azure services supports zone-redundant deployment?</div>
+            <div class="options">
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Blob Storage with LRS (Locally Redundant Storage) replicates within a single data centre — it is not zone-redundant.')">
+                <span class="option-label">A</span> Azure Blob Storage with LRS
+              </div>
+              <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Zone-Redundant Storage (ZRS) automatically replicates data synchronously across three Availability Zones within a region. If one zone fails, your data is still accessible from the other two zones.')">
+                <span class="option-label">B</span> Azure Zone-Redundant Storage (ZRS)
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Basic Load Balancer does not support Availability Zones — you need Standard Load Balancer for zone-redundant load balancing.')">
+                <span class="option-label">C</span> Azure Basic Load Balancer
+              </div>
+              <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single VM regardless of disk type is a zonal service — it lives in one zone and fails if that zone fails.')">
+                <span class="option-label">D</span> A single Virtual Machine with Premium SSD
+              </div>
+            </div>
+            <div class="answer-reveal"></div>
+          </div>
+
+        </div>
+
+        <div class="related-section">
+          <div class="related-title">Related Topics</div>
+          <div class="related-grid">
+            <a class="related-card" href="global-infrastructure.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Global Infrastructure</span>
+            </a>
+            <a class="related-card" href="region-pairs.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Region Pairs</span>
+            </a>
+            <a class="related-card" href="azure-portal.html">
+              <span class="related-card-label">Azure Fundamentals</span>
+              <span class="related-card-title">Azure Portal Walkthrough</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a class="nav-card" href="global-infrastructure.html">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">Azure Global Infrastructure</span>
+          </a>
+          <a class="nav-card next" href="region-pairs.html">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">Azure Region Pairs</span>
+          </a>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-label">Comments</div>
+          <div id="disqus_thread"></div>
+          <script>
+            var disqus_config = function () {
+              this.page.url = 'https://www.redkitecloud.com/docs/azure-fundamentals/regions-availability-zones.html';
+              this.page.identifier = 'azure-fundamentals-regions-availability-zones';
+            };
+            (function() {
+              var d = document, s = d.createElement('script');
+              s.src = 'https://redkitecloud.disqus.com/embed.js';
+              s.setAttribute('data-timestamp', +new Date());
+              (d.head || d.body).appendChild(s);
+            })();
+          </script>
+        </div>
+
+        <div class="tut-disclaimer">
+          Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation. All product names, logos, and trademarks are property of their respective owners. Content is written independently for educational purposes only.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with, endorsed by, or officially connected to Microsoft Corporation, Amazon Web Services, Inc., or Google LLC. All product names, logos, and trademarks are property of their respective owners. All tutorial content is written independently for educational purposes only.</p>
+    <div class="footer-bottom">
+      <span class="footer-logo">
+        <span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span>
+        &nbsp;© 2026 All rights reserved.
+      </span>
+      <span class="footer-tag">Independent · Educational · Community</span>
+    </div>
+  </footer>
+
+</body>
+</html>
