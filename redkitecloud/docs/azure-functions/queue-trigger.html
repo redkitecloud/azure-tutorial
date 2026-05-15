@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Queue Trigger | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions Queue trigger — process queue messages, poison message handling, visibility timeout, and queue output binding." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Queue Trigger</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Queue Trigger</h1>
+      <p class="page-intro">The Queue trigger fires your function whenever a new message arrives in an Azure Storage Queue. It's the foundation of scalable, decoupled architectures — one service enqueues a message, your function processes it independently. Failed messages are automatically retried, and poison messages are moved to a dead-letter queue automatically.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        How the Queue trigger works · Message format and size limits · Dequeue count and retry behaviour · Poison message handling · Queue output binding · Scaling behaviour · Queue trigger vs Service Bus trigger · Real-world order processing example
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#how-it-works">How the Queue Trigger Works</a></li>
+        <li><a href="#message-format">Message Format and Limits</a></li>
+        <li><a href="#retry-behaviour">Retry Behaviour</a></li>
+        <li><a href="#poison-messages">Poison Message Handling</a></li>
+        <li><a href="#queue-output">Queue Output Binding</a></li>
+        <li><a href="#scaling">Scaling Behaviour</a></li>
+        <li><a href="#queue-vs-servicebus">Queue vs Service Bus Trigger</a></li>
+        <li><a href="#example">Real Example — Order Processing</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="how-it-works">How the Queue Trigger Works</h2>
+        <p>Azure Functions polls the storage queue for new messages. When a message arrives:</p>
+        <ol>
+          <li>Functions detects the message and makes it invisible to other consumers (visibility timeout)</li>
+          <li>Your function code executes with the message content</li>
+          <li>If function completes successfully — message is deleted from the queue</li>
+          <li>If function throws an exception — message becomes visible again for retry</li>
+        </ol>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Basic Queue trigger</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import azure.functions as func
+import logging
+import json
+
+app = func.FunctionApp()
+
+@app.queue_trigger(arg_name="msg",
+                   queue_name="orders",
+                   connection="AzureWebJobsStorage")
+def process_order(msg: func.QueueMessage) -> None:
+    # Get message content
+    order = json.loads(msg.get_body().decode("utf-8"))
+
+    logging.info(f"Processing order {order['orderId']} for {order['customer']}")
+
+    # Process the order...
+    # If this throws an exception, the message is retried</code></pre>
+        </div>
+
+        <h2 id="message-format">Message Format and Limits</h2>
+        <ul>
+          <li><strong>Max message size</strong> — 64 KB</li>
+          <li><strong>Format</strong> — Plain text, JSON, or base64-encoded binary</li>
+          <li><strong>Max TTL</strong> — 7 days by default (configurable up to infinite)</li>
+          <li><strong>Visibility timeout</strong> — How long message is hidden while being processed (default: based on queue settings)</li>
+        </ul>
+
+        <h2 id="retry-behaviour">Retry Behaviour</h2>
+        <p>If your function throws an exception, the message becomes visible again on the queue and will be retried. The <code>dequeue_count</code> property tracks how many times the message has been dequeued:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Check dequeue count for retry logic</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@app.queue_trigger(arg_name="msg", queue_name="orders",
+                   connection="AzureWebJobsStorage")
+def process_order(msg: func.QueueMessage) -> None:
+    dequeue_count = msg.dequeue_count
+    logging.info(f"Processing attempt #{dequeue_count}")
+
+    if dequeue_count > 3:
+        logging.warning("Message has failed 3 times — check for data issues")
+
+    # Process...</code></pre>
+        </div>
+
+        <h2 id="poison-messages">Poison Message Handling</h2>
+        <p>After 5 failed attempts (default), Azure Functions automatically moves the message to a <strong>poison message queue</strong> named <code>{queue-name}-poison</code>. This prevents a single bad message from blocking the entire queue.</p>
+        <ul>
+          <li>Poison queue name: <code>orders-poison</code> (for a queue named <code>orders</code>)</li>
+          <li>You should monitor the poison queue and alert on messages arriving there</li>
+          <li>Investigate and reprocess or discard poison messages manually</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Monitor the Poison Queue</strong> Set up an alert or another function that monitors the poison queue. A message landing there means your processing logic failed 5 times — likely a data issue or bug that needs investigation.</div>
+        </div>
+
+        <h2 id="queue-output">Queue Output Binding</h2>
+        <p>Write messages to a queue from any function — not just queue-triggered ones:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">HTTP function that enqueues a job</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@app.route(route="submit-order", methods=["POST"])
+@app.queue_output(arg_name="orderQueue",
+                  queue_name="orders",
+                  connection="AzureWebJobsStorage")
+def submit_order(req: func.HttpRequest,
+                 orderQueue: func.Out[str]) -> func.HttpResponse:
+    order = req.get_json()
+    # Enqueue for async processing
+    orderQueue.set(json.dumps(order))
+    return func.HttpResponse(
+        json.dumps({"status": "queued", "orderId": order["orderId"]}),
+        mimetype="application/json",
+        status_code=202   # 202 Accepted — processing will happen async
+    )</code></pre>
+        </div>
+
+        <h2 id="scaling">Scaling Behaviour</h2>
+        <p>Queue triggers scale based on queue depth — the number of messages waiting:</p>
+        <ul>
+          <li>1 instance processes up to 16 messages concurrently (configurable)</li>
+          <li>As queue depth grows, more instances are added automatically</li>
+          <li>Max instances: 200 per function app (Consumption plan)</li>
+          <li>Scales to zero when queue is empty</li>
+        </ul>
+
+        <h2 id="queue-vs-servicebus">Queue vs Service Bus Trigger</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Storage Queue Trigger</th><th>Service Bus Trigger</th></tr></thead>
+          <tbody>
+            <tr><td>Message ordering</td><td>FIFO (best effort)</td><td>Strict FIFO (sessions)</td></tr>
+            <tr><td>Max message size</td><td>64 KB</td><td>256 KB (standard), 100 MB (premium)</td></tr>
+            <tr><td>TTL max</td><td>7 days</td><td>Unlimited</td></tr>
+            <tr><td>Dead letter queue</td><td>Auto (-poison queue)</td><td>Built-in DLQ</td></tr>
+            <tr><td>Pub/Sub (topics)</td><td>No</td><td>Yes</td></tr>
+            <tr><td>Cost</td><td>Very cheap</td><td>Higher</td></tr>
+            <tr><td>Best for</td><td>Simple task queues, internal</td><td>Enterprise messaging, ordering, pub/sub</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="example">Real Example — Order Processing</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Full order processing pipeline</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@app.queue_trigger(arg_name="msg", queue_name="orders",
+                   connection="AzureWebJobsStorage")
+@app.queue_output(arg_name="notifyQueue", queue_name="notifications",
+                  connection="AzureWebJobsStorage")
+def process_order(msg: func.QueueMessage,
+                  notifyQueue: func.Out[str]) -> None:
+    order = json.loads(msg.get_body().decode("utf-8"))
+    order_id = order["orderId"]
+
+    # 1. Reserve inventory
+    reserve_inventory(order)
+
+    # 2. Charge payment
+    charge_payment(order)
+
+    # 3. Enqueue notification for customer
+    notification = {"type": "order_confirmed", "orderId": order_id,
+                    "email": order["email"]}
+    notifyQueue.set(json.dumps(notification))
+
+    logging.info(f"Order {order_id} processed successfully")</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that after 5 failed retries, messages move to the {queue}-poison queue. Know max Storage Queue message size is 64 KB. Know that scaling is based on queue depth. Know that Storage Queue is simpler/cheaper than Service Bus but lacks ordering, larger messages, and pub/sub.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What happens to a queue message after a Queue-triggered function throws an exception?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Messages are not permanently deleted on failure — they become visible again for retry.')">A — The message is permanently deleted from the queue</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a function throws an exception, the message becomes visible again on the queue and is retried. After 5 failed attempts, it is automatically moved to the poison queue ({queue-name}-poison) to prevent blocking.')">B — The message becomes visible again and is retried — after 5 failures it moves to the poison queue</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The message is not immediately moved to the poison queue on the first failure — it gets retried up to 5 times first.')">C — The message is immediately moved to a dead letter queue</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The function does not stop all processing on a single message failure — it retries the failed message while continuing to process others.')">D — All queue processing stops until the error is fixed</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the name of the poison queue for a queue named "orders"?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Functions automatically creates and uses a poison queue named {original-queue-name}-poison. For a queue named "orders", the poison queue is "orders-poison". Messages are moved here after 5 failed processing attempts.')">A — orders-poison</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The poison queue naming convention is {queue-name}-poison — not {queue-name}-dead.')">B — orders-dead</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The naming convention is {queue-name}-poison — not dead-letters-orders.')">C — dead-letters-orders</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The poison queue is automatically named {queue-name}-poison — not {queue-name}-failed.')">D — orders-failed</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the maximum message size for Azure Storage Queues?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Storage Queue messages have a maximum size of 64 KB. If you need larger messages, use Azure Service Bus (256 KB standard, up to 100 MB premium) or store the payload in Blob Storage and put a reference in the queue message.')">A — 64 KB</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 256 KB is the max for Azure Service Bus standard tier — Storage Queue max is 64 KB.')">B — 256 KB</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 1 MB exceeds the Storage Queue limit of 64 KB.')">C — 1 MB</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is a 64 KB limit on Storage Queue messages — not unlimited.')">D — Unlimited</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> How does a Queue trigger scale as more messages accumulate?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue triggers scale based on queue depth — not CPU usage.')">A — It scales based on CPU usage of the current instance</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Queue triggers scale based on queue depth — the number of messages waiting. As the queue grows, more function instances are added to process messages faster. When the queue empties, instances scale back down to zero.')">B — It scales based on queue depth — more messages = more instances added automatically</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue triggers scale automatically — no manual configuration is required for basic scaling.')">C — It does not scale automatically — instances must be configured manually</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Queue triggers can scale beyond a single instance — up to 200 instances on Consumption plan.')">D — It always processes with exactly one instance regardless of queue depth</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> When should you choose Service Bus over Storage Queue for a Functions trigger?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Queue is actually cheaper than Service Bus — cost is not a reason to choose Service Bus.')">A — When you need the cheapest possible messaging solution</div>
+            <div name="option" onclick="checkAnswer(this, false, 'Incorrect. Storage Queue supports simple task queues at low cost — it does not require Service Bus for basic queuing.')">B — For all queue-based scenarios regardless of requirements</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Use Service Bus when you need strict message ordering (sessions), larger messages (up to 100 MB on premium), publish/subscribe patterns (topics), or enterprise messaging features. Storage Queue is sufficient for simple task queues with small messages and no ordering requirements.')">C — When you need strict message ordering, larger messages, or pub/sub (topics)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Service Bus is available in all Azure regions — availability is not a differentiator.')">D — When the Function App is deployed in a specific Azure region</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="blob-trigger.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Blob Storage Trigger</span></a>
+        <a class="related-card" href="durable-functions.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Durable Functions</span></a>
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="blob-trigger.html"><span class="nav-label">← Previous</span><span class="nav-title">Blob Storage Trigger</span></a>
+        <a class="nav-card next" href="hosting-plans.html"><span class="nav-label">Next →</span><span class="nav-title">Functions Hosting Plans</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

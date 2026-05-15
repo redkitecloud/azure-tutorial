@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cold Starts Explained | Azure Functions | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Functions cold starts — what they are, what causes them, how to measure them, and 8 proven ways to reduce cold start impact." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Functions</a><span class="sep">›</span><span class="current">Cold Starts Explained</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Functions</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Cold Starts Explained</h1>
+      <p class="page-intro">Cold starts are the most discussed limitation of serverless functions. When your function hasn't run recently and a new request arrives, Azure must allocate a compute instance, load the runtime, and initialise your application before executing your code. This startup delay — the cold start — can add anywhere from 200ms to several seconds to your response time. Understanding and mitigating cold starts is essential for production Functions deployments.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What happens during a cold start · Cold start vs warm start timeline · What affects cold start duration · Language and runtime impact · Measuring cold starts with Application Insights · 8 strategies to reduce cold start impact · When cold starts don't matter
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-cold-start">What is a Cold Start?</a></li>
+        <li><a href="#what-happens">What Happens During a Cold Start</a></li>
+        <li><a href="#factors">Factors That Affect Cold Start Duration</a></li>
+        <li><a href="#measuring">Measuring Cold Starts</a></li>
+        <li><a href="#mitigation">8 Strategies to Reduce Cold Start Impact</a></li>
+        <li><a href="#when-matters">When Cold Starts Don't Matter</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-cold-start">What is a Cold Start?</h2>
+        <p>On the Consumption plan, Azure Functions scale to zero — no instances run when idle. When a new request arrives after a period of inactivity, Azure must start a fresh instance. This startup time is the cold start.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Cold Start</th><th>Warm Start</th></tr></thead>
+          <tbody>
+            <tr><td>When</td><td>First request after idle period, or scale-out to new instance</td><td>Subsequent requests to an already-running instance</td></tr>
+            <tr><td>Latency added</td><td>200ms – 5+ seconds</td><td>Near zero</td></tr>
+            <tr><td>Frequency</td><td>After ~20 minutes idle, or when scaling out</td><td>All other requests</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="what-happens">What Happens During a Cold Start</h2>
+        <p>A cold start has several phases — each adds to the total startup time:</p>
+        <ol>
+          <li><strong>Instance allocation</strong> — Azure finds an available VM or container slot (~50–200ms)</li>
+          <li><strong>Runtime initialisation</strong> — Load the Functions host and language runtime (Node.js, Python, .NET) (~100–500ms)</li>
+          <li><strong>Application initialisation</strong> — Load your function code, import libraries, run startup code (~100ms – 3s depending on dependencies)</li>
+          <li><strong>Function execution</strong> — Your actual code runs (warm from here)</li>
+        </ol>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Application Initialisation is the Biggest Variable</strong> The runtime startup is fairly fixed. The biggest variable is your application — how many packages you import, how large your code bundle is, and whether you make connections during startup (database connections, config loading). This is where optimisation has the most impact.</div>
+        </div>
+
+        <h2 id="factors">Factors That Affect Cold Start Duration</h2>
+
+        <h3>Language Runtime</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Language</th><th>Typical Cold Start</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>C# (.NET isolated)</td><td>200–800ms</td><td>Fastest — compiled, efficient startup</td></tr>
+            <tr><td>JavaScript (Node.js)</td><td>300ms–1.5s</td><td>Fast — lightweight runtime</td></tr>
+            <tr><td>Python</td><td>500ms–3s</td><td>Slower — interpreter startup, import overhead</td></tr>
+            <tr><td>Java</td><td>1–5s</td><td>Slowest — JVM startup is heavy</td></tr>
+            <tr><td>PowerShell</td><td>500ms–2s</td><td>Medium — PS engine startup</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Other Key Factors</h3>
+        <ul>
+          <li><strong>Number of imports/dependencies</strong> — More packages = longer import time</li>
+          <li><strong>Package size</strong> — Large deployment packages take longer to load</li>
+          <li><strong>Startup connections</strong> — Opening DB connections, loading config at startup adds time</li>
+          <li><strong>Hosting plan</strong> — Consumption: cold starts occur; Premium: pre-warmed instances; Dedicated: always on</li>
+          <li><strong>Operating system</strong> — Linux typically has faster cold starts than Windows for Python/Node.js</li>
+        </ul>
+
+        <h2 id="measuring">Measuring Cold Starts</h2>
+        <p>Application Insights tracks cold starts automatically. In the Performance blade, filter for operations with high response time on initial invocations. You can also query Log Analytics:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">KQL</span><span class="code-label">Find cold start requests in Application Insights</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>requests
+| where cloud_RoleName == "myfunctionapp-2026"
+| extend isColdStart = tobool(customDimensions["ColdStart"])
+| where isColdStart == true
+| summarize
+    count(),
+    avg(duration),
+    percentile(duration, 95)
+  by bin(timestamp, 1h)
+| order by timestamp desc</code></pre>
+        </div>
+
+        <h2 id="mitigation">8 Strategies to Reduce Cold Start Impact</h2>
+
+        <h3>1. Use Premium Plan with Pre-Warmed Instances</h3>
+        <p>The most reliable fix — keeps minimum instances always warm. Zero cold starts for the pre-warmed instances. Cost: ~₹5,000+/month minimum.</p>
+
+        <h3>2. Use Dedicated (App Service) Plan</h3>
+        <p>Functions are always running — no cold starts. Best if you already have an App Service Plan.</p>
+
+        <h3>3. Minimise Package Size</h3>
+        <p>Only import packages you actually need. Use dependency management tools to exclude dev dependencies. Smaller packages = faster loading.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Lazy imports — only load when needed</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>def my_function(req):
+    # Import inside function — only loads on first call to this path
+    # rather than on every cold start
+    import heavy_library
+
+    return heavy_library.process(req.get_body())</code></pre>
+        </div>
+
+        <h3>4. Move Expensive Startup to Module Level (Lazy Init)</h3>
+        <p>Database connections opened at module level persist across warm invocations — but still happen during cold starts. Use lazy initialisation to defer them until first use.</p>
+
+        <h3>5. Choose C# or JavaScript/TypeScript</h3>
+        <p>If language choice is flexible, C# and Node.js have the fastest cold starts. Avoid Java on Consumption plan for latency-sensitive APIs.</p>
+
+        <h3>6. Use Keep-Alive Pings (Ping Warmer)</h3>
+        <p>A Timer-triggered function (or external cron job) pings your HTTP functions every 5–10 minutes to keep them warm. A hacky workaround, but free and effective for Consumption plan.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Keep-alive pinger function</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@app.timer_trigger(schedule="0 */5 * * * *", arg_name="timer")  # Every 5 minutes
+def keep_warm(timer: func.TimerRequest) -> None:
+    import urllib.request
+    # Ping the HTTP function to keep it warm
+    urllib.request.urlopen("https://myfunctionapp.azurewebsites.net/api/health?code=xxx")
+    logging.info("Pinged health endpoint to keep warm")</code></pre>
+        </div>
+
+        <h3>7. Enable Always Ready Instances (Flex Consumption)</h3>
+        <p>The newer Flex Consumption plan supports "always ready" instances — a middle ground between Consumption and Premium pricing.</p>
+
+        <h3>8. Optimise Startup Code</h3>
+        <p>Audit your startup code — avoid synchronous network calls, large file reads, or expensive computation during module initialisation. Defer everything possible to the first actual request.</p>
+
+        <h2 id="when-matters">When Cold Starts Don't Matter</h2>
+        <p>Cold starts only matter if users or systems experience the latency. They're irrelevant for:</p>
+        <ul>
+          <li>Timer triggers — running scheduled jobs where a few extra seconds don't matter</li>
+          <li>Queue and blob triggers — asynchronous processing where latency isn't user-facing</li>
+          <li>Internal background jobs with no strict SLA</li>
+          <li>Development and testing functions</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that cold starts only occur on Consumption plan (scales to zero). Know that Premium plan eliminates cold starts via pre-warmed instances. Know that Java has the longest cold starts, C# and Node.js are fastest. Know strategies: Premium plan, minimise package size, keep-alive pings.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What causes a cold start in Azure Functions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cold starts are caused by starting new instances — not by insufficient memory on existing instances.')">A — Insufficient memory on the running instance</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Cold starts occur when a new instance must be started because there are no running instances (scale to zero on Consumption plan) or when scaling out to handle increased load. The startup delay includes instance allocation, runtime loading, and application initialisation.')">B — A new instance being started after the function has been idle or to handle scale-out</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Slow network connections may affect function execution time but are not the cause of cold starts.')">C — Slow network connections between the function and its dependencies</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Bugs in function code cause execution errors — not cold starts.')">D — Bugs in the function code</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Which language typically has the longest cold start times in Azure Functions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. C# (.NET) typically has among the fastest cold starts — 200-800ms.')">A — C#</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JavaScript/Node.js has fast cold starts — 300ms to 1.5s typically.')">B — JavaScript</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Python has slower cold starts than C# and JavaScript but is typically faster than Java.')">C — Python</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Java has the longest cold starts — typically 1–5 seconds — because the JVM (Java Virtual Machine) itself takes significant time to start up. If cold start latency is critical and you have language flexibility, avoid Java on Consumption plan.')">D — Java</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the most reliable way to eliminate cold starts in Azure Functions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using lightweight languages reduces cold start duration — but doesn\'t eliminate it on Consumption plan.')">A — Use a lightweight language like JavaScript</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Premium plan with pre-warmed instances is the most reliable way to eliminate cold starts. Pre-warmed instances are always ready — requests go directly to running instances with no startup delay. This is the Azure-recommended solution for latency-sensitive functions.')">B — Use the Premium plan with pre-warmed instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Increasing function timeout prevents execution timeouts — it doesn\'t affect cold start latency.')">C — Increase the function timeout setting</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reducing code size helps but doesn\'t eliminate cold starts — the instance allocation and runtime startup still occur.')">D — Reduce the function code size to minimum</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> A timer-triggered function runs a nightly batch job. The first execution sometimes takes 3 seconds due to cold start. Should you be concerned?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Using Premium plan adds significant cost (₹5,000+/month) for a background job where a 3-second delay is irrelevant.')">A — Yes — immediately upgrade to Premium plan to eliminate cold starts</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! For timer-triggered batch jobs, a 3-second cold start delay is irrelevant — no user is waiting for the response. Cold starts only matter for user-facing, latency-sensitive workloads. Background jobs, batch processing, and scheduled tasks can tolerate cold starts without any user impact.')">B — No — cold starts don\'t matter for background batch jobs; no user experiences the delay</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Running functions continuously on a dedicated server defeats the purpose of serverless and adds unnecessary cost.')">C — Yes — switch to a dedicated server to ensure consistent timing</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Rewriting in C# would reduce cold start duration but it\'s unnecessary effort when the cold start doesn\'t matter for this scenario.')">D — Yes — rewrite in C# to minimise cold start duration</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which free technique can help keep a Consumption plan function warm?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Increasing timeout prevents timeouts during execution — it doesn\'t keep instances warm.')">A — Increase the function timeout to maximum</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A keep-alive ping — a Timer-triggered function that calls the HTTP function every 5-10 minutes — prevents the instance from scaling to zero. It\'s free (runs within the Consumption free tier) and effective. Not an official solution but widely used as a cost-free workaround.')">B — A Timer-triggered keep-alive function that pings the HTTP function every 5 minutes</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reducing dependencies helps startup time but doesn\'t prevent the instance from scaling to zero after 20 minutes idle.')">C — Reduce the number of imported packages</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Enabling Application Insights provides monitoring — it doesn\'t keep instances warm.')">D — Enable Application Insights monitoring</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="hosting-plans.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Hosting Plans</span></a>
+        <a class="related-card" href="functions-pricing.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">Functions Pricing</span></a>
+        <a class="related-card" href="functions-overview.html"><span class="related-card-label">Azure Functions</span><span class="related-card-title">What is Azure Functions?</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="durable-functions.html"><span class="nav-label">← Previous</span><span class="nav-title">Durable Functions</span></a>
+        <a class="nav-card next" href="functions-pricing.html"><span class="nav-label">Next →</span><span class="nav-title">Functions Pricing</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
