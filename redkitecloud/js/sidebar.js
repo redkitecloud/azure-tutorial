@@ -54,20 +54,20 @@ const RKC_MODULES = [
     label: '💾 Azure Storage',
     exam: 'AZ-104',
     topics: [
-      { title: 'Azure Storage Overview',           file: 'storage-overview.html',         done: false },
-      { title: 'Azure Blob Storage',               file: 'blob-storage.html',             done: false },
-      { title: 'Blob Access Tiers',                file: 'blob-access-tiers.html',        done: false },
-      { title: 'Blob Lifecycle Management',        file: 'lifecycle-management.html',     done: false },
-      { title: 'Azure File Storage',               file: 'file-storage.html',             done: false },
-      { title: 'Azure Queue Storage',              file: 'queue-storage.html',            done: false },
-      { title: 'Azure Table Storage',              file: 'table-storage.html',            done: false },
-      { title: 'Storage Redundancy — LRS/ZRS/GRS', file: 'storage-redundancy.html',      done: false },
-      { title: 'Shared Access Signatures',         file: 'sas-tokens.html',               done: false },
-      { title: 'Storage Account Security',         file: 'storage-security.html',         done: false },
-      { title: 'Static Website Hosting',           file: 'static-website.html',           done: false },
-      { title: 'Azure CDN with Storage',           file: 'cdn-storage.html',              done: false },
-      { title: 'Azure Storage Explorer',           file: 'storage-explorer.html',         done: false },
-      { title: 'Storage Pricing',                  file: 'storage-pricing.html',          done: false },
+      { title: 'Azure Storage Overview',           file: 'storage-overview.html',         done: true },
+      { title: 'Azure Blob Storage',               file: 'blob-storage.html',             done: true },
+      { title: 'Blob Access Tiers',                file: 'blob-access-tiers.html',        done: true },
+      { title: 'Blob Lifecycle Management',        file: 'lifecycle-management.html',     done: true },
+      { title: 'Azure File Storage',               file: 'file-storage.html',             done: true },
+      { title: 'Azure Queue Storage',              file: 'queue-storage.html',            done: true },
+      { title: 'Azure Table Storage',              file: 'table-storage.html',            done: true },
+      { title: 'Storage Redundancy — LRS/ZRS/GRS', file: 'storage-redundancy.html',      done: true },
+      { title: 'Shared Access Signatures',         file: 'sas-tokens.html',               done: true },
+      { title: 'Storage Account Security',         file: 'storage-security.html',         done: true },
+      { title: 'Static Website Hosting',           file: 'static-website.html',           done: true },
+      { title: 'Azure CDN with Storage',           file: 'cdn-storage.html',              done: true },
+      { title: 'Azure Storage Explorer',           file: 'storage-explorer.html',         done: true },
+      { title: 'Storage Pricing',                  file: 'storage-pricing.html',          done: true },
     ]
   },
   {
@@ -75,22 +75,22 @@ const RKC_MODULES = [
     label: '🌐 Azure Networking',
     exam: 'AZ-104',
     topics: [
-      { title: 'Azure Networking Overview',        file: 'networking-overview.html',      done: false },
-      { title: 'Virtual Networks (VNet)',           file: 'vnet.html',                     done: false },
-      { title: 'Subnets & IP Addressing',          file: 'subnets.html',                  done: false },
-      { title: 'Network Security Groups',          file: 'nsg.html',                      done: false },
-      { title: 'Azure Load Balancer',              file: 'load-balancer.html',            done: false },
-      { title: 'Azure Application Gateway',        file: 'application-gateway.html',      done: false },
-      { title: 'Azure Front Door',                 file: 'front-door.html',               done: false },
-      { title: 'Azure Traffic Manager',            file: 'traffic-manager.html',          done: false },
-      { title: 'Azure VPN Gateway',                file: 'vpn-gateway.html',              done: false },
-      { title: 'Azure ExpressRoute',               file: 'expressroute.html',             done: false },
-      { title: 'VNet Peering',                     file: 'vnet-peering.html',             done: false },
-      { title: 'Azure DNS',                        file: 'azure-dns.html',                done: false },
-      { title: 'Azure Firewall',                   file: 'azure-firewall.html',           done: false },
-      { title: 'Azure DDoS Protection',            file: 'ddos-protection.html',          done: false },
-      { title: 'Azure Private Endpoints',          file: 'private-endpoints.html',        done: false },
-      { title: 'Azure Network Watcher',            file: 'network-watcher.html',          done: false },
+      { title: 'Azure Networking Overview',        file: 'networking-overview.html',      done: true },
+      { title: 'Virtual Networks (VNet)',           file: 'vnet.html',                     done: true },
+      { title: 'Subnets & IP Addressing',          file: 'subnets.html',                  done: true },
+      { title: 'Network Security Groups',          file: 'nsg.html',                      done: true },
+      { title: 'Azure Load Balancer',              file: 'load-balancer.html',            done: true },
+      { title: 'Azure Application Gateway',        file: 'application-gateway.html',      done: true },
+      { title: 'Azure Front Door',                 file: 'front-door.html',               done: true },
+      { title: 'Azure Traffic Manager',            file: 'traffic-manager.html',          done: true },
+      { title: 'Azure VPN Gateway',                file: 'vpn-gateway.html',              done: true },
+      { title: 'Azure ExpressRoute',               file: 'expressroute.html',             done: true },
+      { title: 'VNet Peering',                     file: 'vnet-peering.html',             done: true },
+      { title: 'Azure DNS',                        file: 'azure-dns.html',                done: true },
+      { title: 'Azure Firewall',                   file: 'azure-firewall.html',           done: true },
+      { title: 'Azure DDoS Protection',            file: 'ddos-protection.html',          done: true },
+      { title: 'Azure Private Endpoints',          file: 'private-endpoints.html',        done: true },
+      { title: 'Azure Network Watcher',            file: 'network-watcher.html',          done: true },
     ]
   },
   {
@@ -98,17 +98,17 @@ const RKC_MODULES = [
     label: '🗄️ Azure Databases',
     exam: 'AZ-104',
     topics: [
-      { title: 'Choosing the Right Database',      file: 'choosing-database.html',        done: false },
-      { title: 'Azure SQL Database',               file: 'azure-sql.html',                done: false },
-      { title: 'Azure SQL Managed Instance',       file: 'sql-managed-instance.html',     done: false },
-      { title: 'Azure Cosmos DB',                  file: 'cosmos-db.html',                done: false },
-      { title: 'Azure Database for MySQL',         file: 'azure-mysql.html',              done: false },
-      { title: 'Azure Database for PostgreSQL',    file: 'azure-postgresql.html',         done: false },
-      { title: 'Azure Cache for Redis',            file: 'azure-redis.html',              done: false },
-      { title: 'Azure Synapse Analytics',          file: 'synapse.html',                  done: false },
-      { title: 'Azure Data Factory',               file: 'data-factory.html',             done: false },
-      { title: 'Database Migration Service',       file: 'database-migration.html',       done: false },
-      { title: 'Database Pricing',                 file: 'database-pricing.html',         done: false },
+      { title: 'Choosing the Right Database',      file: 'choosing-database.html',        done: true },
+      { title: 'Azure SQL Database',               file: 'azure-sql.html',                done: true },
+      { title: 'Azure SQL Managed Instance',       file: 'sql-managed-instance.html',     done: true },
+      { title: 'Azure Cosmos DB',                  file: 'cosmos-db.html',                done: true },
+      { title: 'Azure Database for MySQL',         file: 'azure-mysql.html',              done: true },
+      { title: 'Azure Database for PostgreSQL',    file: 'azure-postgresql.html',         done: true },
+      { title: 'Azure Cache for Redis',            file: 'azure-redis.html',              done: true },
+      { title: 'Azure Synapse Analytics',          file: 'synapse.html',                  done: true },
+      { title: 'Azure Data Factory',               file: 'data-factory.html',             done: true },
+      { title: 'Database Migration Service',       file: 'database-migration.html',       done: true },
+      { title: 'Database Pricing',                 file: 'database-pricing.html',         done: true },
     ]
   },
   {
@@ -116,15 +116,15 @@ const RKC_MODULES = [
     label: '🌍 Azure App Service',
     exam: 'AZ-204',
     topics: [
-      { title: 'What is Azure App Service?',       file: 'app-service-overview.html',     done: false },
-      { title: 'App Service Plans & Pricing',      file: 'app-service-plans.html',        done: false },
-      { title: 'Create & Deploy a Web App',        file: 'create-web-app.html',           done: false },
-      { title: 'Deployment Methods',               file: 'deployment-methods.html',       done: false },
-      { title: 'Deployment Slots',                 file: 'deployment-slots.html',         done: false },
-      { title: 'Auto-scaling',                     file: 'autoscaling.html',              done: false },
-      { title: 'Custom Domains & SSL',             file: 'custom-domains-ssl.html',       done: false },
-      { title: 'App Service Monitoring',           file: 'app-service-monitoring.html',   done: false },
-      { title: 'App Service Best Practices',       file: 'app-service-best-practices.html', done: false },
+      { title: 'What is Azure App Service?',       file: 'app-service-overview.html',     done: true },
+      { title: 'App Service Plans & Pricing',      file: 'app-service-plans.html',        done: true },
+      { title: 'Create & Deploy a Web App',        file: 'create-web-app.html',           done: true },
+      { title: 'Deployment Methods',               file: 'deployment-methods.html',       done: true },
+      { title: 'Deployment Slots',                 file: 'deployment-slots.html',         done: true },
+      { title: 'Auto-scaling',                     file: 'autoscaling.html',              done: true },
+      { title: 'Custom Domains & SSL',             file: 'custom-domains-ssl.html',       done: true },
+      { title: 'App Service Monitoring',           file: 'app-service-monitoring.html',   done: true },
+      { title: 'App Service Best Practices',       file: 'app-service-best-practices.html', done: true },
     ]
   },
   {
@@ -132,15 +132,15 @@ const RKC_MODULES = [
     label: '⚡ Azure Functions',
     exam: 'AZ-204',
     topics: [
-      { title: 'What is Azure Functions?',         file: 'functions-overview.html',       done: false },
-      { title: 'HTTP Trigger — Build an API',      file: 'http-trigger.html',             done: false },
-      { title: 'Timer Trigger — Scheduled Jobs',   file: 'timer-trigger.html',            done: false },
-      { title: 'Blob Storage Trigger',             file: 'blob-trigger.html',             done: false },
-      { title: 'Queue Trigger',                    file: 'queue-trigger.html',            done: false },
-      { title: 'Functions Hosting Plans',          file: 'hosting-plans.html',            done: false },
-      { title: 'Durable Functions',                file: 'durable-functions.html',        done: false },
-      { title: 'Cold Starts Explained',            file: 'cold-starts.html',              done: false },
-      { title: 'Functions Pricing',                file: 'functions-pricing.html',        done: false },
+      { title: 'What is Azure Functions?',         file: 'functions-overview.html',       done: true },
+      { title: 'HTTP Trigger — Build an API',      file: 'http-trigger.html',             done: true },
+      { title: 'Timer Trigger — Scheduled Jobs',   file: 'timer-trigger.html',            done: true },
+      { title: 'Blob Storage Trigger',             file: 'blob-trigger.html',             done: true },
+      { title: 'Queue Trigger',                    file: 'queue-trigger.html',            done: true },
+      { title: 'Functions Hosting Plans',          file: 'hosting-plans.html',            done: true },
+      { title: 'Durable Functions',                file: 'durable-functions.html',        done: true },
+      { title: 'Cold Starts Explained',            file: 'cold-starts.html',              done: true },
+      { title: 'Functions Pricing',                file: 'functions-pricing.html',        done: true },
     ]
   },
   {
@@ -362,19 +362,11 @@ function renderSidebar() {
 
     mod.topics.forEach(topic => {
       const isActive = topic.file === curFile;
-      const href     = topic.done ? `${root}docs/${mod.id}/${topic.file}` : null;
-
-      if (href) {
-        html += `
-          <a class="sb-item ${isActive ? 'active' : ''}" href="${href}">
-            <span class="dot"></span>${topic.title}
-          </a>`;
-      } else {
-        html += `
-          <span class="sb-item">
-            <span class="dot"></span>${topic.title}<span class="soon">Soon</span>
-          </span>`;
-      }
+      const href     = `${root}docs/${mod.id}/${topic.file}`;
+      html += `
+        <a class="sb-item ${isActive ? 'active' : ''}" href="${href}">
+          <span class="dot"></span>${topic.title}
+        </a>`;
     });
 
     html += `</div>`;
