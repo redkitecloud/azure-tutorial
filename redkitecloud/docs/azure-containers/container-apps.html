@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Container Apps | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Container Apps — serverless containers, scaling, Dapr integration, traffic splitting, and when to use Container Apps vs AKS." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Azure Container Apps</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure Container Apps</h1>
+      <p class="page-intro">Azure Container Apps is a fully managed serverless container platform built on top of Kubernetes — but you never interact with Kubernetes directly. It handles scaling, networking, and orchestration automatically. It sits between ACI (simple, no orchestration) and AKS (full Kubernetes control) — the right choice for microservices, APIs, and event-driven apps that need container flexibility without Kubernetes complexity.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Container Apps vs AKS vs ACI · Environments and apps · Scaling — HTTP, CPU, event-driven (KEDA built-in) · Traffic splitting and revisions · Ingress configuration · Dapr integration · Creating via CLI · Pricing model
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-aca">What is Container Apps?</a></li>
+        <li><a href="#environments">Environments and Apps</a></li>
+        <li><a href="#scaling">Scaling</a></li>
+        <li><a href="#revisions">Revisions and Traffic Splitting</a></li>
+        <li><a href="#ingress">Ingress</a></li>
+        <li><a href="#dapr">Dapr Integration</a></li>
+        <li><a href="#creating">Creating via CLI</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-aca">What is Container Apps?</h2>
+        <p>Container Apps runs containers without requiring you to manage any Kubernetes infrastructure. It's built on AKS under the hood but abstracts it completely. You just provide a container image and configuration.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>ACI</th><th>Container Apps</th><th>AKS</th></tr></thead>
+          <tbody>
+            <tr><td>Kubernetes management</td><td>None</td><td>None (abstracted)</td><td>Full control</td></tr>
+            <tr><td>Scale to zero</td><td>Manual stop</td><td>✅ Automatic</td><td>✅ With KEDA</td></tr>
+            <tr><td>Traffic splitting</td><td>❌</td><td>✅ Built-in revisions</td><td>✅ With Ingress</td></tr>
+            <tr><td>Dapr support</td><td>❌</td><td>✅ Built-in</td><td>✅ Self-install</td></tr>
+            <tr><td>Best for</td><td>One-off tasks, simple workloads</td><td>Microservices, APIs, event processing</td><td>Complex enterprise workloads</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="environments">Environments and Apps</h2>
+        <p>Container Apps has two levels:</p>
+        <ul>
+          <li><strong>Container Apps Environment</strong> — A shared boundary for a group of container apps. Apps in the same environment share a VNet, logging, and can communicate internally.</li>
+          <li><strong>Container App</strong> — An individual application within an environment. Each app runs one container image and can have multiple revisions.</li>
+        </ul>
+
+        <h2 id="scaling">Scaling</h2>
+        <p>Container Apps scales automatically based on:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scale Trigger</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>HTTP requests</strong></td><td>Scale out when concurrent requests exceed threshold</td></tr>
+            <tr><td><strong>CPU / Memory</strong></td><td>Scale out when CPU exceeds 70%</td></tr>
+            <tr><td><strong>Azure Service Bus</strong></td><td>Scale based on queue message count</td></tr>
+            <tr><td><strong>Azure Event Hubs</strong></td><td>Scale based on consumer lag</td></tr>
+            <tr><td><strong>Custom (KEDA)</strong></td><td>Any KEDA-supported scaler</td></tr>
+          </tbody>
+        </table></div>
+
+        <p>Container Apps can scale to <strong>zero</strong> — no replicas, no cost — when there are no requests or events. This makes it very cost-efficient for sporadic workloads.</p>
+
+        <h2 id="revisions">Revisions and Traffic Splitting</h2>
+        <p>Every time you update a container app, a new <strong>revision</strong> is created — an immutable snapshot of the app configuration. You can split traffic between revisions for blue-green deployments or A/B testing:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Traffic splitting between revisions</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Deploy new revision (v2) with 20% of traffic
+az containerapp ingress traffic set \
+  --name myapp \
+  --resource-group myRG \
+  --revision-weight \
+    myapp--v1=80 \
+    myapp--v2=20
+
+# When confident, send 100% to v2
+az containerapp ingress traffic set \
+  --name myapp \
+  --resource-group myRG \
+  --revision-weight myapp--v2=100</code></pre>
+        </div>
+
+        <h2 id="ingress">Ingress</h2>
+        <p>Container Apps supports two ingress modes:</p>
+        <ul>
+          <li><strong>External</strong> — Accessible from the internet via a public FQDN (<code>myapp.happyplant-abc123.centralindia.azurecontainerapps.io</code>)</li>
+          <li><strong>Internal</strong> — Only accessible from within the Container Apps Environment — for internal microservices</li>
+        </ul>
+
+        <h2 id="dapr">Dapr Integration</h2>
+        <p>Dapr (Distributed Application Runtime) is a set of building blocks for microservices — service-to-service invocation, state management, pub/sub, bindings. Container Apps has Dapr built in — enable it with one flag and your apps get all Dapr capabilities without running a sidecar yourself:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable Dapr on a Container App</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az containerapp update \
+  --name myapp \
+  --resource-group myRG \
+  --enable-dapr \
+  --dapr-app-id myapp \
+  --dapr-app-port 3000</code></pre>
+        </div>
+
+        <h2 id="creating">Creating via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create environment and container app</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create Container Apps environment
+az containerapp env create \
+  --name myEnvironment \
+  --resource-group myRG \
+  --location centralindia
+
+# Create container app
+az containerapp create \
+  --name myapp \
+  --resource-group myRG \
+  --environment myEnvironment \
+  --image myregistry.azurecr.io/myapp:v1 \
+  --registry-server myregistry.azurecr.io \
+  --registry-identity system \
+  --target-port 3000 \
+  --ingress external \
+  --min-replicas 0 \
+  --max-replicas 10 \
+  --cpu 0.5 \
+  --memory 1.0Gi \
+  --env-vars NODE_ENV=production</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know Container Apps sits between ACI and AKS — managed Kubernetes without the complexity. Know revisions enable traffic splitting for A/B testing and blue-green deployments. Know Container Apps can scale to zero. Know Dapr is built-in. Know the difference between external and internal ingress.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is a revision in Azure Container Apps?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A revision is not a node — Container Apps abstracts infrastructure entirely.')">A — A node in the underlying Kubernetes cluster</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A revision is an immutable snapshot of a container app at a point in time. Every update to the app configuration creates a new revision. Revisions enable traffic splitting — you can route percentages of traffic to different revisions for A/B testing or blue-green deployments.')">B — An immutable snapshot of the app configuration — enables traffic splitting between versions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A revision is not a backup — it is a version of the running app configuration.')">C — A backup of the container image</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A revision is a Container Apps concept — not a Kubernetes namespace.')">D — A Kubernetes namespace within the environment</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Can Azure Container Apps scale to zero replicas?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Container Apps can scale to zero — when there are no incoming HTTP requests or events, the app scales down to zero replicas and no compute is charged. When traffic arrives, it scales back up automatically. This makes it very cost-efficient for sporadic workloads.')">A — Yes — it scales to zero automatically when idle, then scales up on demand</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Container Apps can scale to zero — the minimum replica count can be set to 0.')">B — No — a minimum of 1 replica is always required</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scale to zero is available on all Container Apps plans — not just premium.')">C — Only on Premium plan</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Scale to zero is automatic based on scaling rules — it does not require manual intervention.')">D — Only when manually stopped by an administrator</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is Dapr in the context of Azure Container Apps?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dapr is not a monitoring tool — Application Insights handles monitoring.')">A — A monitoring and observability service</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Dapr (Distributed Application Runtime) provides building blocks for microservices — service-to-service invocation, state management, pub/sub messaging, and bindings. Container Apps has Dapr built in — enable it with a flag and your app gets all Dapr capabilities without managing the sidecar yourself.')">B — A distributed application runtime providing microservices building blocks — built into Container Apps</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dapr is not a container registry — ACR handles image storage.')">C — A container image registry for storing app images</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dapr provides microservices building blocks — not just networking.')">D — A networking plugin for VNet integration</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div name="question-text"><span class="question-num">Q4.</span> What is the difference between external and internal ingress in Container Apps?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! External ingress gives the app a public FQDN accessible from the internet. Internal ingress makes the app accessible only within the Container Apps Environment — for internal microservices that should not be exposed publicly.')">A — External ingress is accessible from the internet; internal ingress is only accessible within the environment</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both external and internal ingress use HTTPS — the difference is accessibility scope, not protocol.')">B — External uses HTTP; internal uses HTTPS</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Ingress type does not affect scaling — scaling is controlled by scale rules.')">C — External ingress enables auto-scaling; internal does not</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Internal ingress is free — the difference is accessibility, not cost.')">D — External ingress is free; internal ingress has an additional charge</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> When should you choose Azure Container Apps over AKS?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. For complex multi-cluster enterprise workloads requiring full Kubernetes control, AKS is more appropriate.')">A — For complex enterprise workloads requiring multi-cluster federation</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Container Apps is ideal for microservices and APIs that need container flexibility, built-in scaling (including to zero), traffic splitting, and Dapr — without the operational overhead of managing Kubernetes. If you need full Kubernetes control or custom operators, use AKS.')">B — For microservices and APIs that need container flexibility without managing Kubernetes complexity</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Container Apps abstracts Kubernetes — it does not provide custom Kubernetes operator support.')">C — When you need to deploy custom Kubernetes operators and CRDs</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI is simpler than Container Apps — Container Apps provides more features like scaling and traffic splitting.')">D — When you want the simplest possible container hosting with no auto-scaling</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+        <a class="related-card" href="aci-vs-aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">ACI vs AKS vs Container Apps</span></a>
+        <a class="related-card" href="container-instances.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Instances</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="aks-scaling.html"><span class="nav-label">← Previous</span><span class="nav-title">AKS Scaling</span></a>
+        <a class="nav-card next" href="aci-vs-aks.html"><span class="nav-label">Next →</span><span class="nav-title">ACI vs AKS vs Container Apps</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

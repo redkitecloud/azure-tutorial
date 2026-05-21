@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACI vs AKS vs Container Apps | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete comparison of Azure container services — ACI vs AKS vs Container Apps — features, pricing, use cases, and decision guide." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">ACI vs AKS vs Container Apps</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">ACI vs AKS vs Azure Container Apps</h1>
+      <p class="page-intro">Azure has three main container hosting services and choosing between them is one of the most common architecture decisions. ACI is the simplest — run a container with no infrastructure. AKS gives you full Kubernetes power with full responsibility. Container Apps sits in the middle — managed Kubernetes without the complexity. This page helps you choose the right service for every scenario.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Full feature comparison across all three services · Management overhead comparison · Scaling comparison · Pricing model for each · Decision guide — when to choose each · Common real-world scenarios mapped to the right service
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#full-comparison">Full Feature Comparison</a></li>
+        <li><a href="#management">Management Overhead</a></li>
+        <li><a href="#scaling-comparison">Scaling Comparison</a></li>
+        <li><a href="#pricing">Pricing Comparison</a></li>
+        <li><a href="#decision-guide">Decision Guide</a></li>
+        <li><a href="#scenarios">Real-World Scenarios</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="full-comparison">Full Feature Comparison</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>ACI</th><th>Container Apps</th><th>AKS</th></tr></thead>
+          <tbody>
+            <tr><td>Kubernetes management</td><td>None</td><td>None (abstracted)</td><td>Full control</td></tr>
+            <tr><td>Auto-scaling</td><td>Manual stop/start</td><td>✅ HTTP, CPU, events, zero</td><td>✅ HPA, Cluster Autoscaler, KEDA</td></tr>
+            <tr><td>Scale to zero</td><td>Manual</td><td>✅ Automatic</td><td>✅ With KEDA</td></tr>
+            <tr><td>Traffic splitting</td><td>❌</td><td>✅ Built-in revisions</td><td>✅ Ingress/service mesh</td></tr>
+            <tr><td>Service discovery</td><td>❌</td><td>✅ Internal DNS</td><td>✅ Kubernetes DNS</td></tr>
+            <tr><td>Dapr</td><td>❌</td><td>✅ Built-in</td><td>✅ Self-managed</td></tr>
+            <tr><td>VNet integration</td><td>✅</td><td>✅</td><td>✅</td></tr>
+            <tr><td>Custom domains / SSL</td><td>Limited</td><td>✅</td><td>✅</td></tr>
+            <tr><td>GPU support</td><td>✅</td><td>❌</td><td>✅</td></tr>
+            <tr><td>Windows containers</td><td>✅</td><td>❌</td><td>✅</td></tr>
+            <tr><td>Max runtime</td><td>No limit</td><td>No limit</td><td>No limit</td></tr>
+            <tr><td>Persistent storage</td><td>Azure Files</td><td>Azure Files</td><td>Managed Disk + Azure Files</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="management">Management Overhead</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ACI</th><th>Container Apps</th><th>AKS</th></tr></thead>
+          <tbody>
+            <tr><td>Infrastructure</td><td>None</td><td>None</td><td>Node VMs to manage</td></tr>
+            <tr><td>Kubernetes knowledge needed</td><td>None</td><td>Minimal</td><td>Significant</td></tr>
+            <tr><td>Updates/patching</td><td>Auto</td><td>Auto</td><td>You manage node upgrades</td></tr>
+            <tr><td>Networking complexity</td><td>Low</td><td>Medium</td><td>High</td></tr>
+            <tr><td>Operational complexity</td><td>⭐</td><td>⭐⭐</td><td>⭐⭐⭐⭐⭐</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="scaling-comparison">Scaling Comparison</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ACI</th><th>Container Apps</th><th>AKS</th></tr></thead>
+          <tbody>
+            <tr><td>Pod/replica scaling</td><td>Manual only</td><td>Auto — HTTP, CPU, events</td><td>Manual or HPA</td></tr>
+            <tr><td>Node scaling</td><td>N/A (serverless)</td><td>N/A (serverless)</td><td>Manual or Cluster Autoscaler</td></tr>
+            <tr><td>Scale to zero</td><td>Manual stop</td><td>✅ Automatic</td><td>KEDA required</td></tr>
+            <tr><td>Max scale</td><td>Subscription limits</td><td>300 replicas</td><td>Thousands of nodes</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="pricing">Pricing Comparison</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ACI</th><th>Container Apps</th><th>AKS</th></tr></thead>
+          <tbody>
+            <tr><td>Billing unit</td><td>Per second (CPU + memory)</td><td>Per second (vCPU + memory) + requests</td><td>Per node VM hour</td></tr>
+            <tr><td>Idle cost</td><td>Zero (when stopped)</td><td>Zero (when scaled to zero)</td><td>Node VMs always running</td></tr>
+            <tr><td>Control plane</td><td>Included</td><td>Included</td><td>Free</td></tr>
+            <tr><td>Min monthly cost</td><td>~₹0</td><td>~₹0 (scale to zero)</td><td>~₹3,600+ (3 × B2s nodes)</td></tr>
+            <tr><td>Cost at scale</td><td>Can be expensive</td><td>Efficient</td><td>Most efficient at large scale</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="decision-guide">Decision Guide</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Choose</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td><strong>ACI</strong></td><td>Batch jobs, one-time tasks, CI/CD steps, simple dev/test containers, no orchestration needed</td></tr>
+            <tr><td><strong>Container Apps</strong></td><td>Microservices, event-driven apps, APIs needing scale-to-zero, teams wanting containers without Kubernetes expertise</td></tr>
+            <tr><td><strong>AKS</strong></td><td>Complex enterprise workloads, need full Kubernetes control, custom operators/CRDs, GPU workloads, Windows containers, very large scale</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="scenarios">Real-World Scenarios</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scenario</th><th>Best Choice</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Nightly data export job</td><td>ACI</td><td>Run once, stop, pay only for runtime</td></tr>
+            <tr><td>10 microservices REST API platform</td><td>Container Apps</td><td>Built-in service discovery, traffic splitting, scale to zero — no K8s expertise needed</td></tr>
+            <tr><td>Complex platform with 50+ services, custom operators</td><td>AKS</td><td>Full Kubernetes control, custom CRDs, advanced networking</td></tr>
+            <tr><td>ML model inference API (GPU)</td><td>AKS</td><td>GPU node pools — Container Apps does not support GPU</td></tr>
+            <tr><td>Event-driven image processor (queue-based)</td><td>Container Apps</td><td>Built-in KEDA scaling, scale to zero when queue empty</td></tr>
+            <tr><td>Simple webhook receiver</td><td>ACI or Container Apps</td><td>ACI if truly one-off, Container Apps if persistent and needs scaling</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that ACI is for simple one-off containers, Container Apps is for managed microservices without Kubernetes complexity, and AKS is for full Kubernetes control. Know that only AKS supports GPU workloads and Windows containers. Know that Container Apps has built-in Dapr and traffic splitting. Know that ACI and Container Apps have no minimum node cost.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which Azure container service requires the most Kubernetes knowledge to operate?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI requires no Kubernetes knowledge — it is the simplest container service.')">A — Azure Container Instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Container Apps abstracts Kubernetes — minimal Kubernetes knowledge is needed.')">B — Azure Container Apps</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! AKS gives you full Kubernetes control — and requires significant Kubernetes expertise. You manage node pools, upgrades, networking, storage classes, RBAC, and more. ACI and Container Apps abstract Kubernetes completely.')">C — Azure Kubernetes Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Registry is an image store — it requires no Kubernetes knowledge.')">D — Azure Container Registry</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A team needs to run GPU-accelerated machine learning inference workloads in containers. Which service should they use?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Instances supports GPU but is not suitable for production ML inference at scale.')">A — Azure Container Instances</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Apps does not support GPU workloads.')">B — Azure Container Apps</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! AKS supports GPU node pools — you can add nodes with GPU VMs (e.g., NC-series) for ML inference workloads. Container Apps does not support GPU. AKS is the correct choice for GPU-accelerated containerised workloads.')">C — Azure Kubernetes Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Container Registry is for storing images — it does not run workloads.')">D — Azure Container Registry</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Which service has built-in traffic splitting between versions using revisions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI does not have built-in traffic splitting — it runs single containers.')">A — Azure Container Instances</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Container Apps has built-in revisions and traffic splitting. Every deployment creates a new immutable revision and you can route specific percentages of traffic to each revision for A/B testing or blue-green deployments — without any additional configuration.')">B — Azure Container Apps</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AKS supports traffic splitting but requires manual Ingress or service mesh configuration — it is not built-in like Container Apps revisions.')">C — Azure Kubernetes Service (built-in, no configuration needed)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACR stores images — it does not handle traffic routing.')">D — Azure Container Registry</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the minimum monthly cost for running AKS compared to ACI and Container Apps?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AKS is not free — you pay for worker node VMs. Only the control plane is free.')">A — AKS is free — only pay for application traffic</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! AKS requires at least 3 worker node VMs running continuously — even with no workloads, you pay for the nodes. At minimum ~₹3,600+/month for 3 × B2s nodes. ACI and Container Apps cost nothing when scaled to zero, making AKS the most expensive at minimum load.')">B — AKS requires node VMs running continuously — minimum ~₹3,600+/month even idle. ACI and Container Apps can cost zero when idle.</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. All three services can have low costs, but AKS has a minimum node VM cost even when no workloads are running.')">C — All three services have the same minimum monthly cost</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI and Container Apps can scale to zero cost — AKS node VMs always run and always cost money.')">D — ACI is the most expensive — AKS is the cheapest</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A startup is building a platform with 8 microservices. The team has no Kubernetes experience. Traffic is variable — some services get zero traffic overnight. Which service is most appropriate?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI does not provide service discovery, auto-scaling, or traffic management for microservices.')">A — Azure Container Instances — one per microservice</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Container Apps is ideal — it provides built-in service discovery, scale-to-zero (cost saving overnight), traffic splitting for deployments, and Dapr for microservices communication — all without Kubernetes knowledge. Perfect for a startup team building microservices.')">B — Azure Container Apps — managed microservices with scale-to-zero and no Kubernetes expertise needed</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AKS requires significant Kubernetes expertise — a team with no Kubernetes experience would struggle to operate it effectively.')">C — Azure Kubernetes Service — for production microservices</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Functions is for serverless event-driven code — not for containerised microservices.')">D — Azure Functions — for all 8 microservices</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="container-instances.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Instances</span></a>
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+        <a class="related-card" href="container-apps.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Apps</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="container-apps.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Container Apps</span></a>
+        <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

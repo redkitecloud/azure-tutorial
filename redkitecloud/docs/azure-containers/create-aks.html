@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create an AKS Cluster | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Step-by-step guide to creating an Azure Kubernetes Service cluster — CLI, Portal, node pools, kubectl setup, and connecting to the cluster." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Create an AKS Cluster</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Create an AKS Cluster</h1>
+      <p class="page-intro">Creating an AKS cluster takes just a few commands — Azure handles the control plane automatically. This page walks through the complete process: creating the cluster, configuring kubectl to connect, verifying nodes are ready, and the key decisions you need to make (VM size, node count, networking, Availability Zones).</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Pre-requisites for AKS · Create cluster via CLI · Key creation parameters · Get credentials and connect with kubectl · Verify cluster health · Add a node pool · Upgrade AKS version · Delete a cluster
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#create-cluster">Create the Cluster</a></li>
+        <li><a href="#connect-kubectl">Connect with kubectl</a></li>
+        <li><a href="#verify">Verify Cluster Health</a></li>
+        <li><a href="#add-node-pool">Add a Node Pool</a></li>
+        <li><a href="#upgrade">Upgrade AKS Version</a></li>
+        <li><a href="#key-decisions">Key Decisions When Creating</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="prerequisites">Prerequisites</h2>
+        <ul>
+          <li>Azure CLI installed and logged in (<code>az login</code>)</li>
+          <li>kubectl installed (<code>az aks install-cli</code>)</li>
+          <li>Sufficient quota for VM cores in target region</li>
+          <li>Resource group created</li>
+        </ul>
+
+        <h2 id="create-cluster">Create the Cluster</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create AKS cluster</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create resource group
+az group create --name myRG --location centralindia
+
+# Create AKS cluster (Standard_DS2_v2 nodes, 3 nodes, Azure CNI)
+az aks create \
+  --resource-group myRG \
+  --name myAKSCluster \
+  --node-count 3 \
+  --node-vm-size Standard_DS2_v2 \
+  --network-plugin azure \
+  --enable-managed-identity \
+  --attach-acr myregistry2026 \
+  --zones 1 2 3 \
+  --generate-ssh-keys
+
+# This takes 5-10 minutes</code></pre>
+        </div>
+
+        <h3>Key Parameters Explained</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Parameter</th><th>What It Does</th></tr></thead>
+          <tbody>
+            <tr><td><code>--node-count 3</code></td><td>3 worker nodes in the system node pool</td></tr>
+            <tr><td><code>--node-vm-size</code></td><td>VM size for worker nodes — affects CPU, memory, cost</td></tr>
+            <tr><td><code>--network-plugin azure</code></td><td>Use Azure CNI — pods get real VNet IPs</td></tr>
+            <tr><td><code>--enable-managed-identity</code></td><td>Use Managed Identity instead of service principal</td></tr>
+            <tr><td><code>--attach-acr</code></td><td>Grant AKS permission to pull from this ACR</td></tr>
+            <tr><td><code>--zones 1 2 3</code></td><td>Spread nodes across 3 Availability Zones for HA</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="connect-kubectl">Connect with kubectl</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Get credentials and connect</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Get credentials — merges into ~/.kube/config
+az aks get-credentials \
+  --resource-group myRG \
+  --name myAKSCluster
+
+# Verify connection
+kubectl get nodes
+
+# Output:
+# NAME                                STATUS   ROLES   AGE   VERSION
+# aks-nodepool1-12345678-vmss000000   Ready    agent   5m    v1.29.0
+# aks-nodepool1-12345678-vmss000001   Ready    agent   5m    v1.29.0
+# aks-nodepool1-12345678-vmss000002   Ready    agent   5m    v1.29.0</code></pre>
+        </div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>az aks get-credentials</strong> This command downloads the cluster credentials and merges them into your local kubeconfig file (<code>~/.kube/config</code>). After running this, kubectl commands target this AKS cluster automatically.</div>
+        </div>
+
+        <h2 id="verify">Verify Cluster Health</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">kubectl</span><span class="code-label">Verify cluster health</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Check all nodes are Ready
+kubectl get nodes
+
+# Check system pods are running
+kubectl get pods --namespace kube-system
+
+# Check cluster info
+kubectl cluster-info
+
+# Check node resource usage
+kubectl top nodes</code></pre>
+        </div>
+
+        <h2 id="add-node-pool">Add a Node Pool</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Add user node pool for application workloads</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Add a user node pool with larger VMs for compute-intensive workloads
+az aks nodepool add \
+  --resource-group myRG \
+  --cluster-name myAKSCluster \
+  --name appnodepool \
+  --node-count 2 \
+  --node-vm-size Standard_DS4_v2 \
+  --zones 1 2 3 \
+  --mode User
+
+# List node pools
+az aks nodepool list \
+  --resource-group myRG \
+  --cluster-name myAKSCluster \
+  --output table</code></pre>
+        </div>
+
+        <h2 id="upgrade">Upgrade AKS Version</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Check and apply AKS upgrades</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Check available upgrade versions
+az aks get-upgrades \
+  --resource-group myRG \
+  --name myAKSCluster \
+  --output table
+
+# Upgrade to a new version (control plane + all node pools)
+az aks upgrade \
+  --resource-group myRG \
+  --name myAKSCluster \
+  --kubernetes-version 1.30.0</code></pre>
+        </div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Upgrade Causes Brief Disruption</strong> AKS upgrades nodes one at a time (rolling upgrade). With 3+ nodes, there is minimal disruption — one node is cordoned, drained, upgraded, then uncordoned before the next node is touched. Always test upgrades in a dev cluster first.</div>
+        </div>
+
+        <h2 id="key-decisions">Key Decisions When Creating</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Decision</th><th>Recommendation</th></tr></thead>
+          <tbody>
+            <tr><td>VM size</td><td>Standard_DS2_v2 for general workloads, larger for memory-intensive apps</td></tr>
+            <tr><td>Node count</td><td>Minimum 3 for HA — use auto-scale for variable workloads</td></tr>
+            <tr><td>Availability Zones</td><td>Always use zones 1, 2, 3 for production — protects against zone failure</td></tr>
+            <tr><td>Network plugin</td><td>Azure CNI for enterprise and VNet integration; Kubenet for simple clusters</td></tr>
+            <tr><td>Managed Identity</td><td>Always use — avoids managing service principal credentials</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that <code>az aks get-credentials</code> configures kubectl to connect to the cluster. Know that <code>--zones 1 2 3</code> enables zone-redundant node distribution. Know that upgrades are rolling — nodes are upgraded one at a time. Know that system node pools are required and user node pools are optional.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What command configures kubectl to connect to your AKS cluster?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az aks create creates the cluster — it does not configure kubectl credentials.')">A — az aks create</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! az aks get-credentials downloads the cluster credentials and merges them into ~/.kube/config. After running this, kubectl commands automatically target the AKS cluster.')">B — az aks get-credentials</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. kubectl config is a kubectl subcommand for viewing/modifying config — az aks get-credentials is what downloads the AKS credentials.')">C — kubectl config set-cluster</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az aks show displays cluster information — it does not configure kubectl.')">D — az aks show</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Why should you use <code>--zones 1 2 3</code> when creating an AKS cluster?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones do not reduce costs — they may slightly increase them due to cross-zone traffic. The benefit is availability.')">A — It reduces the cost of worker nodes</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Spreading nodes across Availability Zones protects against a single data centre failure. If one AZ loses power or networking, nodes in the other two zones continue running your workloads. This improves cluster resilience significantly.')">B — It spreads nodes across data centres so a zone failure does not take down the cluster</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Availability Zones improve resilience — they do not make the cluster faster.')">C — It makes the cluster faster by distributing workloads geographically</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Zones 1, 2, 3 are Availability Zones within a region — not different regions.')">D — It deploys the cluster across three different Azure regions</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What happens to running pods when an AKS cluster is upgraded?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AKS upgrades nodes one at a time (rolling) — all nodes are not upgraded simultaneously which would cause full downtime.')">A — All pods are stopped while all nodes are upgraded simultaneously</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! AKS uses rolling upgrades — one node at a time is cordoned (no new pods scheduled), drained (pods moved to other nodes), upgraded, then uncordoned. With 3+ nodes, your workloads continue running on the other nodes during the upgrade.')">B — Nodes are upgraded one at a time — pods are moved to other nodes, minimising disruption</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Pods are not lost during upgrade — they are rescheduled to other nodes as each node is upgraded.')">C — All pods are permanently deleted and must be redeployed after upgrade</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Pods do not move themselves — Kubernetes reschedules them as nodes are drained during upgrade.')">D — Pods migrate themselves to the new nodes automatically without any interruption</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the minimum recommended number of worker nodes for a production AKS cluster?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A single node provides no redundancy — if the node fails, all workloads go down.')">A — 1</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. 2 nodes provides some redundancy but during an upgrade or failure only 1 node remains — risky for production.')">B — 2</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A minimum of 3 nodes is recommended for production. With 3 nodes spread across Availability Zones, one node can be unavailable (upgrade or failure) while the other two continue serving traffic. This provides genuine HA.')">C — 3</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. While more nodes increase resilience, 3 is the accepted minimum for production HA — not 5.')">D — 5</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What command checks which Kubernetes versions are available for upgrading an AKS cluster?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! az aks get-upgrades shows all available Kubernetes versions that your cluster can be upgraded to, including the current version and which upgrades are available.')">A — az aks get-upgrades</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az aks show displays current cluster details — not available upgrade versions.')">B — az aks show</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. kubectl version shows the client and server versions — not available upgrade paths.')">C — kubectl version</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az aks list lists all AKS clusters in your subscription — not upgrade versions.')">D — az aks list</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+        <a class="related-card" href="deploy-aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Deploy App to AKS</span></a>
+        <a class="related-card" href="aks-scaling.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">AKS Scaling</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="aks.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Kubernetes Service</span></a>
+        <a class="nav-card next" href="deploy-aks.html"><span class="nav-label">Next →</span><span class="nav-title">Deploy App to AKS</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

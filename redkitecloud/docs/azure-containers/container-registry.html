@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Container Registry | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Container Registry — SKUs, authentication, geo-replication, tasks, webhooks, and security best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Azure Container Registry</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Azure Container Registry</h1>
+      <p class="page-intro">Azure Container Registry (ACR) is a managed, private Docker registry service for storing and managing container images. It integrates natively with Azure services — AKS, App Service, Container Instances, and Azure DevOps — making it the natural choice for storing images in an Azure-based container pipeline.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        ACR SKUs (Basic, Standard, Premium) · Creating an ACR · Authentication methods · Pushing and pulling images · ACR Tasks — build automation · Geo-replication (Premium) · Webhooks · Security — private endpoints, admin account
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#skus">ACR SKUs</a></li>
+        <li><a href="#creating">Creating an ACR</a></li>
+        <li><a href="#authentication">Authentication</a></li>
+        <li><a href="#push-pull">Pushing and Pulling Images</a></li>
+        <li><a href="#acr-tasks">ACR Tasks</a></li>
+        <li><a href="#geo-replication">Geo-Replication</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="skus">ACR SKUs</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>SKU</th><th>Storage</th><th>Geo-replication</th><th>Private endpoint</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Basic</strong></td><td>10 GB</td><td>❌</td><td>❌</td><td>Dev/test, learning</td></tr>
+            <tr><td><strong>Standard</strong></td><td>100 GB</td><td>❌</td><td>❌</td><td>Most production workloads</td></tr>
+            <tr><td><strong>Premium</strong></td><td>500 GB</td><td>✅</td><td>✅</td><td>Enterprise, multi-region, high throughput</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="creating">Creating an ACR</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create Azure Container Registry</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create ACR (Standard SKU)
+az acr create \
+  --name myregistry2026 \
+  --resource-group myRG \
+  --location centralindia \
+  --sku Standard
+
+# View login server URL
+az acr show \
+  --name myregistry2026 \
+  --query loginServer \
+  --output tsv
+# Output: myregistry2026.azurecr.io</code></pre>
+        </div>
+
+        <h2 id="authentication">Authentication</h2>
+        <p>Three ways to authenticate to ACR:</p>
+
+        <h3>1. Azure CLI Login (Development)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Login with Azure credentials</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az acr login --name myregistry2026</code></pre>
+        </div>
+
+        <h3>2. Service Principal (CI/CD Pipelines)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create service principal for ACR access</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Get ACR ID
+ACR_ID=$(az acr show --name myregistry2026 --query id --output tsv)
+
+# Create service principal with pull access
+az ad sp create-for-rbac \
+  --name acr-pull-sp \
+  --role AcrPull \
+  --scope $ACR_ID
+
+# Use the appId as username and password as password in CI/CD</code></pre>
+        </div>
+
+        <h3>3. Managed Identity (Azure Services)</h3>
+        <p>Grant AKS, App Service, or Container Instances access to ACR using Managed Identity — no credentials needed:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Attach ACR to AKS cluster</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Grant AKS permission to pull from ACR
+az aks update \
+  --name myAKSCluster \
+  --resource-group myRG \
+  --attach-acr myregistry2026</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Disable Admin Account</strong> ACR has an admin account (username/password) that can be used for quick access. Disable it in production — use Service Principals or Managed Identities instead. Admin credentials are static and harder to rotate securely.</div>
+        </div>
+
+        <h2 id="push-pull">Pushing and Pulling Images</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Docker + Azure CLI</span><span class="code-label">Push and pull from ACR</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Login to ACR
+az acr login --name myregistry2026
+
+# Tag image with ACR login server
+docker tag myapp:v1 myregistry2026.azurecr.io/myapp:v1
+
+# Push to ACR
+docker push myregistry2026.azurecr.io/myapp:v1
+
+# Pull from ACR
+docker pull myregistry2026.azurecr.io/myapp:v1
+
+# List repositories in ACR
+az acr repository list --name myregistry2026 --output table
+
+# List tags for a repository
+az acr repository show-tags \
+  --name myregistry2026 \
+  --repository myapp \
+  --output table</code></pre>
+        </div>
+
+        <h2 id="acr-tasks">ACR Tasks</h2>
+        <p>ACR Tasks automate container image builds and updates in Azure — no local Docker needed:</p>
+        <ul>
+          <li><strong>Quick task</strong> — Build on demand: <code>az acr build</code></li>
+          <li><strong>Triggered task</strong> — Build on Git commit or base image update</li>
+          <li><strong>Scheduled task</strong> — Build on a cron schedule</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Build image using ACR Tasks</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Quick build — sends context to Azure and builds there
+az acr build \
+  --registry myregistry2026 \
+  --image myapp:v1 .</code></pre>
+        </div>
+
+        <h2 id="geo-replication">Geo-Replication (Premium)</h2>
+        <p>Premium ACR supports geo-replication — replicate your registry to multiple Azure regions. Benefits:</p>
+        <ul>
+          <li>Faster image pulls for services in different regions</li>
+          <li>Single registry endpoint — Azure routes to nearest replica</li>
+          <li>High availability — if one region is down, others serve traffic</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Add geo-replication to ACR</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az acr replication create \
+  --registry myregistry2026 \
+  --location eastus</code></pre>
+        </div>
+
+        <h2 id="security">Security</h2>
+        <ul>
+          <li><strong>Private endpoint</strong> — Remove public access, connect only via VNet (Premium)</li>
+          <li><strong>Firewall rules</strong> — Restrict which IPs can access the registry</li>
+          <li><strong>Content trust</strong> — Sign images to ensure authenticity</li>
+          <li><strong>Vulnerability scanning</strong> — Microsoft Defender for Containers scans images in ACR</li>
+          <li><strong>RBAC roles</strong> — AcrPull (pull only), AcrPush (push), AcrDelete, Owner</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know the three SKUs and that geo-replication and private endpoints require Premium. Know the three auth methods — CLI login (dev), Service Principal (CI/CD), Managed Identity (Azure services). Know that AcrPull grants pull-only access and AcrPush grants push access.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which ACR SKU is required for geo-replication across Azure regions?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Basic SKU supports 10 GB storage but does not support geo-replication.')">A — Basic</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Standard SKU is the most common production choice but does not support geo-replication.')">B — Standard</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Geo-replication is only available on the Premium SKU. Premium also adds private endpoint support, higher storage (500 GB), and higher throughput — making it the choice for enterprise and multi-region deployments.')">C — Premium</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no Enterprise SKU for ACR — the tiers are Basic, Standard, and Premium.')">D — Enterprise</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the recommended authentication method for a CI/CD pipeline pulling images from ACR?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Admin account credentials are static and hard to rotate securely — not recommended for CI/CD.')">A — Admin account username and password</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az acr login uses interactive Azure CLI authentication — not suitable for automated CI/CD pipelines.')">B — az acr login command</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Service Principal with AcrPull role is the recommended authentication method for CI/CD pipelines. The SP credentials (appId and password) are stored as pipeline secrets and used for non-interactive authentication.')">C — Service Principal with AcrPull role</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Personal access tokens are used by services like GitHub — ACR uses Service Principals or Managed Identities for automated access.')">D — Personal access token</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What RBAC role grants an identity permission to pull images from ACR but NOT push?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! AcrPull grants pull-only access to ACR — the identity can pull (download) images but cannot push (upload) new images. This is the appropriate role for services that only need to run containers, like AKS nodes or App Service.')">A — AcrPull</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AcrPush grants both push and pull access — not pull only.')">B — AcrPush</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Contributor grants broad resource management permissions — not specific to ACR operations.')">C — Contributor</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AcrDelete grants permission to delete repositories and images — not for pull access.')">D — AcrDelete</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What does <code>az acr build --registry myregistry --image myapp:v1 .</code> do?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az acr build builds in Azure — it does not build locally and then push.')">A — Builds the image locally and pushes it to ACR</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! az acr build sends the local build context (source code and Dockerfile) to Azure Container Registry, which builds the image there using ACR Tasks. No local Docker installation is needed. The built image is stored directly in ACR.')">B — Sends source code to Azure and builds the image there — no local Docker required</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az acr build builds a container image — it does not deploy to App Service.')">C — Deploys the application directly to Azure App Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az acr build builds and stores in ACR — it does not create an ACI container instance.')">D — Creates an Azure Container Instance from the image</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Why should the ACR admin account be disabled in production?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The admin account does support pull and push operations — the security concern is about credential management.')">A — It only supports pull operations, not push</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The admin account uses static username/password credentials that are difficult to rotate and audit. In production, use Service Principals (rotatable, auditable) or Managed Identities (no credentials at all). Static admin credentials increase the risk if compromised.')">B — It uses static credentials that are hard to rotate — Service Principals or Managed Identities are more secure</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The admin account works across all SKUs — it is not limited to Basic SKU.')">C — It is only available on Basic SKU and limits features</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The admin account does not reduce performance — the security concern is about credential management.')">D — It reduces registry performance significantly</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="docker-azure.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Docker on Azure</span></a>
+        <a class="related-card" href="container-instances.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Instances</span></a>
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="docker-azure.html"><span class="nav-label">← Previous</span><span class="nav-title">Docker on Azure</span></a>
+        <a class="nav-card next" href="container-instances.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Container Instances</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

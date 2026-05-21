@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Kubernetes Service | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Kubernetes Service — Kubernetes concepts, AKS architecture, node pools, networking, storage, RBAC, and monitoring." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Azure Kubernetes Service</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 14 min read</span></div>
+
+      <h1 class="page-title">Azure Kubernetes Service (AKS)</h1>
+      <p class="page-intro">Azure Kubernetes Service is a managed Kubernetes service — Microsoft manages the control plane (API server, scheduler, etcd) for free, while you manage the worker nodes. AKS is the standard for running production containerised workloads at scale — providing auto-scaling, self-healing, rolling deployments, service discovery, and native Azure integration out of the box.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Core Kubernetes concepts — pods, deployments, services, namespaces · AKS architecture — control plane vs node pools · Node pool types · Networking options (kubenet vs Azure CNI) · Storage classes · RBAC in AKS · AKS + ACR integration · Monitoring with Azure Monitor
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#kubernetes-concepts">Core Kubernetes Concepts</a></li>
+        <li><a href="#aks-architecture">AKS Architecture</a></li>
+        <li><a href="#node-pools">Node Pools</a></li>
+        <li><a href="#networking">Networking Options</a></li>
+        <li><a href="#storage">Storage in AKS</a></li>
+        <li><a href="#rbac">RBAC and Authentication</a></li>
+        <li><a href="#acr-integration">ACR Integration</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="kubernetes-concepts">Core Kubernetes Concepts</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concept</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Pod</strong></td><td>Smallest deployable unit — one or more containers sharing network and storage</td></tr>
+            <tr><td><strong>Deployment</strong></td><td>Manages a set of identical pods — handles rolling updates and rollbacks</td></tr>
+            <tr><td><strong>Service</strong></td><td>Stable network endpoint for pods — load balances traffic across pod replicas</td></tr>
+            <tr><td><strong>Ingress</strong></td><td>HTTP/HTTPS routing rules — routes external traffic to internal services</td></tr>
+            <tr><td><strong>Namespace</strong></td><td>Virtual cluster within a cluster — isolates resources between teams/environments</td></tr>
+            <tr><td><strong>ConfigMap</strong></td><td>Store non-sensitive configuration as key-value pairs</td></tr>
+            <tr><td><strong>Secret</strong></td><td>Store sensitive configuration (passwords, keys) — base64 encoded</td></tr>
+            <tr><td><strong>PersistentVolume</strong></td><td>Cluster-level storage provisioned from Azure Disks or Azure Files</td></tr>
+            <tr><td><strong>Node</strong></td><td>A VM in the cluster — runs pods</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="aks-architecture">AKS Architecture</h2>
+        <p>AKS splits into two planes:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Managed By</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Control Plane</strong> — API server, scheduler, controller manager, etcd</td><td>Microsoft (free)</td><td>No charge</td></tr>
+            <tr><td><strong>Node Pools</strong> — Worker VMs that run your pods</td><td>You</td><td>Standard VM rates</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Free Control Plane</strong> Azure manages and pays for the Kubernetes control plane — the API server, etcd, and scheduling infrastructure. You only pay for the worker node VMs. This is a significant cost advantage vs self-managed Kubernetes.</div>
+        </div>
+
+        <h2 id="node-pools">Node Pools</h2>
+        <p>Node pools are groups of VMs with the same configuration. AKS supports multiple node pools:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Pool Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>System node pool</strong></td><td>Runs critical system pods (CoreDNS, metrics-server). Required — at least one per cluster.</td></tr>
+            <tr><td><strong>User node pool</strong></td><td>Runs your application workloads. Optional — add multiple for different VM sizes or OS types.</td></tr>
+            <tr><td><strong>Spot node pool</strong></td><td>Uses Azure Spot VMs — up to 90% cheaper but can be evicted. For fault-tolerant batch workloads.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="networking">Networking Options</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Kubenet (Basic)</th><th>Azure CNI (Advanced)</th></tr></thead>
+          <tbody>
+            <tr><td>Pod IP addresses</td><td>Private, not routable from VNet</td><td>Real VNet IPs — routable from VNet</td></tr>
+            <tr><td>VNet visibility</td><td>Pods not directly accessible from VNet</td><td>Pods directly accessible from VNet</td></tr>
+            <tr><td>IP consumption</td><td>Low — node IPs only</td><td>High — every pod uses a VNet IP</td></tr>
+            <tr><td>Best for</td><td>Simple clusters, limited VNet IPs</td><td>Enterprise, VNet integration, internal load balancers</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="storage">Storage in AKS</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Storage Class</th><th>Backend</th><th>Access Mode</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td>default / managed-csi</td><td>Azure Managed Disk</td><td>ReadWriteOnce (single pod)</td><td>Databases, single-pod storage</td></tr>
+            <tr><td>azurefile-csi</td><td>Azure Files (SMB)</td><td>ReadWriteMany (multiple pods)</td><td>Shared storage across pods</td></tr>
+            <tr><td>azurefile-csi-premium</td><td>Azure Files Premium</td><td>ReadWriteMany</td><td>High-performance shared storage</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="rbac">RBAC and Authentication</h2>
+        <p>AKS supports two RBAC modes:</p>
+        <ul>
+          <li><strong>Kubernetes RBAC</strong> — Built-in Kubernetes roles (ClusterAdmin, Admin, Edit, View) managed via kubectl</li>
+          <li><strong>Azure AD integration</strong> — Use Azure AD users and groups to control kubectl access. Recommended for enterprise — leverages existing identity management.</li>
+        </ul>
+
+        <h2 id="acr-integration">ACR Integration</h2>
+        <p>Grant AKS permission to pull images from ACR without managing credentials:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Attach ACR to AKS — grant pull permissions</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Grant AKS Managed Identity permission to pull from ACR
+az aks update \
+  --name myAKSCluster \
+  --resource-group myRG \
+  --attach-acr myregistry2026
+
+# AKS can now pull images from ACR without credentials in YAML manifests</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that AKS control plane is free — you only pay for worker node VMs. Know the difference between kubenet and Azure CNI networking. Know that system node pools are required and run critical system pods. Know that AKS integrates with ACR via Managed Identity (no credentials needed in manifests).</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> In AKS, what does Microsoft manage and what do you pay for?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft manages the control plane for free — you manage and pay for the worker nodes.')">A — You manage and pay for everything including the control plane</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft manages and pays for the Kubernetes control plane (API server, scheduler, etcd) at no charge. You manage and pay for the worker node VMs where your pods actually run.')">B — Microsoft manages the control plane for free — you pay only for worker node VMs</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Worker node VMs are not free — you pay standard VM rates. Only the control plane is free.')">C — Everything is free — AKS has no charges</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The control plane is free — you do not pay for it. Worker nodes are the billable component.')">D — You pay for the control plane — Microsoft manages and pays for worker nodes</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the smallest deployable unit in Kubernetes?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Pod is the smallest deployable unit in Kubernetes. It contains one or more containers that share the same network namespace and storage. You do not deploy containers directly — you deploy pods.')">A — Pod</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Deployment manages a set of pods — it is not the smallest deployable unit.')">B — Deployment</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Node is a VM that hosts pods — it is not the smallest deployable unit.')">C — Node</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Service is a network endpoint — not a deployable unit of compute.')">D — Service</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Which AKS networking plugin assigns real VNet IP addresses to pods?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Kubenet assigns private IPs to pods that are not routable from the VNet — only node IPs are VNet addresses.')">A — Kubenet</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure CNI assigns real VNet IP addresses to every pod — making pods directly accessible from the VNet and other connected networks. This uses more VNet IPs but enables direct pod-level access from other Azure services.')">B — Azure CNI</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Flannel is an open-source Kubernetes networking plugin — not a specific AKS networking option.')">C — Flannel</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Calico is a network policy engine — not a networking plugin that assigns IP addresses.')">D — Calico</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which Kubernetes storage class should you use when multiple pods need to read and write to the same volume simultaneously?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Managed Disk (default) supports ReadWriteOnce — only one pod can mount it at a time.')">A — default (Azure Managed Disk)</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! azurefile-csi uses Azure Files (SMB) which supports ReadWriteMany access mode — multiple pods across multiple nodes can mount and access the same volume simultaneously. Azure Managed Disk only supports ReadWriteOnce (one pod at a time).')">B — azurefile-csi (Azure Files)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. managed-csi is the same as the default Managed Disk class — it only supports ReadWriteOnce.')">C — managed-csi</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no azuredisk-shared storage class in AKS standard offerings — use Azure Files for ReadWriteMany.')">D — azuredisk-shared</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What Kubernetes object provides a stable network endpoint that load balances traffic across multiple pod replicas?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Deployment manages pod replicas — it does not provide a network endpoint.')">A — Deployment</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Kubernetes Service provides a stable IP address and DNS name that load balances traffic across all healthy pod replicas. When pods are replaced (rolling update, scaling), the Service endpoint stays the same — clients always connect to the Service, not directly to pods.')">B — Service</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Namespace is a virtual partition of the cluster for resource isolation — not a network endpoint.')">C — Namespace</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A ConfigMap stores configuration key-value pairs — not network endpoints.')">D — ConfigMap</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="create-aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Create an AKS Cluster</span></a>
+        <a class="related-card" href="aks-scaling.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">AKS Scaling</span></a>
+        <a class="related-card" href="container-registry.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Registry</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="container-instances.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Container Instances</span></a>
+        <a class="nav-card next" href="create-aks.html"><span class="nav-label">Next →</span><span class="nav-title">Create an AKS Cluster</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
