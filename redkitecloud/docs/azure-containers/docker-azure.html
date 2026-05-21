@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker on Azure | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to using Docker on Azure — building images, pushing to ACR, running containers, Docker Compose, and Azure container services overview." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Docker on Azure</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-204</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Docker on Azure</h1>
+      <p class="page-intro">Docker is the world's most popular container runtime — the tool used to build, run, and manage containers. On Azure, Docker underpins every container service: Container Registry stores Docker images, Container Instances runs Docker containers directly, and AKS orchestrates them at scale. Understanding Docker is essential before working with any Azure container service.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Essential Docker commands · Building and tagging images · Pushing to Azure Container Registry · Running containers locally · Port mapping and environment variables · Docker Compose for multi-container apps · Docker on Azure VMs · Multi-stage builds
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#essential-commands">Essential Docker Commands</a></li>
+        <li><a href="#build-tag">Building and Tagging Images</a></li>
+        <li><a href="#push-acr">Pushing to Azure Container Registry</a></li>
+        <li><a href="#run-containers">Running Containers</a></li>
+        <li><a href="#docker-compose">Docker Compose</a></li>
+        <li><a href="#multistage">Multi-Stage Builds</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="essential-commands">Essential Docker Commands</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Docker CLI</span><span class="code-label">Essential Docker commands</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Build an image from Dockerfile in current directory
+docker build -t myapp:v1 .
+
+# List local images
+docker images
+
+# Run a container (detached, port mapping)
+docker run -d -p 8080:3000 --name mycontainer myapp:v1
+
+# List running containers
+docker ps
+
+# List all containers (including stopped)
+docker ps -a
+
+# View container logs
+docker logs mycontainer
+
+# Execute command inside running container
+docker exec -it mycontainer /bin/sh
+
+# Stop a container
+docker stop mycontainer
+
+# Remove a container
+docker rm mycontainer
+
+# Remove an image
+docker rmi myapp:v1
+
+# Pull image from registry
+docker pull nginx:latest</code></pre>
+        </div>
+
+        <h2 id="build-tag">Building and Tagging Images</h2>
+        <p>Image tags follow the format: <code>registry/repository:tag</code></p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Docker CLI</span><span class="code-label">Build and tag for Azure Container Registry</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Build with a tag
+docker build -t myapp:v1.0.0 .
+
+# Tag for Azure Container Registry
+docker tag myapp:v1.0.0 myregistry.azurecr.io/myapp:v1.0.0
+
+# Also tag as latest
+docker tag myapp:v1.0.0 myregistry.azurecr.io/myapp:latest</code></pre>
+        </div>
+
+        <h2 id="push-acr">Pushing to Azure Container Registry</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI + Docker</span><span class="code-label">Login to ACR and push image</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Login to Azure Container Registry
+az acr login --name myregistry
+
+# Push image to ACR
+docker push myregistry.azurecr.io/myapp:v1.0.0
+docker push myregistry.azurecr.io/myapp:latest
+
+# Or use ACR build (builds in Azure — no local Docker needed)
+az acr build \
+  --registry myregistry \
+  --image myapp:v1.0.0 \
+  --file Dockerfile .</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>ACR Build vs Local Build</strong> <code>az acr build</code> sends your source code to Azure and builds the image there — no Docker installed locally required. Perfect for CI/CD pipelines and cloud shell workflows.</div>
+        </div>
+
+        <h2 id="run-containers">Running Containers</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Docker CLI</span><span class="code-label">Running containers with options</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Run with port mapping (host:container)
+docker run -p 8080:3000 myapp:v1
+
+# Run detached (background)
+docker run -d -p 8080:3000 myapp:v1
+
+# Run with environment variables
+docker run -d \
+  -p 8080:3000 \
+  -e NODE_ENV=production \
+  -e DATABASE_URL=mongodb://localhost/mydb \
+  myapp:v1
+
+# Run with volume mount (persist data)
+docker run -d \
+  -p 8080:3000 \
+  -v /host/data:/app/data \
+  myapp:v1
+
+# Run and remove when stopped
+docker run --rm -p 8080:3000 myapp:v1</code></pre>
+        </div>
+
+        <h2 id="docker-compose">Docker Compose</h2>
+        <p>Docker Compose defines and runs multi-container applications. A single <code>docker-compose.yml</code> file describes all services, networks, and volumes:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">docker-compose.yml — web app + database</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:3000"
+    environment:
+      - DATABASE_URL=mongodb://db:27017/myapp
+    depends_on:
+      - db
+
+  db:
+    image: mongo:6
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+volumes:
+  mongo-data:</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Docker CLI</span><span class="code-label">Docker Compose commands</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Start all services
+docker compose up -d
+
+# View logs for all services
+docker compose logs -f
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes
+docker compose down -v</code></pre>
+        </div>
+
+        <h2 id="multistage">Multi-Stage Builds</h2>
+        <p>Multi-stage builds produce smaller production images by separating the build environment from the runtime environment:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Dockerfile</span><span class="code-label">Multi-stage build — build then copy</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Stage 1: Build
+FROM node:20 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Production — only copy built output
+FROM node:20-alpine AS production
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["node", "dist/server.js"]</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-204 Exam Tip</strong> Know that <code>docker build</code> creates an image, <code>docker run</code> starts a container, <code>docker push</code> uploads to a registry. Know that <code>-p host:container</code> maps ports. Know that <code>az acr build</code> builds directly in Azure. Know that multi-stage builds reduce final image size.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What does the command <code>docker run -d -p 8080:3000 myapp:v1</code> do?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The -d flag runs the container in the background (detached). Without -d the container runs in the foreground.')">A — Runs the container in the foreground and maps port 3000 to host port 8080</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! -d runs the container detached (in the background). -p 8080:3000 maps host port 8080 to container port 3000 — so traffic hitting localhost:8080 reaches the app listening on port 3000 inside the container.')">B — Runs the container in the background and maps host port 8080 to container port 3000</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The port mapping is host:container — so 8080 is the host port and 3000 is the container port, not the other way around.')">C — Runs the container detached and maps container port 8080 to host port 3000</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. docker run starts a new container from an image — it does not build an image.')">D — Builds a new image from the Dockerfile and runs it</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the advantage of <code>az acr build</code> over <code>docker build</code>?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! az acr build sends source code to Azure and builds the image there using Azure infrastructure — no Docker installation required locally. Perfect for CI/CD pipelines, Azure Cloud Shell, or machines without Docker.')">A — Builds the image in Azure — no Docker installation required locally</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az acr build produces the same Docker image format — it is not faster for local development.')">B — Produces smaller images than local docker build</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. az acr build supports the same Dockerfile syntax — there is no syntax difference.')">C — Supports a different Dockerfile syntax with more features</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both az acr build and docker build produce standard Docker images — there is no compatibility difference.')">D — Images built with az acr build only run on Azure</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the purpose of multi-stage Docker builds?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-stage builds do not speed up the build itself — they reduce the final image size.')">A — To speed up the build process by running stages in parallel</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Multi-stage builds separate the build environment (with compilers, dev tools, build dependencies) from the production runtime. Only the built output is copied to the final stage — resulting in much smaller production images that do not contain build tools.')">B — To produce smaller production images by separating build tools from runtime</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-stage builds are about image size optimisation — not security scanning.')">C — To scan images for vulnerabilities during the build process</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-stage builds produce one final image — not multiple images for different environments.')">D — To build different images for different environments simultaneously</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What does Docker Compose do?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Docker Compose runs on a single host — Kubernetes handles multi-host orchestration.')">A — Orchestrates containers across multiple hosts</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Docker Compose defines and runs multi-container applications on a single host using a YAML file. You define all services (web, database, cache) in docker-compose.yml and start them all with docker compose up.')">B — Defines and runs multi-container applications on a single host from a YAML file</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Docker Compose starts multiple containers — it does not build images (though it can trigger builds).')">C — Builds container images automatically without a Dockerfile</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Docker Compose manages containers — not image storage. A registry handles storage.')">D — Stores and manages container images in a registry</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> How do you pass an environment variable to a Docker container at runtime?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The -e flag (or --env) passes environment variables to a container at runtime. For example: docker run -e NODE_ENV=production -e API_KEY=secret myapp:v1. Multiple -e flags can be used.')">A — Using the -e flag: docker run -e KEY=VALUE myapp:v1</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Environment variables are set at runtime with -e — you do not need to rebuild the image to change them.')">B — Rebuilding the image with the variable hardcoded in the Dockerfile</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The -p flag maps ports — not environment variables.')">C — Using the -p flag: docker run -p KEY=VALUE myapp:v1</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Environment variables are passed at runtime with -e — not via docker exec after the container is running.')">D — Running docker exec after the container starts to set variables</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="containers-overview.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">What are Containers?</span></a>
+        <a class="related-card" href="container-registry.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Registry</span></a>
+        <a class="related-card" href="container-instances.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Instances</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="containers-overview.html"><span class="nav-label">← Previous</span><span class="nav-title">What are Containers?</span></a>
+        <a class="nav-card next" href="container-registry.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Container Registry</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

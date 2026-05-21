@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deploy App to AKS | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Step-by-step guide to deploying an application to Azure Kubernetes Service — Deployment YAML, Services, Ingress, rolling updates, and health probes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Deploy App to AKS</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Deploy an Application to AKS</h1>
+      <p class="page-intro">Deploying an application to AKS involves writing Kubernetes manifest files (YAML) that describe what you want — which image to run, how many replicas, how to expose it. Kubernetes then makes it happen and keeps it running. This page covers the complete deployment workflow from manifest to live application.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Writing a Deployment manifest · Writing a Service manifest · Exposing with LoadBalancer vs Ingress · Environment variables and Secrets · Health probes (liveness, readiness) · Rolling updates · Viewing logs and debugging · kubectl essential commands
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#deployment-manifest">Deployment Manifest</a></li>
+        <li><a href="#service-manifest">Service Manifest</a></li>
+        <li><a href="#apply-manifests">Applying Manifests</a></li>
+        <li><a href="#secrets-configmaps">Secrets and ConfigMaps</a></li>
+        <li><a href="#health-probes">Health Probes</a></li>
+        <li><a href="#rolling-updates">Rolling Updates</a></li>
+        <li><a href="#debugging">Viewing Logs and Debugging</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="deployment-manifest">Deployment Manifest</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">deployment.yaml — 3 replicas of a Node.js app</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  replicas: 3                          # Run 3 identical pods
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: myregistry.azurecr.io/myapp:v1
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            cpu: "250m"                # 0.25 vCPU minimum
+            memory: "256Mi"            # 256 MB minimum
+          limits:
+            cpu: "500m"                # 0.5 vCPU maximum
+            memory: "512Mi"            # 512 MB maximum
+        env:
+        - name: NODE_ENV
+          value: production</code></pre>
+        </div>
+
+        <h2 id="service-manifest">Service Manifest</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">service.yaml — expose app with Azure Load Balancer</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+spec:
+  type: LoadBalancer          # Creates Azure Load Balancer with public IP
+  selector:
+    app: myapp                # Routes to pods with this label
+  ports:
+  - protocol: TCP
+    port: 80                  # External port
+    targetPort: 3000          # Container port</code></pre>
+        </div>
+
+        <h2 id="apply-manifests">Applying Manifests</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">kubectl</span><span class="code-label">Apply manifests and check status</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Apply deployment and service
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+
+# Or apply all YAMLs in a directory
+kubectl apply -f ./k8s/
+
+# Check deployment status
+kubectl get deployments
+kubectl get pods
+kubectl get services
+
+# Wait for external IP (may take 1-2 minutes)
+kubectl get service myapp-service --watch
+
+# Output when ready:
+# NAME            TYPE           CLUSTER-IP   EXTERNAL-IP    PORT(S)
+# myapp-service   LoadBalancer   10.0.1.5     20.1.2.3       80:30000/TCP</code></pre>
+        </div>
+
+        <h2 id="secrets-configmaps">Secrets and ConfigMaps</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">Secret and ConfigMap — inject into pod</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Secret (base64 encoded values)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: myapp-secrets
+type: Opaque
+stringData:                    # stringData auto-encodes to base64
+  DATABASE_URL: "mongodb://user:pass@host/db"
+  API_KEY: "mysecretkey"
+---
+# ConfigMap (plain text)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-config
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">Reference Secret and ConfigMap in Deployment</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: myapp-secrets
+              key: DATABASE_URL
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-config
+              key: NODE_ENV</code></pre>
+        </div>
+
+        <h2 id="health-probes">Health Probes</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">Liveness and readiness probes</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>        livenessProbe:           # Is the container alive? Restart if fails.
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        readinessProbe:          # Is the container ready for traffic? Remove from LB if fails.
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5</code></pre>
+        </div>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Probe</th><th>Fails → Action</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Liveness</strong></td><td>Container restarted</td><td>Detect deadlocked/stuck containers</td></tr>
+            <tr><td><strong>Readiness</strong></td><td>Removed from Service endpoints</td><td>Prevent traffic before app is ready</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="rolling-updates">Rolling Updates</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">kubectl</span><span class="code-label">Update image and roll back</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Update image to new version
+kubectl set image deployment/myapp myapp=myregistry.azurecr.io/myapp:v2
+
+# Watch rollout progress
+kubectl rollout status deployment/myapp
+
+# Check rollout history
+kubectl rollout history deployment/myapp
+
+# Rollback to previous version
+kubectl rollout undo deployment/myapp</code></pre>
+        </div>
+
+        <h2 id="debugging">Viewing Logs and Debugging</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">kubectl</span><span class="code-label">Debugging commands</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># View pod logs
+kubectl logs myapp-pod-xyz
+
+# Follow logs in real time
+kubectl logs -f myapp-pod-xyz
+
+# View logs for all pods with label
+kubectl logs -l app=myapp
+
+# Describe a pod (events, status, config)
+kubectl describe pod myapp-pod-xyz
+
+# Execute command inside pod
+kubectl exec -it myapp-pod-xyz -- /bin/sh
+
+# Get events (useful for troubleshooting)
+kubectl get events --sort-by=.lastTimestamp</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that kubectl apply -f deploys manifests. Know the difference between liveness (restart) and readiness (remove from load balancer) probes. Know that rolling updates update pods one at a time. Know kubectl rollout undo rolls back to the previous version.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What Service type creates an Azure Load Balancer with a public IP for an AKS application?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ClusterIP gives the service a cluster-internal IP only — not accessible from outside the cluster.')">A — ClusterIP</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NodePort exposes the service on each node IP at a static port — but does not create an Azure Load Balancer.')">B — NodePort</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! LoadBalancer type creates an Azure Load Balancer with a public IP address that routes traffic to the pods. This is the standard way to expose an application to the internet from AKS.')">C — LoadBalancer</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ExternalName maps a service to a DNS name — it does not create a load balancer.')">D — ExternalName</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What happens when a liveness probe fails repeatedly on a container?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Removing from the load balancer is what readiness probe failure does — liveness failure causes restart.')">A — The container is removed from the load balancer</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When a liveness probe fails, Kubernetes restarts the container. Liveness probes detect deadlocked or stuck containers that are running but not functioning correctly. The container is restarted to try to recover.')">B — The container is restarted</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The entire pod is not deleted — only the failing container is restarted.')">C — The entire pod is deleted and a new one is created</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The node is not rebooted — only the specific container is restarted.')">D — The node is rebooted</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> How do you roll back a deployment to the previous version in Kubernetes?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. kubectl rollout status checks rollout progress — it does not roll back.')">A — kubectl rollout status deployment/myapp</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! kubectl rollout undo deployment/myapp rolls the deployment back to the previous revision. Kubernetes keeps a history of rollouts, allowing you to roll back to any previous version.')">B — kubectl rollout undo deployment/myapp</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. kubectl delete deployment would remove the deployment entirely — not roll it back.')">C — kubectl delete deployment/myapp</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. kubectl apply -f deploys a manifest — you would need to apply the old manifest to roll back, but kubectl rollout undo is the correct command.')">D — kubectl apply -f old-deployment.yaml</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What should you use to store a database password that will be injected into pods as an environment variable?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ConfigMaps store non-sensitive configuration — passwords should be stored in Secrets.')">A — ConfigMap</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Kubernetes Secrets store sensitive data like passwords, API keys, and connection strings. They are base64 encoded and can be mounted into pods as environment variables or files. Use Azure Key Vault integration for even better security in production.')">B — Secret</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. PersistentVolume is for storage — not for configuration or secrets.')">C — PersistentVolume</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Namespace provides resource isolation — it does not store secrets.')">D — Namespace</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What is the difference between a liveness probe and a readiness probe?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. It is the other way around — liveness failure causes restart, readiness failure removes from load balancer.')">A — Liveness failure removes the pod from the load balancer; readiness failure restarts the container</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Liveness probes detect if a container is alive — failure causes Kubernetes to restart the container. Readiness probes detect if a container is ready to receive traffic — failure removes the pod from Service endpoints (load balancer) but does not restart it.')">B — Liveness failure restarts the container; readiness failure removes the pod from the load balancer</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both probe types can use HTTP, TCP, or command-based checks — the difference is the action taken on failure.')">C — Liveness uses HTTP checks; readiness uses TCP checks</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both probes are configured per container — not at different levels.')">D — Liveness is configured at cluster level; readiness is configured at pod level</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="create-aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Create an AKS Cluster</span></a>
+        <a class="related-card" href="aks-scaling.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">AKS Scaling</span></a>
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="create-aks.html"><span class="nav-label">← Previous</span><span class="nav-title">Create an AKS Cluster</span></a>
+        <a class="nav-card next" href="aks-scaling.html"><span class="nav-label">Next →</span><span class="nav-title">AKS Scaling</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Container Instances | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Container Instances — running containers without infrastructure, use cases, container groups, restart policies, and pricing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">Azure Container Instances</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Azure Container Instances</h1>
+      <p class="page-intro">Azure Container Instances (ACI) is the fastest and simplest way to run a container in Azure. No VMs to manage, no Kubernetes cluster to configure — just provide an image and ACI runs it within seconds. It's serverless containers: you pay per second of CPU and memory used, and it scales to zero when stopped.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What ACI is and when to use it · Container groups — multi-container pods · Restart policies (Always, Never, OnFailure) · Networking — public IP, DNS, VNet · Persistent storage with Azure Files · Creating ACI via CLI · ACI vs AKS vs Container Apps
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-aci">What is ACI?</a></li>
+        <li><a href="#container-groups">Container Groups</a></li>
+        <li><a href="#restart-policies">Restart Policies</a></li>
+        <li><a href="#networking">Networking</a></li>
+        <li><a href="#storage">Persistent Storage</a></li>
+        <li><a href="#creating">Creating ACI via CLI</a></li>
+        <li><a href="#when-to-use">When to Use ACI</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-aci">What is ACI?</h2>
+        <p>ACI runs containers directly on Azure infrastructure — no cluster, no node management, no orchestration setup. You specify an image, CPU, memory, and ACI handles everything else. Containers are billed per-second for actual CPU and memory used.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Startup time</td><td>Seconds</td></tr>
+            <tr><td>OS support</td><td>Linux and Windows containers</td></tr>
+            <tr><td>Max CPU per group</td><td>4 vCPU</td></tr>
+            <tr><td>Max memory per group</td><td>16 GB</td></tr>
+            <tr><td>Billing</td><td>Per second of CPU + memory</td></tr>
+            <tr><td>Persistence</td><td>None by default — use Azure Files for persistent storage</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="container-groups">Container Groups</h2>
+        <p>A container group is a collection of containers that run on the same host, share the same lifecycle, network, and storage. This is ACI equivalent of a Kubernetes pod.</p>
+        <ul>
+          <li>Containers in a group share the same IP address and port namespace</li>
+          <li>They can communicate via localhost</li>
+          <li>All containers in a group start and stop together</li>
+          <li>Common pattern: app container + sidecar (logging, proxy, metrics)</li>
+        </ul>
+
+        <h2 id="restart-policies">Restart Policies</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Policy</th><th>Behaviour</th><th>Use For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Always</strong></td><td>Always restart — even on success</td><td>Long-running services, web apps</td></tr>
+            <tr><td><strong>Never</strong></td><td>Never restart — run once and stop</td><td>One-time jobs, batch tasks</td></tr>
+            <tr><td><strong>OnFailure</strong></td><td>Restart only if container exits with non-zero code</td><td>Jobs that should retry on failure but stop on success</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="networking">Networking</h2>
+        <ul>
+          <li><strong>Public IP</strong> — ACI can expose a public IP address with a DNS name label</li>
+          <li><strong>DNS name</strong> — Custom DNS label: <code>mycontainer.centralindia.azurecontainer.io</code></li>
+          <li><strong>VNet integration</strong> — Deploy ACI into a VNet subnet for private access</li>
+          <li><strong>Port exposure</strong> — Specify which ports to expose publicly</li>
+        </ul>
+
+        <h2 id="storage">Persistent Storage</h2>
+        <p>ACI containers are ephemeral by default — storage is lost when the container stops. For persistent data, mount an Azure Files share:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Mount Azure Files in ACI</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az container create \
+  --resource-group myRG \
+  --name mycontainer \
+  --image myregistry.azurecr.io/myapp:v1 \
+  --azure-file-volume-account-name mystorageaccount \
+  --azure-file-volume-account-key $STORAGE_KEY \
+  --azure-file-volume-share-name myshare \
+  --azure-file-volume-mount-path /data</code></pre>
+        </div>
+
+        <h2 id="creating">Creating ACI via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create and manage container instances</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create a simple public container
+az container create \
+  --resource-group myRG \
+  --name mywebcontainer \
+  --image nginx:latest \
+  --dns-name-label mywebapp-2026 \
+  --ports 80 \
+  --cpu 1 \
+  --memory 1.5
+
+# Create from private ACR
+az container create \
+  --resource-group myRG \
+  --name myappcontainer \
+  --image myregistry.azurecr.io/myapp:v1 \
+  --registry-login-server myregistry.azurecr.io \
+  --registry-username $SP_APP_ID \
+  --registry-password $SP_PASSWORD \
+  --dns-name-label myapp-2026 \
+  --ports 3000 \
+  --restart-policy OnFailure \
+  --environment-variables NODE_ENV=production
+
+# View container logs
+az container logs --resource-group myRG --name myappcontainer
+
+# View container status
+az container show \
+  --resource-group myRG \
+  --name myappcontainer \
+  --query instanceView.state
+
+# Delete container
+az container delete --resource-group myRG --name myappcontainer --yes</code></pre>
+        </div>
+
+        <h2 id="when-to-use">When to Use ACI</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Good fit for ACI</th><th>Not a good fit — use AKS or Container Apps</th></tr></thead>
+          <tbody>
+            <tr><td>Batch jobs and one-time tasks</td><td>High-traffic production services needing auto-scale</td></tr>
+            <tr><td>CI/CD pipeline steps</td><td>Microservices needing service discovery</td></tr>
+            <tr><td>Dev/test containers</td><td>Stateful workloads needing complex storage</td></tr>
+            <tr><td>Event-driven short tasks</td><td>Applications requiring rolling deployments</td></tr>
+            <tr><td>Simple web apps with predictable load</td><td>Multi-container apps with complex dependencies</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know the three restart policies (Always, Never, OnFailure). Know that ACI containers are ephemeral — use Azure Files for persistence. Know that a container group shares a network namespace. Know ACI is billed per second of CPU and memory — it scales to zero cost when stopped.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which ACI restart policy should you use for a batch job that should retry on failure but stop when it succeeds?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Always restart policy restarts the container even when it succeeds — this would cause an infinite loop for a batch job.')">A — Always</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Never restart means the container will not retry if it fails — this is unsuitable for jobs that need retry on failure.')">B — Never</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! OnFailure restarts the container only when it exits with a non-zero exit code (failure). When it exits with code 0 (success), it stops and does not restart — perfect for batch jobs and tasks that should retry on failure but complete normally on success.')">C — OnFailure</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no OnSuccess restart policy — the three policies are Always, Never, and OnFailure.')">D — OnSuccess</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is a Container Group in Azure Container Instances?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A container group runs on a single host — not across multiple hosts. Kubernetes handles multi-host orchestration.')">A — Multiple containers running across different hosts</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A container group is a set of containers that run on the same host and share the same lifecycle, IP address, and storage. Containers within a group communicate via localhost. It is equivalent to a Kubernetes pod.')">B — Multiple containers on the same host sharing the same IP, lifecycle, and storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A container group is an ACI concept — not a collection of ACI instances across a region.')">C — A collection of ACI instances across an Azure region</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A container group is not a registry concept — it is a runtime grouping of containers.')">D — A grouping of container images in Azure Container Registry</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> ACI container storage is lost when the container stops. What should you use to persist data?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Blob Storage is not directly mountable as a filesystem in ACI — Azure Files (SMB) is the supported persistent storage option.')">A — Azure Blob Storage</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Files shares can be mounted into ACI containers — providing persistent SMB storage that survives container restarts and stops. Data written to the mount path is persisted in the Azure Files share.')">B — Azure Files share mounted into the container</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Table Storage is a NoSQL database — not a filesystem that can be mounted into containers.')">C — Azure Table Storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Local disk on the container host is ephemeral — it does not persist when the container stops.')">D — Local disk on the container host</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> How is Azure Container Instances billed?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI bills per second — not per hour like VMs.')">A — Per hour regardless of usage</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ACI bills per second of CPU and memory used while the container is running. When stopped, billing stops completely — there is no idle cost. This makes ACI cost-effective for intermittent workloads.')">B — Per second of CPU and memory used — billing stops when container stops</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI does not bill per execution like Functions — it bills per second of runtime.')">C — Per execution (like Azure Functions)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. ACI is not free — it bills per second of CPU and memory used.')">D — Free — ACI has no compute charges</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which scenario is ACI best suited for?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. For high-traffic production services needing auto-scale and rolling deployments, AKS or Container Apps are more appropriate.')">A — A high-traffic e-commerce API requiring auto-scaling and rolling deployments</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! ACI is ideal for batch jobs and one-time tasks — it starts quickly, runs the job, then stops with no ongoing cost. No cluster to manage, billed only for runtime. Perfect for CI/CD pipeline steps, data processing jobs, and scheduled tasks.')">B — A nightly batch processing job that runs for 30 minutes then stops</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Complex microservices with service discovery and many dependencies are better handled by AKS.')">C — A complex microservices application with 20 services requiring service discovery</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Always-on persistent databases need stable storage and networking — ACI ephemeral nature makes it unsuitable.')">D — A persistent database that must run 24/7 with complex storage requirements</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+        <a class="related-card" href="container-apps.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Apps</span></a>
+        <a class="related-card" href="aci-vs-aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">ACI vs AKS vs Container Apps</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="container-registry.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Container Registry</span></a>
+        <a class="nav-card next" href="aks.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Kubernetes Service</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

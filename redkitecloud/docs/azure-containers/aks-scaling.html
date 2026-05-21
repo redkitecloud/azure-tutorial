@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AKS Scaling | Azure Containers | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to AKS scaling — manual scaling, Horizontal Pod Autoscaler, Cluster Autoscaler, KEDA, and Vertical Pod Autoscaler." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Azure Containers</a><span class="sep">›</span><span class="current">AKS Scaling</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Azure Containers</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">AKS Scaling</h1>
+      <p class="page-intro">AKS supports scaling at two levels — pod scaling (adding more replicas of your application) and node scaling (adding more VMs to the cluster). These work together: when pods need more resources than available nodes can provide, the Cluster Autoscaler adds new nodes. When traffic drops, it removes them. Understanding both layers is key to building cost-efficient, resilient AKS workloads.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Manual pod scaling · Horizontal Pod Autoscaler (HPA) — scale pods on CPU/memory · Cluster Autoscaler — scale nodes automatically · KEDA — scale on external metrics (queues, events) · Manual node scaling · Scale to zero with KEDA
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#manual-pod">Manual Pod Scaling</a></li>
+        <li><a href="#hpa">Horizontal Pod Autoscaler (HPA)</a></li>
+        <li><a href="#cluster-autoscaler">Cluster Autoscaler</a></li>
+        <li><a href="#keda">KEDA — Event-Driven Scaling</a></li>
+        <li><a href="#manual-nodes">Manual Node Scaling</a></li>
+        <li><a href="#scaling-together">How Pod and Node Scaling Work Together</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="manual-pod">Manual Pod Scaling</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">kubectl</span><span class="code-label">Manually scale a deployment</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Scale to 5 replicas
+kubectl scale deployment myapp --replicas=5
+
+# Verify
+kubectl get pods
+kubectl get deployment myapp</code></pre>
+        </div>
+
+        <h2 id="hpa">Horizontal Pod Autoscaler (HPA)</h2>
+        <p>HPA automatically scales the number of pod replicas based on CPU, memory, or custom metrics. When CPU usage goes above the target, HPA adds pods. When it drops, pods are removed.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">kubectl</span><span class="code-label">Create HPA — scale on CPU</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create HPA — scale between 2 and 10 replicas, target 70% CPU
+kubectl autoscale deployment myapp \
+  --min=2 \
+  --max=10 \
+  --cpu-percent=70
+
+# Check HPA status
+kubectl get hpa</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">HPA manifest</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: myapp-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: myapp
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70</code></pre>
+        </div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Resource Requests Required</strong> HPA requires CPU and memory requests to be set on the pod spec — otherwise it cannot calculate utilisation percentages. Always set <code>resources.requests</code> in your Deployment manifest.</div>
+        </div>
+
+        <h2 id="cluster-autoscaler">Cluster Autoscaler</h2>
+        <p>When pods cannot be scheduled because nodes are full, the Cluster Autoscaler adds new nodes to the pool. When nodes are underutilised, it removes them. Enable it when creating or updating the cluster:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable Cluster Autoscaler</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Enable autoscaler on cluster creation
+az aks create \
+  --resource-group myRG \
+  --name myAKSCluster \
+  --node-count 3 \
+  --enable-cluster-autoscaler \
+  --min-count 1 \
+  --max-count 10
+
+# Enable on existing cluster node pool
+az aks nodepool update \
+  --resource-group myRG \
+  --cluster-name myAKSCluster \
+  --name nodepool1 \
+  --enable-cluster-autoscaler \
+  --min-count 1 \
+  --max-count 10</code></pre>
+        </div>
+
+        <h2 id="keda">KEDA — Event-Driven Scaling</h2>
+        <p>KEDA (Kubernetes Event-driven Autoscaling) scales pods based on external event sources — Azure Service Bus queue depth, Event Hub lag, HTTP request rate, Prometheus metrics, and more. KEDA can even scale to zero (no pods when no events) and back up.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">YAML</span><span class="code-label">KEDA ScaledObject — scale on Service Bus queue</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: myapp-scaler
+spec:
+  scaleTargetRef:
+    name: myapp
+  minReplicaCount: 0          # Scale to zero when queue is empty
+  maxReplicaCount: 20
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      queueName: orders
+      namespace: myservicebus
+      messageCount: "5"       # Scale out when more than 5 messages per pod</code></pre>
+        </div>
+
+        <h2 id="manual-nodes">Manual Node Scaling</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Manually scale node pool</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>az aks scale \
+  --resource-group myRG \
+  --name myAKSCluster \
+  --node-count 5 \
+  --nodepool-name nodepool1</code></pre>
+        </div>
+
+        <h2 id="scaling-together">How Pod and Node Scaling Work Together</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scenario</th><th>What Happens</th></tr></thead>
+          <tbody>
+            <tr><td>Traffic spikes → CPU rises above HPA threshold</td><td>HPA adds pods → if nodes full, Cluster Autoscaler adds nodes</td></tr>
+            <tr><td>Traffic drops → CPU falls below HPA threshold</td><td>HPA removes pods → if nodes underutilised, Cluster Autoscaler removes nodes</td></tr>
+            <tr><td>Queue fills up (KEDA)</td><td>KEDA scales pods → if nodes full, Cluster Autoscaler adds nodes</td></tr>
+            <tr><td>Queue empties (KEDA)</td><td>KEDA scales to zero pods → Cluster Autoscaler removes empty nodes</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that HPA scales pods based on CPU/memory metrics. Know that Cluster Autoscaler scales nodes based on pending pods. Know that KEDA scales on external event sources and can scale to zero. Know that HPA requires resource requests to be set on pods.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What does the Horizontal Pod Autoscaler (HPA) scale?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! HPA scales the number of pod replicas based on metrics like CPU utilisation or memory. When CPU exceeds the target threshold, HPA adds more pods. When it drops, pods are removed (down to the minimum).')">A — The number of pod replicas based on CPU/memory metrics</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. HPA scales pods — Cluster Autoscaler scales nodes.')">B — The number of nodes in the cluster</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. HPA scales pod replicas — it does not change container resource limits.')">C — The CPU and memory limits of individual containers</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. HPA scales pods — not node pools.')">D — The number of node pools in the cluster</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> When does the Cluster Autoscaler add new nodes?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Cluster Autoscaler responds to pod scheduling failures — not CPU metrics directly.')">A — When cluster CPU usage exceeds 70%</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Cluster Autoscaler adds nodes when pods cannot be scheduled because existing nodes do not have enough capacity (CPU, memory, or other resources). It removes nodes when they are underutilised and their pods can be moved to other nodes.')">B — When pods cannot be scheduled due to insufficient node capacity</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Cluster Autoscaler does not add nodes based on a timer — it responds to unschedulable pods.')">C — On a fixed schedule every hour</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The Cluster Autoscaler responds to pending pods — not network traffic.')">D — When network traffic exceeds a threshold</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is unique about KEDA compared to HPA?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both HPA and KEDA can scale based on CPU — KEDA additionally supports external event sources.')">A — KEDA can only scale based on CPU and memory like HPA</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! KEDA scales based on external event sources — Azure Service Bus queue depth, Event Hub consumer lag, HTTP request rate, Prometheus metrics, and many more. Crucially, KEDA can also scale to zero pods (no pods when no events) and back up — unlike HPA which has a minimum of 1 replica.')">B — KEDA scales based on external event sources and can scale to zero replicas</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. KEDA is for pod scaling — Cluster Autoscaler handles node scaling.')">C — KEDA scales nodes instead of pods</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. KEDA is an add-on for AKS — it is not built into standard Kubernetes.')">D — KEDA is built into all Kubernetes distributions by default</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Why must resource requests be set on pods for HPA to work?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resource requests help with scheduling — but the reason HPA needs them is to calculate utilisation percentages.')">A — Without requests, pods cannot be scheduled on nodes</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! HPA calculates utilisation as (actual usage / requested). Without resource requests set, there is no baseline to calculate a percentage — HPA cannot determine if 200m CPU is 50% or 200% utilisation. Requests must be set for HPA to function.')">B — HPA calculates utilisation as actual usage divided by requested — without requests there is no baseline percentage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Resource requests are not a security requirement — they are needed for utilisation calculation.')">C — Resource requests are required for security compliance</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. HPA does not require resource limits — only requests.')">D — Without requests, HPA cannot set resource limits on new pods</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> An application processes messages from a Service Bus queue. Messages accumulate at night and the queue is empty during the day. Which scaling tool is best?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. HPA scales on CPU/memory — it cannot scale based on queue depth. Pods would need to be processing messages to show CPU usage before HPA would scale.')">A — HPA scaling on CPU utilisation</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cluster Autoscaler scales nodes — it does not scale pods based on queue depth.')">B — Cluster Autoscaler scaling on node utilisation</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! KEDA is perfect for this scenario. It monitors the Service Bus queue depth and scales pods based on message count. When the queue is empty during the day, KEDA scales to zero pods (no cost). As messages arrive at night, it scales up to process them.')">C — KEDA with a Service Bus trigger</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Manual scaling requires human intervention — not suitable for automated scaling based on queue depth.')">D — Manual scaling via kubectl</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="deploy-aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Deploy App to AKS</span></a>
+        <a class="related-card" href="aks.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Kubernetes Service</span></a>
+        <a class="related-card" href="container-apps.html"><span class="related-card-label">Azure Containers</span><span class="related-card-title">Azure Container Apps</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="deploy-aks.html"><span class="nav-label">← Previous</span><span class="nav-title">Deploy App to AKS</span></a>
+        <a class="nav-card next" href="container-apps.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Container Apps</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
