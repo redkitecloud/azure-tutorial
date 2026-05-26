@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Key Vault | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Key Vault — secrets, keys, certificates, access policies, RBAC, soft delete, and best practices for secrets management." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Azure Key Vault</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Azure Key Vault</h1>
+      <p class="page-intro">Azure Key Vault is a cloud service for securely storing and managing secrets, encryption keys, and certificates. It keeps sensitive values out of application code and configuration files — eliminating the risk of credentials being committed to source control or leaked in logs. Every application that deals with secrets should use Key Vault.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Key Vault object types — secrets, keys, certificates · Access models — access policies vs RBAC · Soft delete and purge protection · Key Vault tiers (Standard vs Premium / HSM) · Accessing Key Vault from applications · Key Vault references in App Service · Monitoring and auditing · Best practices
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#object-types">Object Types</a></li>
+        <li><a href="#access-models">Access Models</a></li>
+        <li><a href="#soft-delete">Soft Delete and Purge Protection</a></li>
+        <li><a href="#tiers">Key Vault Tiers</a></li>
+        <li><a href="#accessing">Accessing Key Vault from Applications</a></li>
+        <li><a href="#app-service-refs">App Service Key Vault References</a></li>
+        <li><a href="#creating">Creating and Managing via CLI</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="object-types">Object Types</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>What it Stores</th><th>Examples</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Secrets</strong></td><td>Any sensitive string value</td><td>Database connection strings, API keys, passwords</td></tr>
+            <tr><td><strong>Keys</strong></td><td>Cryptographic keys — used to encrypt/decrypt data</td><td>Storage encryption keys, TDE keys for SQL</td></tr>
+            <tr><td><strong>Certificates</strong></td><td>X.509 SSL/TLS certificates with their private keys</td><td>App Service SSL certificates, code signing certs</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="access-models">Access Models</h2>
+        <p>Key Vault supports two access models — you choose one per vault:</p>
+
+        <h3>Vault Access Policy (Legacy)</h3>
+        <p>Assign permissions (get, list, set, delete) per principal at the vault level. Less granular — a principal either has access to all secrets or none. Being phased out in favour of RBAC.</p>
+
+        <h3>Azure RBAC (Recommended)</h3>
+        <p>Use standard Azure RBAC roles on the Key Vault. More granular — can assign access at the vault, secret, key, or certificate level.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Role</th><th>Can Do</th></tr></thead>
+          <tbody>
+            <tr><td>Key Vault Administrator</td><td>Full management — create, delete, manage access</td></tr>
+            <tr><td>Key Vault Secrets Officer</td><td>Create and manage secrets</td></tr>
+            <tr><td>Key Vault Secrets User</td><td>Read secret values only</td></tr>
+            <tr><td>Key Vault Reader</td><td>View vault properties — not secret values</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="soft-delete">Soft Delete and Purge Protection</h2>
+        <p><strong>Soft delete</strong> — When enabled (now on by default), deleted secrets/keys/certificates are retained for a configurable retention period (7–90 days, default 90) rather than immediately deleted. They can be recovered during this period.</p>
+        <p><strong>Purge protection</strong> — When enabled, soft-deleted objects cannot be permanently deleted (purged) until the retention period expires — even by administrators. This prevents accidental or malicious permanent deletion.</p>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Enable Purge Protection for Production</strong> Without purge protection, an admin can permanently delete a secret immediately even if soft delete is on. Enable purge protection on all production vaults to ensure recovery is always possible within the retention window.</div>
+        </div>
+
+        <h2 id="tiers">Key Vault Tiers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tier</th><th>Key Storage</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Standard</strong></td><td>Software-protected keys</td><td>Most workloads — secrets, certificates, standard keys</td></tr>
+            <tr><td><strong>Premium</strong></td><td>HSM-protected keys (FIPS 140-2 Level 2)</td><td>Compliance requirements needing hardware security module</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="accessing">Accessing Key Vault from Applications</h2>
+        <p>The recommended pattern — application uses a Managed Identity to authenticate to Key Vault, no credentials stored anywhere:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><span class="code-label">Access Key Vault using Managed Identity</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+
+# Uses Managed Identity automatically in Azure
+credential = DefaultAzureCredential()
+client = SecretClient(
+    vault_url="https://mykeyvault.vault.azure.net/",
+    credential=credential
+)
+
+# Get a secret
+secret = client.get_secret("DatabaseConnectionString")
+connection_string = secret.value
+
+# No credentials in code — Managed Identity handles auth</code></pre>
+        </div>
+
+        <h2 id="app-service-refs">App Service Key Vault References</h2>
+        <p>Reference Key Vault secrets directly in App Service App Settings without any code changes:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">App Setting Value</span><span class="code-label">Key Vault reference syntax</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># In App Service App Settings, set value to:
+@Microsoft.KeyVault(SecretUri=https://mykeyvault.vault.azure.net/secrets/DatabaseConnectionString/)
+
+# App Service resolves this at runtime — the app receives the actual secret value
+# App Service Managed Identity must have Key Vault Secrets User role</code></pre>
+        </div>
+
+        <h2 id="creating">Creating and Managing via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create vault, add secret, grant access</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create Key Vault
+az keyvault create \
+  --name mykeyvault-2026 \
+  --resource-group myRG \
+  --location centralindia \
+  --enable-rbac-authorization true \
+  --enable-purge-protection true
+
+# Add a secret
+az keyvault secret set \
+  --vault-name mykeyvault-2026 \
+  --name DatabaseConnectionString \
+  --value "Server=myserver.database.windows.net;..."
+
+# Get a secret value
+az keyvault secret show \
+  --vault-name mykeyvault-2026 \
+  --name DatabaseConnectionString \
+  --query value
+
+# Grant Managed Identity access (Key Vault Secrets User)
+az role assignment create \
+  --assignee <managed-identity-object-id> \
+  --role "Key Vault Secrets User" \
+  --scope /subscriptions/<sub>/resourceGroups/myRG/providers/Microsoft.KeyVault/vaults/mykeyvault-2026</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know the three object types (secrets, keys, certificates). Know that RBAC is the recommended access model over access policies. Know that soft delete retains deleted objects for up to 90 days. Know that purge protection prevents permanent deletion before the retention period. Know that Managed Identity is the recommended way to access Key Vault from applications.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> A developer accidentally deletes a Key Vault secret. Soft delete is enabled with 90-day retention. What can the admin do?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! With soft delete enabled, deleted secrets are retained for the retention period (up to 90 days by default). The admin can recover the deleted secret from the soft-delete state — it is not permanently gone until the retention period expires or it is explicitly purged.')">A — Recover the secret from the soft-deleted state within 90 days</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. With soft delete, the secret is not permanently deleted immediately — it can be recovered within the retention period.')">B — Nothing — the secret is permanently deleted</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Soft delete retention is configurable up to 90 days — the default is 90 days, not 7.')">C — Recover within 7 days only</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Creating a new secret with the same name would create a new empty secret — the original value would be lost if not recovered from soft delete.')">D — Create a new secret with the same name to restore access</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is the recommended way for an Azure App Service app to authenticate to Key Vault?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Storing Key Vault credentials in App Settings creates a chicken-and-egg problem — and storing credentials anywhere is the anti-pattern Key Vault is meant to solve.')">A — Store Key Vault access credentials in App Service App Settings</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Managed Identity is the recommended approach. Enable a system-assigned Managed Identity on the App Service, then grant it Key Vault Secrets User role on the vault. The app authenticates automatically using its Managed Identity — no credentials stored anywhere.')">B — Enable Managed Identity on the App Service and grant it Key Vault Secrets User role</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Admin account credentials are static and insecure — Managed Identity eliminates the need for any stored credentials.')">C — Use the Key Vault admin account username and password</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Hardcoding credentials in application code is the worst practice — it exposes secrets in source control.')">D — Hardcode the Key Vault access key in the application code</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What does purge protection do in Azure Key Vault?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Purge protection is about preventing permanent deletion during the soft-delete retention period — not encrypting secrets.')">A — Encrypts all secrets with an additional layer of encryption</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Purge protection prevents permanently deleting (purging) soft-deleted Key Vault objects before the retention period expires — even by administrators. This ensures secrets, keys, and certificates are always recoverable within the retention window.')">B — Prevents permanently deleting soft-deleted objects until the retention period expires</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Purge protection protects against permanent deletion — not unauthorised access during operations.')">C — Blocks access to secrets during maintenance operations</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Purge protection is about deletion protection — not secret versioning.')">D — Automatically creates a new version of a secret when it is updated</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which Key Vault object type should you use to store a database connection string?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Secrets store any sensitive string value — connection strings, API keys, passwords. Keys are for cryptographic operations (encryption/decryption). Certificates store X.509 certificates with private keys. A database connection string is a secret.')">A — Secret</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Keys are for cryptographic operations — not for storing string values like connection strings.')">B — Key</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Certificates store X.509 SSL/TLS certificates — not connection strings.')">C — Certificate</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no Password object type in Key Vault — use a Secret.')">D — Password</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which access model is recommended for Azure Key Vault?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Vault access policies are the legacy model — Azure RBAC is now recommended for new vaults.')">A — Vault access policies</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure RBAC is the recommended access model for Key Vault. It provides more granular control (down to individual secret/key/certificate level), integrates with standard Azure role assignment tools, and is consistent with how access is managed across all other Azure resources.')">B — Azure RBAC</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Shared access signatures are for Azure Storage — not for Key Vault access control.')">C — Shared Access Signatures (SAS)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Connection strings authenticate to databases — not to Key Vault.')">D — Connection strings</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="rbac.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Azure RBAC</span></a>
+        <a class="related-card" href="entra-id.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Entra ID</span></a>
+        <a class="related-card" href="defender-for-cloud.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Defender for Cloud</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="rbac.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure RBAC</span></a>
+        <a class="nav-card next" href="defender-for-cloud.html"><span class="nav-label">Next →</span><span class="nav-title">Microsoft Defender for Cloud</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conditional Access | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Conditional Access — policies, conditions, grant controls, named locations, device compliance, and best practices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Conditional Access</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Conditional Access</h1>
+      <p class="page-intro">Conditional Access is the smart policy engine of Microsoft Entra ID. It evaluates signals — who the user is, where they are, what device they are on, what app they are accessing — and enforces access controls in real time. It is the "if this, then that" of identity security: if a user signs in from an unknown location, then require MFA. If the device is not compliant, then block access.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        How Conditional Access policies work · Signals (conditions) — user, location, device, app, risk · Grant controls — require MFA, compliant device, block · Session controls · Named locations · Report-only mode · Common policy patterns · Exclusions and break-glass accounts
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#how-ca-works">How Conditional Access Works</a></li>
+        <li><a href="#conditions">Conditions (Signals)</a></li>
+        <li><a href="#grant-controls">Grant Controls</a></li>
+        <li><a href="#session-controls">Session Controls</a></li>
+        <li><a href="#named-locations">Named Locations</a></li>
+        <li><a href="#report-only">Report-Only Mode</a></li>
+        <li><a href="#common-policies">Common Policy Patterns</a></li>
+        <li><a href="#break-glass">Break-Glass Accounts</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="how-ca-works">How Conditional Access Works</h2>
+        <p>Every sign-in is evaluated against all applicable Conditional Access policies. A policy has three parts:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Part</th><th>Description</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Assignments (Who/What)</strong></td><td>Which users, apps, and conditions trigger this policy</td><td>All users accessing Azure Portal</td></tr>
+            <tr><td><strong>Conditions (When)</strong></td><td>Additional signals that refine when the policy applies</td><td>When signing in from outside named locations</td></tr>
+            <tr><td><strong>Access controls (Then)</strong></td><td>What to do — grant with requirements, or block</td><td>Require MFA</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="conditions">Conditions (Signals)</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Condition</th><th>Examples</th></tr></thead>
+          <tbody>
+            <tr><td><strong>User / Group</strong></td><td>All users, specific groups, specific roles (Global Admin)</td></tr>
+            <tr><td><strong>Cloud app</strong></td><td>Azure Portal, Microsoft 365, Salesforce, any registered app</td></tr>
+            <tr><td><strong>Location</strong></td><td>Named locations (trusted IPs), countries, any location</td></tr>
+            <tr><td><strong>Device platform</strong></td><td>Windows, iOS, Android, macOS</td></tr>
+            <tr><td><strong>Device state</strong></td><td>Compliant (Intune-managed), Entra Joined, Hybrid Entra Joined</td></tr>
+            <tr><td><strong>Sign-in risk</strong></td><td>Low, Medium, High (requires P2)</td></tr>
+            <tr><td><strong>User risk</strong></td><td>Low, Medium, High — based on leaked credentials, anomalous behaviour (requires P2)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="grant-controls">Grant Controls</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Grant Control</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Block access</strong></td><td>Deny sign-in entirely — no exceptions</td></tr>
+            <tr><td><strong>Require MFA</strong></td><td>Allow but must complete MFA</td></tr>
+            <tr><td><strong>Require compliant device</strong></td><td>Device must be Intune-compliant</td></tr>
+            <tr><td><strong>Require Entra Joined device</strong></td><td>Device must be Entra ID joined</td></tr>
+            <tr><td><strong>Require approved app</strong></td><td>Must use a Microsoft-approved client app</td></tr>
+            <tr><td><strong>Require password change</strong></td><td>Force password reset before access</td></tr>
+          </tbody>
+        </table></div>
+
+        <p>Grant controls can require <strong>all</strong> selected controls (AND) or <strong>any one</strong> selected control (OR).</p>
+
+        <h2 id="session-controls">Session Controls</h2>
+        <p>Session controls limit what can be done inside an app after sign-in:</p>
+        <ul>
+          <li><strong>Sign-in frequency</strong> — How often users must re-authenticate (e.g., every 1 hour)</li>
+          <li><strong>Persistent browser session</strong> — Prevent "stay signed in" on unmanaged devices</li>
+          <li><strong>App-enforced restrictions</strong> — SharePoint/Exchange block download on unmanaged devices</li>
+          <li><strong>Continuous Access Evaluation</strong> — Revoke tokens in near-real-time if risk is detected</li>
+        </ul>
+
+        <h2 id="named-locations">Named Locations</h2>
+        <p>Named Locations define trusted IP ranges (like your office) or countries. Use them to:</p>
+        <ul>
+          <li>Require MFA only when outside the corporate network</li>
+          <li>Block sign-ins from specific countries</li>
+          <li>Trust office IPs and skip MFA for compliant in-office sign-ins</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Example Policy</span><span class="code-label">Require MFA outside corporate network</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>Policy: "Require MFA outside office"
+  Assignments:
+    Users: All users
+    Apps: All cloud apps
+  Conditions:
+    Locations: Exclude named location "Corporate Office IPs"
+  Grant:
+    Require MFA</code></pre>
+        </div>
+
+        <h2 id="report-only">Report-Only Mode</h2>
+        <p>Before enabling a new Conditional Access policy, enable <strong>Report-only mode</strong>. The policy evaluates sign-ins but does not enforce — you can see in the sign-in logs exactly who would have been affected before actually blocking anyone. Always test in report-only first.</p>
+
+        <h2 id="common-policies">Common Policy Patterns</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Policy</th><th>Conditions</th><th>Grant</th></tr></thead>
+          <tbody>
+            <tr><td>Require MFA for all admins</td><td>Users: Directory roles (all admin roles)</td><td>Require MFA</td></tr>
+            <tr><td>Require MFA outside office</td><td>All users, exclude named location</td><td>Require MFA</td></tr>
+            <tr><td>Block legacy auth</td><td>All users, client apps: Legacy auth clients</td><td>Block</td></tr>
+            <tr><td>Require compliant device for sensitive apps</td><td>Specific apps (Finance portal), all users</td><td>Require compliant device</td></tr>
+            <tr><td>Block risky sign-ins</td><td>Sign-in risk: High</td><td>Block (or require MFA + password change)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="break-glass">Break-Glass Accounts</h2>
+        <p>Always exclude at least one emergency break-glass account from all Conditional Access policies. If your MFA provider goes down or a policy is misconfigured, you need a way to sign in as a Global Admin and fix it. Break-glass accounts should:</p>
+        <ul>
+          <li>Have a very long, complex password stored securely offline</li>
+          <li>Be excluded from all CA policies</li>
+          <li>Have MFA set up via a physical FIDO2 key (not phone-based)</li>
+          <li>Have sign-in monitored and alerted</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that Conditional Access requires Entra ID P1. Know the three parts of a policy: assignments, conditions, access controls. Know that Report-only mode tests a policy without enforcing it. Know that named locations define trusted IP ranges. Know that break-glass accounts must be excluded from all CA policies.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What does Report-only mode do for a Conditional Access policy?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Report-only mode evaluates the policy but does not enforce it — users are not blocked or required to MFA.')">A — Enforces the policy but only sends an email report</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Report-only mode evaluates sign-ins against the policy and records what would have happened — but does not enforce any controls. You can see exactly who would have been blocked or required MFA before activating the policy.')">B — Evaluates sign-ins and records results without enforcing any controls</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Report-only does not disable the policy entirely — it evaluates but does not enforce.')">C — Disables the policy temporarily for testing</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Report-only evaluates all sign-ins — not just admin sign-ins.')">D — Only applies the policy to administrator accounts</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Why should at least one account be excluded from all Conditional Access policies?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Excluding an account reduces its security — the reason is emergency access, not performance.')">A — To improve sign-in performance for administrators</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A break-glass emergency account must be excluded from all CA policies. If MFA is unavailable or a policy misconfiguration locks out all admins, the break-glass account provides a way to sign in and fix the issue without being blocked by any CA policy.')">B — To provide emergency break-glass access if MFA fails or a policy misconfiguration locks out admins</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Excluding an account is for emergency access — not for testing purposes (use Report-only mode for testing).')">C — To test new policies without affecting any users</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Excluding an account from CA policies is for emergency access — not for service accounts (which should have their own appropriate policies).')">D — Service accounts need to bypass MFA for automated processes</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> A company wants to require MFA only when users sign in from outside the office. What Conditional Access feature enables this?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Device compliance policies check whether devices meet security requirements — not the network location of sign-ins.')">A — Device compliance policies</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Named Locations define trusted IP ranges (like the office network). A Conditional Access policy can exclude named locations — so when users sign in from the office IP (named location), MFA is skipped. When outside the named location, MFA is required.')">B — Named Locations defining the office IP range, excluded from the MFA policy</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Sign-in risk is based on detected anomalies — not the physical location of the user.')">C — Sign-in risk policies</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Per-user MFA applies uniformly regardless of location — it cannot be conditioned on network location.')">D — Per-user MFA with location exceptions</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the difference between Grant controls AND vs OR in Conditional Access?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! When multiple grant controls are selected with AND, all must be satisfied (e.g., require MFA AND compliant device). With OR, any one of the selected controls satisfies the policy (e.g., require MFA OR compliant device — a compliant device skips MFA).')">A — AND requires all selected controls to be satisfied; OR requires any one selected control</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AND requires all controls — OR requires any one. You have the logic reversed.')">B — OR requires all controls; AND requires any one</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AND and OR are both about grant controls — not about conditions.')">C — AND applies to conditions; OR applies to grant controls</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. AND and OR have distinct meanings for Conditional Access grant controls — they are not equivalent.')">D — AND and OR produce the same result for a single grant control</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Which Entra ID licence is required to create Conditional Access policies?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Entra ID Free does not include Conditional Access — it only provides basic MFA for admins via Security Defaults.')">A — Free</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Conditional Access requires Entra ID P1 at minimum. P2 adds risk-based Conditional Access (sign-in risk, user risk conditions) which requires Identity Protection. Security Defaults (free) provide a simpler, non-customisable alternative.')">B — P1 (P2 for risk-based conditions)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. P1 is sufficient for most Conditional Access scenarios — P2 is only required for risk-based conditions.')">C — P2 only</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Conditional Access is a premium feature requiring at least P1 — it is not available in the Free edition.')">D — Free edition includes basic Conditional Access</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="mfa.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Multi-Factor Authentication</span></a>
+        <a class="related-card" href="entra-id.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Entra ID</span></a>
+        <a class="related-card" href="zero-trust.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Zero Trust Model</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="mfa.html"><span class="nav-label">← Previous</span><span class="nav-title">Multi-Factor Authentication</span></a>
+        <a class="nav-card next" href="rbac.html"><span class="nav-label">Next →</span><span class="nav-title">Azure RBAC</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

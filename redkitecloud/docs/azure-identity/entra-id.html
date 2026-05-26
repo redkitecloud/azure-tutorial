@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microsoft Entra ID | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Microsoft Entra ID (formerly Azure AD) — tenants, identities, directory objects, authentication, and licensing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Microsoft Entra ID</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 12 min read</span></div>
+
+      <h1 class="page-title">Microsoft Entra ID (Azure Active Directory)</h1>
+      <p class="page-intro">Microsoft Entra ID — formerly Azure Active Directory (Azure AD) — is Microsoft's cloud-based identity and access management service. It is the foundation of security in Azure: every user, application, and service that interacts with Azure authenticates through Entra ID. Understanding it is the single most important prerequisite for working with Azure security.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        What Entra ID is and what it replaced · Tenants and directories · Identity types — users, groups, service principals, managed identities · Entra ID vs on-premises Active Directory · Entra ID editions · Authentication protocols (OAuth 2.0, OIDC, SAML) · Hybrid identity with Entra Connect
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-entra">What is Microsoft Entra ID?</a></li>
+        <li><a href="#tenants">Tenants and Directories</a></li>
+        <li><a href="#identity-types">Identity Types</a></li>
+        <li><a href="#entra-vs-ad">Entra ID vs On-Premises AD</a></li>
+        <li><a href="#editions">Entra ID Editions</a></li>
+        <li><a href="#auth-protocols">Authentication Protocols</a></li>
+        <li><a href="#hybrid-identity">Hybrid Identity</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-entra">What is Microsoft Entra ID?</h2>
+        <p>Microsoft Entra ID is a cloud-based Identity and Access Management (IAM) service. It handles:</p>
+        <ul>
+          <li><strong>Authentication</strong> — Verify who you are (username + password + MFA)</li>
+          <li><strong>Authorisation</strong> — What you are allowed to do (RBAC, permissions)</li>
+          <li><strong>Single Sign-On (SSO)</strong> — Sign in once, access thousands of apps</li>
+          <li><strong>Application management</strong> — Register and manage app identities</li>
+          <li><strong>Device management</strong> — Register and manage devices (Intune integration)</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>The Name Change</strong> Azure Active Directory (Azure AD) was renamed to Microsoft Entra ID in 2023. The functionality is identical — only the name changed. Exam questions may still use "Azure AD" — treat them as the same service.</div>
+        </div>
+
+        <h2 id="tenants">Tenants and Directories</h2>
+        <p>A <strong>tenant</strong> is a dedicated instance of Entra ID that an organisation receives when signing up for Microsoft cloud services. Each tenant:</p>
+        <ul>
+          <li>Has a unique tenant ID (GUID)</li>
+          <li>Has a default domain: <code>contoso.onmicrosoft.com</code></li>
+          <li>Can have custom domains added: <code>contoso.com</code></li>
+          <li>Is completely isolated from other tenants</li>
+          <li>Contains all the organisation's users, groups, and applications</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>One Tenant per Organisation</strong> Most organisations have a single Entra ID tenant. Large enterprises may have multiple tenants (acquired companies, dev/prod separation) — these can be connected via B2B collaboration.</div>
+        </div>
+
+        <h2 id="identity-types">Identity Types</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Identity Type</th><th>Description</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>User</strong></td><td>A person — employee or external guest</td><td>priya@contoso.com</td></tr>
+            <tr><td><strong>Group</strong></td><td>Collection of users — assign permissions once to group</td><td>Finance-Team, Developers</td></tr>
+            <tr><td><strong>Service Principal</strong></td><td>Identity for an application or automated process</td><td>CI/CD pipeline, custom app</td></tr>
+            <tr><td><strong>Managed Identity</strong></td><td>Auto-managed service principal for Azure services — no credentials</td><td>VM accessing Key Vault, App Service accessing SQL</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Managed Identity Types</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>System-Assigned</th><th>User-Assigned</th></tr></thead>
+          <tbody>
+            <tr><td>Lifecycle</td><td>Tied to the resource — deleted when resource is deleted</td><td>Independent — persists if resource is deleted</td></tr>
+            <tr><td>Sharing</td><td>Cannot be shared — one per resource</td><td>Can be shared across multiple resources</td></tr>
+            <tr><td>Best for</td><td>Single resource needing identity</td><td>Multiple resources needing the same identity</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="entra-vs-ad">Entra ID vs On-Premises Active Directory</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Entra ID (Cloud)</th><th>Active Directory DS (On-premises)</th></tr></thead>
+          <tbody>
+            <tr><td>Primary protocol</td><td>OAuth 2.0, OIDC, SAML</td><td>Kerberos, NTLM, LDAP</td></tr>
+            <tr><td>Structure</td><td>Flat — no OUs or GPOs</td><td>Hierarchical — OUs, GPOs, forests</td></tr>
+            <tr><td>Domain join</td><td>Entra Join (cloud), Hybrid Join</td><td>Traditional domain join</td></tr>
+            <tr><td>Group Policy</td><td>No GPO — use Intune/Conditional Access</td><td>Full GPO support</td></tr>
+            <tr><td>Querying</td><td>REST API / Microsoft Graph</td><td>LDAP</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Entra ID is NOT a cloud version of AD DS</strong> A common misconception. Entra ID uses completely different protocols and has no OUs, Group Policy, or LDAP. If you need traditional AD features in Azure, use Azure Active Directory Domain Services (Entra Domain Services).</div>
+        </div>
+
+        <h2 id="editions">Entra ID Editions</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Edition</th><th>Key Features</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Free</strong></td><td>Basic user/group management, SSO for 10 apps, MFA for admins</td></tr>
+            <tr><td><strong>P1</strong></td><td>Conditional Access, self-service password reset, hybrid identity, MFA for all users</td></tr>
+            <tr><td><strong>P2</strong></td><td>P1 + Identity Protection (risk-based Conditional Access), Privileged Identity Management (PIM)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="auth-protocols">Authentication Protocols</h2>
+        <ul>
+          <li><strong>OAuth 2.0</strong> — Authorisation framework — grants apps access to resources on behalf of users</li>
+          <li><strong>OpenID Connect (OIDC)</strong> — Authentication layer on top of OAuth 2.0 — proves who the user is</li>
+          <li><strong>SAML 2.0</strong> — Enterprise SSO standard — used for integrating legacy enterprise apps</li>
+          <li><strong>WS-Federation</strong> — Older federation protocol — used for legacy Microsoft apps</li>
+        </ul>
+
+        <h2 id="hybrid-identity">Hybrid Identity</h2>
+        <p>Most enterprises have both on-premises AD and Entra ID. <strong>Microsoft Entra Connect</strong> (formerly Azure AD Connect) synchronises identities between them:</p>
+        <ul>
+          <li>Users created in on-premises AD are synced to Entra ID automatically</li>
+          <li>Password hash synchronisation — users use the same password for cloud and on-premises</li>
+          <li>Pass-through authentication — authentication happens against on-premises AD</li>
+          <li>Federation (ADFS) — on-premises ADFS handles all authentication</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that Entra ID is cloud IAM — not a cloud version of AD DS. Know the four identity types (user, group, service principal, managed identity). Know the difference between system-assigned and user-assigned managed identities. Know P1 adds Conditional Access and P2 adds PIM and Identity Protection.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is a Microsoft Entra ID tenant?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A subscription is for billing Azure resources — a tenant is the identity directory.')">A — An Azure subscription for billing purposes</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A tenant is a dedicated, isolated instance of Microsoft Entra ID that an organisation receives when signing up for Microsoft cloud services. It contains all the organisations users, groups, apps, and policies. Each tenant has a unique ID and default domain.')">B — A dedicated isolated instance of Entra ID for an organisation</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A resource group organises Azure resources — it is not an identity directory.')">C — A resource group for organising Azure resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A management group organises subscriptions — not identities.')">D — A management group for organising subscriptions</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What is a Managed Identity and what problem does it solve?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Managed Identity is for Azure services authenticating to other Azure services — not for users.')">A — A user account managed by Microsoft instead of the organisation</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! A Managed Identity is an automatically managed identity in Entra ID for Azure services. It eliminates the need to store credentials in code or config — the service authenticates using its Managed Identity. For example, a VM can access Key Vault without any username or password.')">B — An automatically managed service identity that eliminates credential management for Azure services</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Managed Identity is not a group — it is an identity for an Azure service or resource.')">C — A group of users with automatically managed permissions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. A Managed Identity does not manage passwords for users — it is an identity for Azure services.')">D — A password management service for external users</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Is Microsoft Entra ID a cloud version of on-premises Active Directory Domain Services?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Entra ID is fundamentally different from AD DS — different protocols, no OUs, no Group Policy, no LDAP.')">A — Yes — it is the same technology hosted in Azure</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Entra ID is NOT a cloud version of AD DS. They are completely different services. AD DS uses Kerberos, NTLM, LDAP, and has OUs and Group Policy. Entra ID uses OAuth 2.0, OIDC, SAML and has no OUs or GPOs. For traditional AD features in Azure, use Entra Domain Services (Azure AD DS).')">B — No — they use completely different protocols and structures</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Entra ID is available in all Azure regions — availability is not the difference.')">C — Only partially — it supports Kerberos but not LDAP</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Entra ID works for all Azure services — not just Microsoft 365.')">D — Yes, but only for Microsoft 365 workloads</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which Entra ID edition is required to use Conditional Access policies?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Entra ID Free does not include Conditional Access — only basic MFA for admins.')">A — Free</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Conditional Access requires Entra ID P1 (or P2). It is not available in the Free edition. P1 also adds self-service password reset, hybrid identity features, and MFA for all users (not just admins).')">B — P1</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. P2 includes Conditional Access but P1 is the minimum — P2 adds Identity Protection and PIM on top of P1.')">C — Only P2</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Conditional Access requires at minimum P1 — it is not available in Free edition.')">D — Free edition includes basic Conditional Access</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> What is the difference between a system-assigned and user-assigned Managed Identity?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both types are Managed Identities — the difference is lifecycle and sharing, not the service they work with.')">A — System-assigned works with VMs only; user-assigned works with all Azure services</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! System-assigned is tied to the resource lifecycle — deleted when the resource is deleted, cannot be shared. User-assigned is independent — persists if the resource is deleted and can be shared across multiple resources. Use user-assigned when multiple resources need the same identity.')">B — System-assigned is tied to one resource and deleted with it; user-assigned is independent and can be shared across resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both types can access the same Azure services — the difference is lifecycle and sharing.')">C — System-assigned can access all Azure services; user-assigned can only access storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both types are free — there is no cost difference between them.')">D — System-assigned is free; user-assigned has an additional cost</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="users-groups.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Users &amp; Groups</span></a>
+        <a class="related-card" href="rbac.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Azure RBAC</span></a>
+        <a class="related-card" href="conditional-access.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Conditional Access</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <div></div>
+        <a class="nav-card next" href="users-groups.html"><span class="nav-label">Next →</span><span class="nav-title">Users &amp; Groups</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

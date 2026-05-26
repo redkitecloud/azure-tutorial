@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure RBAC | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Azure Role-Based Access Control — built-in roles, custom roles, scope, role assignments, deny assignments, and least privilege." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Azure RBAC</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 13 min read</span></div>
+
+      <h1 class="page-title">Azure Role-Based Access Control (RBAC)</h1>
+      <p class="page-intro">Azure RBAC controls who can do what to which Azure resources. Instead of granting broad access, RBAC lets you assign the minimum permissions needed — a developer gets Contributor on their resource group but nothing else. RBAC is one of the most heavily tested topics in AZ-104 and understanding it deeply is essential for every Azure professional.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        RBAC concepts — security principal, role, scope · Built-in roles — Owner, Contributor, Reader, and many more · Role assignment — how to grant access · Scope hierarchy — management group, subscription, resource group, resource · Custom roles · Deny assignments · RBAC vs Entra ID roles
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#rbac-concepts">RBAC Concepts</a></li>
+        <li><a href="#scope-hierarchy">Scope Hierarchy</a></li>
+        <li><a href="#builtin-roles">Key Built-in Roles</a></li>
+        <li><a href="#role-assignment">Assigning Roles</a></li>
+        <li><a href="#custom-roles">Custom Roles</a></li>
+        <li><a href="#deny-assignments">Deny Assignments</a></li>
+        <li><a href="#rbac-vs-entra">RBAC vs Entra ID Roles</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="rbac-concepts">RBAC Concepts</h2>
+        <p>A role assignment has three components:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Description</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Security Principal</strong></td><td>Who gets access — user, group, service principal, or managed identity</td><td>priya@contoso.com, Developers group</td></tr>
+            <tr><td><strong>Role Definition</strong></td><td>What they can do — a collection of permissions (actions)</td><td>Contributor, Virtual Machine Operator</td></tr>
+            <tr><td><strong>Scope</strong></td><td>Where the access applies</td><td>Resource group, subscription</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="scope-hierarchy">Scope Hierarchy</h2>
+        <p>RBAC scope follows the Azure resource hierarchy. A role assigned at a parent scope is inherited by all child scopes:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Scope Level</th><th>Applies To</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Management Group</strong></td><td>All subscriptions under the management group</td></tr>
+            <tr><td><strong>Subscription</strong></td><td>All resource groups and resources in the subscription</td></tr>
+            <tr><td><strong>Resource Group</strong></td><td>All resources in the resource group</td></tr>
+            <tr><td><strong>Resource</strong></td><td>Only that specific resource</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Inheritance</strong> A user assigned Contributor at the subscription level automatically has Contributor on all resource groups and resources within that subscription. Assign at the highest scope that makes sense — use resource group scope to limit exposure.</div>
+        </div>
+
+        <h2 id="builtin-roles">Key Built-in Roles</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Role</th><th>Can Do</th><th>Cannot Do</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Owner</strong></td><td>Everything — create, delete, manage, assign roles</td><td>Nothing restricted</td></tr>
+            <tr><td><strong>Contributor</strong></td><td>Create and manage all resources</td><td>Assign roles to others, manage access</td></tr>
+            <tr><td><strong>Reader</strong></td><td>View all resources</td><td>Make any changes</td></tr>
+            <tr><td><strong>User Access Administrator</strong></td><td>Manage user access to Azure resources</td><td>Create or manage resources</td></tr>
+            <tr><td><strong>Virtual Machine Contributor</strong></td><td>Manage VMs</td><td>Manage VNet or storage the VM uses</td></tr>
+            <tr><td><strong>Storage Blob Data Contributor</strong></td><td>Read, write, delete blob data</td><td>Manage storage account settings</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Owner vs Contributor</strong> The key difference: Owner can assign RBAC roles to others; Contributor cannot. If you want a user to manage resources but not grant access to anyone else, use Contributor.</div>
+        </div>
+
+        <h2 id="role-assignment">Assigning Roles</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Assign and manage roles</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Assign Contributor role at resource group scope
+az role assignment create \
+  --assignee priya@contoso.com \
+  --role Contributor \
+  --resource-group myRG
+
+# Assign Reader at subscription scope
+az role assignment create \
+  --assignee priya@contoso.com \
+  --role Reader \
+  --scope /subscriptions/<subscription-id>
+
+# List role assignments for a user
+az role assignment list \
+  --assignee priya@contoso.com \
+  --output table
+
+# Remove a role assignment
+az role assignment delete \
+  --assignee priya@contoso.com \
+  --role Contributor \
+  --resource-group myRG</code></pre>
+        </div>
+
+        <h2 id="custom-roles">Custom Roles</h2>
+        <p>When built-in roles do not fit, create custom roles with exactly the permissions needed:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">JSON</span><span class="code-label">Custom role definition — VM Start/Stop only</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>{
+  "Name": "VM Operator",
+  "Description": "Can start and stop VMs but not create or delete",
+  "Actions": [
+    "Microsoft.Compute/virtualMachines/start/action",
+    "Microsoft.Compute/virtualMachines/deallocate/action",
+    "Microsoft.Compute/virtualMachines/restart/action",
+    "Microsoft.Compute/virtualMachines/read"
+  ],
+  "NotActions": [],
+  "AssignableScopes": [
+    "/subscriptions/<subscription-id>"
+  ]
+}</code></pre>
+        </div>
+
+        <h2 id="deny-assignments">Deny Assignments</h2>
+        <p>Deny assignments block specific actions — even if a role assignment would otherwise allow them. A deny assignment overrides any allow. Currently, deny assignments can only be created by Azure Blueprints and Managed Applications — not manually by users.</p>
+
+        <h2 id="rbac-vs-entra">RBAC vs Entra ID Roles</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Azure RBAC</th><th>Entra ID Roles</th></tr></thead>
+          <tbody>
+            <tr><td>Controls access to</td><td>Azure resources (VMs, storage, networks)</td><td>Entra ID objects (users, groups, apps)</td></tr>
+            <tr><td>Scope</td><td>Management group, subscription, resource group, resource</td><td>Tenant-wide (or admin unit)</td></tr>
+            <tr><td>Examples</td><td>Contributor, Reader, VM Contributor</td><td>Global Administrator, User Administrator, Billing Administrator</td></tr>
+            <tr><td>Assigned via</td><td>Azure Portal / CLI / IAM blade</td><td>Entra ID portal / roles blade</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> This is very heavily tested. Know Owner vs Contributor (Owner can assign roles, Contributor cannot). Know that role assignments are inherited downward through the scope hierarchy. Know that deny assignments override allow assignments. Know the difference between Azure RBAC (resource access) and Entra ID roles (identity access).</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is the key difference between the Owner and Contributor built-in roles?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Owner and Contributor can create and manage resources — the difference is role assignment capability.')">A — Owner can create resources; Contributor can only read them</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Both Owner and Contributor can create and manage all Azure resources. The key difference is that Owner can also assign RBAC roles to other users — Contributor cannot. If you want someone to manage resources without being able to grant access to others, use Contributor.')">B — Owner can assign RBAC roles to others; Contributor cannot</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both Owner and Contributor can delete resources — they have the same create/manage/delete permissions.')">C — Owner can delete resources; Contributor cannot</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both roles apply to all resource types — neither is limited to specific resources.')">D — Owner applies to all resources; Contributor only applies to VMs</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> A user is assigned the Reader role at the subscription level. What access do they have to resource groups within that subscription?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Role assignments are inherited downward — Reader at subscription level grants Reader on all resource groups within it.')">A — No access — resource groups need separate role assignments</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! RBAC assignments are inherited downward through the scope hierarchy. A Reader role assigned at the subscription level automatically grants Reader access to all resource groups and resources within that subscription.')">B — Reader access on all resource groups and resources in the subscription (inherited)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reader at subscription level does not grant Contributor access — it grants Reader access through inheritance.')">C — Contributor access on resource groups but Reader on individual resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Role assignments at subscription level are inherited by all resource groups — not just the default resource group.')">D — Reader access only on the default resource group</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What happens when a deny assignment conflicts with a role assignment that would allow an action?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The deny assignment always wins — role assignments cannot override a deny.')">A — The role assignment takes precedence — allow wins</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Deny assignments always override role assignments. Even if a user has a role that would grant an action, a deny assignment blocking that same action means the user is denied. Deny always wins over allow.')">B — The deny assignment takes precedence — deny always wins over allow</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no admin review — deny assignments immediately and automatically override allows.')">C — An administrator is notified to review the conflict</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The most specific scope does not determine priority — deny always wins regardless of scope.')">D — The most specific scope wins — resource-level beats subscription-level</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Does Azure RBAC control access to Entra ID objects like users and groups?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure RBAC controls access to Azure resources — Entra ID roles control access to directory objects.')">A — Yes — Azure RBAC controls all access in Azure including directory objects</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure RBAC controls access to Azure resources (VMs, storage, networks, etc.). Entra ID roles (like Global Administrator, User Administrator) control access to Entra ID directory objects (users, groups, apps). They are separate systems.')">B — No — Azure RBAC controls Azure resources; Entra ID roles control directory objects</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure RBAC and Entra ID roles are always separate — there is no overlap option.')">C — Sometimes — it depends on the subscription type</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is a clear separation — Azure RBAC for resources, Entra ID roles for directory objects.')">D — Only when using the Owner role at subscription level</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A developer needs to start and stop VMs but should not be able to create or delete them. What should you do?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Contributor allows creating and deleting resources — too broad for this requirement.')">A — Assign the Contributor role</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Virtual Machine Contributor allows creating and managing VMs including deleting — still too broad.')">B — Assign the Virtual Machine Contributor role</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! No built-in role provides exactly start/stop without create/delete. Create a custom role with only the specific actions needed (start, deallocate, restart, read) — this follows the principle of least privilege and gives exactly the permissions required.')">C — Create a custom role with only start, stop, and read actions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Reader is read-only — it does not allow starting or stopping VMs.')">D — Assign the Reader role and grant VM start permission separately</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="entra-id.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Entra ID</span></a>
+        <a class="related-card" href="conditional-access.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Conditional Access</span></a>
+        <a class="related-card" href="key-vault.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Azure Key Vault</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="conditional-access.html"><span class="nav-label">← Previous</span><span class="nav-title">Conditional Access</span></a>
+        <a class="nav-card next" href="key-vault.html"><span class="nav-label">Next →</span><span class="nav-title">Azure Key Vault</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

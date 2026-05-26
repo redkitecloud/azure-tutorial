@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Factor Authentication | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to MFA in Microsoft Entra ID — how MFA works, authentication methods, per-user MFA, security defaults, and Conditional Access MFA." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Multi-Factor Authentication</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 10 min read</span></div>
+
+      <h1 class="page-title">Multi-Factor Authentication (MFA)</h1>
+      <p class="page-intro">Multi-Factor Authentication requires users to provide two or more verification factors to sign in. Even if a password is compromised, an attacker still cannot access the account without the second factor. MFA is the single most effective control against account takeover attacks — Microsoft reports it blocks over 99.9% of automated attacks.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        How MFA works — the three factors · Authentication methods available · Security Defaults — free MFA for all · Per-user MFA · Conditional Access MFA (recommended) · MFA registration · Number matching and additional context · Passwordless authentication
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#how-mfa-works">How MFA Works</a></li>
+        <li><a href="#auth-methods">Authentication Methods</a></li>
+        <li><a href="#security-defaults">Security Defaults</a></li>
+        <li><a href="#per-user-mfa">Per-User MFA</a></li>
+        <li><a href="#conditional-access-mfa">Conditional Access MFA</a></li>
+        <li><a href="#passwordless">Passwordless Authentication</a></li>
+        <li><a href="#mfa-comparison">MFA Enforcement Methods Compared</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="how-mfa-works">How MFA Works</h2>
+        <p>Authentication factors fall into three categories — MFA requires at least two from different categories:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Factor</th><th>Something you...</th><th>Examples</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Knowledge</strong></td><td>Know</td><td>Password, PIN</td></tr>
+            <tr><td><strong>Possession</strong></td><td>Have</td><td>Phone (authenticator app, SMS), hardware token</td></tr>
+            <tr><td><strong>Inherence</strong></td><td>Are</td><td>Fingerprint, face recognition</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="auth-methods">Authentication Methods</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Method</th><th>Security</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Microsoft Authenticator app</td><td>High ✅</td><td>Push notification, number matching — recommended</td></tr>
+            <tr><td>FIDO2 security key</td><td>Highest ✅✅</td><td>Hardware key — phishing resistant</td></tr>
+            <tr><td>Windows Hello for Business</td><td>High ✅</td><td>Biometric or PIN on Windows device</td></tr>
+            <tr><td>OATH hardware token</td><td>High ✅</td><td>Physical token generating TOTP codes</td></tr>
+            <tr><td>SMS / Voice call</td><td>Low ⚠️</td><td>Vulnerable to SIM swap — avoid if possible</td></tr>
+            <tr><td>Software OATH token</td><td>Medium</td><td>TOTP from authenticator apps (Google Auth, etc.)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="security-defaults">Security Defaults</h2>
+        <p>Security Defaults are pre-configured baseline security settings that Microsoft enables for free on all tenants. They enforce:</p>
+        <ul>
+          <li>All users must register for MFA</li>
+          <li>Admins must use MFA on every sign-in</li>
+          <li>Legacy authentication protocols are blocked</li>
+          <li>All users must complete MFA when needed (risk-based)</li>
+        </ul>
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Security Defaults vs Conditional Access</strong> Security Defaults are free and simple — enabled or disabled for the entire tenant. Conditional Access (P1 required) gives granular control — require MFA only for specific users, apps, locations, or risk levels. You cannot use both simultaneously.</div>
+        </div>
+
+        <h2 id="per-user-mfa">Per-User MFA</h2>
+        <p>The legacy method — enable MFA individually per user. Three states:</p>
+        <ul>
+          <li><strong>Disabled</strong> — MFA not required</li>
+          <li><strong>Enabled</strong> — MFA required but user has not registered yet</li>
+          <li><strong>Enforced</strong> — MFA required and user has completed registration</li>
+        </ul>
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Per-User MFA is Legacy</strong> Microsoft recommends using Conditional Access MFA instead of per-user MFA. Per-user MFA applies uniformly — Conditional Access lets you apply MFA contextually (e.g., only when signing in from outside the corporate network).</div>
+        </div>
+
+        <h2 id="conditional-access-mfa">Conditional Access MFA (Recommended)</h2>
+        <p>The modern, flexible approach. Use Conditional Access policies to require MFA based on conditions:</p>
+        <ul>
+          <li>Require MFA when signing in from outside corporate network</li>
+          <li>Require MFA when accessing sensitive applications</li>
+          <li>Require MFA for all admin roles, always</li>
+          <li>Require MFA when sign-in risk is detected</li>
+          <li>Skip MFA for trusted locations (corporate office IP)</li>
+        </ul>
+
+        <h2 id="passwordless">Passwordless Authentication</h2>
+        <p>The future of authentication — remove passwords entirely:</p>
+        <ul>
+          <li><strong>Microsoft Authenticator</strong> — Approve sign-in via phone notification — no password needed</li>
+          <li><strong>FIDO2 security keys</strong> — Hardware key that is both the possession and inherence factor</li>
+          <li><strong>Windows Hello for Business</strong> — Face/fingerprint/PIN replaces password on Windows</li>
+        </ul>
+
+        <h2 id="mfa-comparison">MFA Enforcement Methods Compared</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Security Defaults</th><th>Per-User MFA</th><th>Conditional Access MFA</th></tr></thead>
+          <tbody>
+            <tr><td>Cost</td><td>Free</td><td>Free</td><td>P1 required</td></tr>
+            <tr><td>Granularity</td><td>All users, same policy</td><td>Per user, same policy</td><td>Fully flexible — user, app, location, risk</td></tr>
+            <tr><td>Recommended?</td><td>Small orgs, no P1</td><td>Legacy — avoid</td><td>✅ Yes — use for all orgs with P1</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know the three authentication factors (knowledge, possession, inherence). Know that Security Defaults are free and apply to all users. Know that per-user MFA is legacy. Know that Conditional Access MFA requires P1 and provides granular control. Know that SMS is the weakest MFA method.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> Which MFA authentication method is considered the weakest and most vulnerable to attack?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft Authenticator app with number matching is a strong MFA method — highly resistant to phishing.')">A — Microsoft Authenticator app</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SMS-based MFA is the weakest method — vulnerable to SIM swap attacks where an attacker convinces a carrier to transfer your phone number. It is better than no MFA but Microsoft recommends using the Authenticator app or FIDO2 keys instead.')">B — SMS text message</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FIDO2 security keys are the strongest MFA method — phishing resistant hardware tokens.')">C — FIDO2 security key</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Windows Hello for Business is a strong authentication method using biometrics or PIN tied to a specific device.')">D — Windows Hello for Business</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What are Security Defaults in Entra ID?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Security Defaults are free baseline settings — they do not require a P1 licence.')">A — Paid security features requiring Entra ID P1</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Security Defaults are free pre-configured baseline security settings that Microsoft provides for all tenants. They enforce MFA registration for all users, require admins to use MFA on every sign-in, and block legacy authentication protocols.')">B — Free pre-configured baseline security settings that enforce MFA and block legacy auth</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Security Defaults are a fixed set of Microsoft-defined policies — not customisable Conditional Access policies.')">C — Customisable security policies that replace Conditional Access</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Security Defaults apply to the entire tenant — not individual users.')">D — Per-user security settings configured by administrators</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Can Security Defaults and Conditional Access policies be used at the same time?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. They cannot be used simultaneously — you must choose one approach.')">A — Yes — they complement each other</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Security Defaults and Conditional Access cannot be used simultaneously. If you have Conditional Access policies configured, you must disable Security Defaults. They are mutually exclusive — Security Defaults is the simpler option for organisations without P1 licensing.')">B — No — they are mutually exclusive, you must choose one</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. They are always mutually exclusive — not just for admin accounts.')">C — Only for admin accounts — regular users can have both</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. They are mutually exclusive regardless of tenant size.')">D — Only for tenants with more than 50 users</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is the recommended modern approach to enforcing MFA in Entra ID?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Per-user MFA is the legacy approach — Microsoft recommends Conditional Access MFA.')">A — Per-user MFA enabled for each individual</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Conditional Access policies (requiring Entra ID P1) are the recommended modern approach for MFA enforcement. They provide granular control — require MFA based on user, application, location, device compliance, and sign-in risk level.')">B — Conditional Access policies requiring MFA based on conditions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Security Defaults are recommended for small organisations without P1 — Conditional Access is recommended for organisations that have P1 licensing.')">C — Security Defaults enabled for all tenants</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. FIDO2 keys are an authentication method — not an MFA enforcement mechanism.')">D — FIDO2 hardware keys for all users</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A user signs in with their password and then approves a notification on their Microsoft Authenticator app. Which two authentication factors are being used?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both factors cannot be the same category — the password is knowledge and the phone app is possession.')">A — Two knowledge factors</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The password is a knowledge factor (something you know). The Microsoft Authenticator app on the phone is a possession factor (something you have). These are two different factor categories — which is the requirement for valid MFA.')">B — Knowledge (password) and possession (phone with authenticator app)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The authenticator app is a possession factor — not an inherence factor. Inherence would be biometrics like fingerprint or face.')">C — Knowledge (password) and inherence (authenticator app)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. The password alone is single-factor — combining it with the authenticator app adds a second factor from the possession category.')">D — Single-factor authentication using a strong password</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="conditional-access.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Conditional Access</span></a>
+        <a class="related-card" href="entra-id.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Entra ID</span></a>
+        <a class="related-card" href="zero-trust.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Zero Trust Model</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="users-groups.html"><span class="nav-label">← Previous</span><span class="nav-title">Users &amp; Groups</span></a>
+        <a class="nav-card next" href="conditional-access.html"><span class="nav-label">Next →</span><span class="nav-title">Conditional Access</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
