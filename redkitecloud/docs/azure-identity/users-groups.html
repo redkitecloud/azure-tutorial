@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Users & Groups | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to managing users and groups in Microsoft Entra ID — user types, group types, dynamic groups, bulk operations, and guest access." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Users &amp; Groups</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Users &amp; Groups in Microsoft Entra ID</h1>
+      <p class="page-intro">Users and groups are the building blocks of identity in Entra ID. Users represent people and services; groups collect users so you can assign permissions once rather than individually. Understanding user types, group types, and how dynamic membership works is essential for managing identity at scale.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        User types — member vs guest · Creating and managing users via CLI · Group types — Security vs Microsoft 365 · Membership types — assigned vs dynamic · Dynamic membership rules · Bulk user operations · B2B guest access · Self-service password reset
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#user-types">User Types</a></li>
+        <li><a href="#managing-users">Managing Users</a></li>
+        <li><a href="#group-types">Group Types</a></li>
+        <li><a href="#membership-types">Membership Types</a></li>
+        <li><a href="#dynamic-groups">Dynamic Groups</a></li>
+        <li><a href="#b2b">B2B Guest Access</a></li>
+        <li><a href="#sspr">Self-Service Password Reset</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="user-types">User Types</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>Description</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Member</strong></td><td>Internal user — employee of the organisation</td><td>Created in tenant or synced from on-premises AD</td></tr>
+            <tr><td><strong>Guest</strong></td><td>External user — partner, contractor, customer</td><td>Invited via B2B collaboration from another tenant or email</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="managing-users">Managing Users via CLI</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create and manage users</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create a new user
+az ad user create \
+  --display-name "Priya Sharma" \
+  --user-principal-name priya@contoso.onmicrosoft.com \
+  --password "TempP@ssword123!" \
+  --force-change-password-next-sign-in true
+
+# List all users
+az ad user list --output table
+
+# Get a specific user
+az ad user show --id priya@contoso.onmicrosoft.com
+
+# Update user properties
+az ad user update \
+  --id priya@contoso.onmicrosoft.com \
+  --job-title "Cloud Engineer" \
+  --department "IT"
+
+# Delete a user
+az ad user delete --id priya@contoso.onmicrosoft.com</code></pre>
+        </div>
+
+        <h2 id="group-types">Group Types</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Group Type</th><th>Used For</th><th>Can Assign Azure RBAC</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Security</strong></td><td>Control access to Azure resources, apps, policies</td><td>✅ Yes</td></tr>
+            <tr><td><strong>Microsoft 365</strong></td><td>Collaboration — shared mailbox, Teams, SharePoint</td><td>✅ Yes (with P1/P2)</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Create and manage groups</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Create a security group
+az ad group create \
+  --display-name "Cloud-Engineers" \
+  --mail-nickname "cloud-engineers"
+
+# Add member to group
+az ad group member add \
+  --group "Cloud-Engineers" \
+  --member-id <user-object-id>
+
+# List group members
+az ad group member list --group "Cloud-Engineers" --output table
+
+# Check if user is a member
+az ad group member check \
+  --group "Cloud-Engineers" \
+  --member-id <user-object-id></code></pre>
+        </div>
+
+        <h2 id="membership-types">Membership Types</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>Description</th><th>Managed By</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Assigned</strong></td><td>Members added/removed manually</td><td>Administrator</td></tr>
+            <tr><td><strong>Dynamic User</strong></td><td>Members automatically added based on user attribute rules</td><td>Rules engine (auto)</td></tr>
+            <tr><td><strong>Dynamic Device</strong></td><td>Devices automatically added based on device attribute rules</td><td>Rules engine (auto)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="dynamic-groups">Dynamic Groups</h2>
+        <p>Dynamic groups automatically add/remove members based on rules you define on user or device attributes. Requires Entra ID P1.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Dynamic Rule Examples</span><span class="code-label">Dynamic membership rule syntax</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># All users in the IT department
+(user.department -eq "IT")
+
+# All users with a job title containing "Engineer"
+(user.jobTitle -contains "Engineer")
+
+# All users in India
+(user.country -eq "IN")
+
+# All users with a specific domain
+(user.userPrincipalName -endsWith "@contoso.com")
+
+# Combined rule — IT department AND based in India
+(user.department -eq "IT") and (user.country -eq "IN")</code></pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>Dynamic Groups Save Admin Time</strong> When a new employee joins the IT department, they are automatically added to all IT groups. When they leave, they are automatically removed. No manual group membership management required.</div>
+        </div>
+
+        <h2 id="b2b">B2B Guest Access</h2>
+        <p>B2B (Business-to-Business) collaboration allows you to invite external users (from other organisations or personal email) as guests in your tenant. Guest users:</p>
+        <ul>
+          <li>Use their own credentials from their home organisation</li>
+          <li>Are represented as Guest users in your directory</li>
+          <li>Can be granted access to specific apps and resources</li>
+          <li>Have limited directory access by default (cannot browse all users/groups)</li>
+        </ul>
+
+        <h2 id="sspr">Self-Service Password Reset (SSPR)</h2>
+        <p>SSPR lets users reset their own passwords without calling the helpdesk. Requires Entra ID P1:</p>
+        <ul>
+          <li>Users register authentication methods (phone, email, authenticator app)</li>
+          <li>When locked out, users verify identity and reset their own password</li>
+          <li>Reduces helpdesk calls significantly</li>
+          <li>Can be enabled for all users or a specific group</li>
+        </ul>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know the two group types (Security and Microsoft 365). Know the three membership types (Assigned, Dynamic User, Dynamic Device). Know that dynamic groups require Entra ID P1. Know that Guest users authenticate with their own home organisation credentials.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is the difference between a Member user and a Guest user in Entra ID?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both member and guest users can sign in to Azure — the difference is their origin and directory permissions.')">A — Member users can sign in to Azure; guest users cannot</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Member users are internal employees created in or synced to the tenant. Guest users are external collaborators (from other organisations or personal emails) invited via B2B. Guests use their own credentials and have limited directory access by default.')">B — Member users are internal employees; guest users are external collaborators invited via B2B</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Guest users can be assigned roles and permissions — they are not read-only by default in terms of resource access.')">C — Member users have read-write access; guest users have read-only access to all resources</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both user types can have MFA enabled — MFA is not the differentiating factor.')">D — Member users require MFA; guest users do not</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Which group membership type automatically adds users based on their department attribute?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Assigned membership requires manual addition of members — not automatic based on attributes.')">A — Assigned</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Dynamic User membership automatically adds and removes users based on rules applied to user attributes like department, job title, country, or email domain. When a user attribute changes, group membership updates automatically.')">B — Dynamic User</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dynamic Device membership applies rules to device attributes — not user attributes like department.')">C — Dynamic Device</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. There is no Automatic membership type — the correct term is Dynamic User.')">D — Automatic</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What Entra ID licence is required to use Dynamic Groups?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Entra ID Free does not include dynamic group membership — it is a premium feature.')">A — Free</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Dynamic group membership requires Entra ID P1 (or P2). It is not available in the Free edition. P1 also includes Conditional Access, self-service password reset, and hybrid identity features.')">B — P1</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. P2 includes dynamic groups but P1 is the minimum — P2 is not required.')">C — P2 only</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Dynamic groups are a paid feature — they require P1 at minimum.')">D — No licence required — available in all editions</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which group type should you use to control access to Azure resources and assign RBAC roles?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Security groups are designed for access control — assigning RBAC roles, app permissions, and policies. Microsoft 365 groups are for collaboration (Teams, SharePoint, shared mailbox). For Azure resource access, always use Security groups.')">A — Security group</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Microsoft 365 groups are for collaboration features — while they can be used for RBAC with P1/P2, Security groups are the standard choice for Azure resource access control.')">B — Microsoft 365 group</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Distribution groups are for email distribution lists — they cannot be used for RBAC assignments.')">C — Distribution group</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Mail-enabled security groups are for email and access control but Security groups are the standard recommendation for Azure RBAC.')">D — Mail-enabled security group</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> When a guest user is invited to your Entra ID tenant via B2B, whose credentials do they use to sign in?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Guest users do not receive new credentials in your tenant — they use their own home organisation credentials.')">A — New credentials created in your tenant by your administrator</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! B2B guest users authenticate with their own credentials from their home organisation or personal email account. Your tenant trusts their home identity provider. You grant them access to resources — they sign in using their existing account.')">B — Their own credentials from their home organisation or personal email</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Guest users are not required to use Microsoft accounts — they can use any email or their own organisation credentials.')">C — A Microsoft account created specifically for the collaboration</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Guest users do not share a single shared account — each guest has their own identity.')">D — A shared service account created by your organisation</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="entra-id.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Entra ID</span></a>
+        <a class="related-card" href="rbac.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Azure RBAC</span></a>
+        <a class="related-card" href="mfa.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Multi-Factor Authentication</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="entra-id.html"><span class="nav-label">← Previous</span><span class="nav-title">Microsoft Entra ID</span></a>
+        <a class="nav-card next" href="mfa.html"><span class="nav-label">Next →</span><span class="nav-title">Multi-Factor Authentication</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

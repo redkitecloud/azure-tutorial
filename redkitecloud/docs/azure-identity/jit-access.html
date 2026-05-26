@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Just-in-Time VM Access | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Just-in-Time VM Access in Microsoft Defender for Cloud — how JIT works, configuration, requesting access, and security benefits." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Just-in-Time VM Access</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 9 min read</span></div>
+
+      <h1 class="page-title">Just-in-Time (JIT) VM Access</h1>
+      <p class="page-intro">Just-in-Time VM Access closes management ports (RDP port 3389 and SSH port 22) when not in use. Instead of keeping these ports open 24/7 — inviting brute force attacks — JIT only opens the port for a specific user from a specific IP for a limited time window. When time is up, the port closes automatically. It dramatically reduces the attack surface of your VMs.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Why always-open management ports are dangerous · How JIT works step by step · Enabling JIT on a VM · Requesting JIT access · JIT and NSG rules · Audit log of all JIT access · JIT requirements — Defender for Servers plan · Azure Bastion as an alternative
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#the-problem">The Problem JIT Solves</a></li>
+        <li><a href="#how-jit-works">How JIT Works</a></li>
+        <li><a href="#enabling-jit">Enabling JIT on a VM</a></li>
+        <li><a href="#requesting-access">Requesting JIT Access</a></li>
+        <li><a href="#nsg-rules">JIT and NSG Rules</a></li>
+        <li><a href="#audit-log">Audit Log</a></li>
+        <li><a href="#requirements">Requirements and Alternatives</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="the-problem">The Problem JIT Solves</h2>
+        <p>Without JIT, RDP (port 3389) and SSH (port 22) are typically open to the internet 24/7. This means:</p>
+        <ul>
+          <li>Automated bots continuously scan for open RDP/SSH ports</li>
+          <li>Brute force and credential stuffing attacks run constantly</li>
+          <li>Even with strong passwords, exposure to zero-day vulnerabilities</li>
+          <li>Microsoft reports millions of RDP attacks per day against Azure VMs</li>
+        </ul>
+
+        <div class="box warning">
+          <span class="box-icon">⚠️</span>
+          <div class="box-body"><strong>Open RDP to the Internet is High Severity</strong> Defender for Cloud flags open RDP (3389) or SSH (22) access to the internet as a high-severity recommendation. This is one of the most commonly exploited configurations in cloud environments.</div>
+        </div>
+
+        <h2 id="how-jit-works">How JIT Works</h2>
+        <ol>
+          <li><strong>Enable JIT</strong> — Defender for Cloud creates an NSG deny rule blocking all inbound traffic on management ports</li>
+          <li><strong>Request access</strong> — User requests access specifying source IP and time window (e.g., 3 hours)</li>
+          <li><strong>Approval</strong> — Request is automatically approved (or requires manual approval by an admin)</li>
+          <li><strong>Port opens</strong> — Defender temporarily adds an NSG allow rule for that specific user IP on that port</li>
+          <li><strong>Time expires</strong> — After the window, the allow rule is automatically removed and the port closes</li>
+        </ol>
+
+        <h2 id="enabling-jit">Enabling JIT on a VM</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Enable JIT access on a VM</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Enable JIT for a VM via Defender for Cloud
+az security jit-policy create \
+  --resource-group myRG \
+  --location centralindia \
+  --name default \
+  --virtual-machines '[{
+    "id": "/subscriptions/<sub-id>/resourceGroups/myRG/providers/Microsoft.Compute/virtualMachines/myVM",
+    "ports": [
+      {
+        "number": 22,
+        "protocol": "TCP",
+        "allowedSourceAddressPrefix": "*",
+        "maxRequestAccessDuration": "PT3H"
+      },
+      {
+        "number": 3389,
+        "protocol": "TCP",
+        "allowedSourceAddressPrefix": "*",
+        "maxRequestAccessDuration": "PT3H"
+      }
+    ]
+  }]'</code></pre>
+        </div>
+
+        <h2 id="requesting-access">Requesting JIT Access</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Azure CLI</span><span class="code-label">Request JIT access to a VM</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># Request JIT access — opens SSH for 2 hours from your IP
+az security jit-policy initiate \
+  --resource-group myRG \
+  --name default \
+  --virtual-machines '[{
+    "id": "/subscriptions/<sub-id>/resourceGroups/myRG/providers/Microsoft.Compute/virtualMachines/myVM",
+    "ports": [{
+      "number": 22,
+      "duration": "PT2H",
+      "allowedSourceAddressPrefix": "203.0.113.10"
+    }]
+  }]'</code></pre>
+        </div>
+
+        <h2 id="nsg-rules">JIT and NSG Rules</h2>
+        <p>JIT manages NSG rules automatically:</p>
+        <ul>
+          <li><strong>When JIT is enabled</strong> — A high-priority deny rule is added blocking RDP/SSH from internet</li>
+          <li><strong>When access is requested</strong> — A higher-priority allow rule is temporarily added for the specific source IP</li>
+          <li><strong>When time expires</strong> — The allow rule is removed; the deny rule remains</li>
+        </ul>
+        <p>The NSG changes are visible in the Azure Portal — you can see the temporary rules while access is active.</p>
+
+        <h2 id="audit-log">Audit Log</h2>
+        <p>Every JIT access request is logged — who requested access, from what IP, for which port, and for how long. This provides a complete audit trail for compliance and security investigations. Logs are visible in Defender for Cloud and Azure Activity Log.</p>
+
+        <h2 id="requirements">Requirements and Alternatives</h2>
+        <h3>JIT Requirements</h3>
+        <ul>
+          <li>Microsoft Defender for Servers plan must be enabled (paid)</li>
+          <li>VM must have an NSG attached</li>
+          <li>User needs specific permissions to request access</li>
+        </ul>
+
+        <h3>Azure Bastion — Alternative</h3>
+        <p>Azure Bastion provides browser-based RDP/SSH access to VMs without any public IP or open ports. Traffic goes over SSL through the Azure portal — the VM never needs an internet-accessible RDP/SSH port at all. This is an even more secure alternative to JIT when public port access is not needed.</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>JIT Access</th><th>Azure Bastion</th></tr></thead>
+          <tbody>
+            <tr><td>How it works</td><td>Temporarily opens port on NSG</td><td>Browser-based, no open ports needed</td></tr>
+            <tr><td>Public IP on VM needed</td><td>Yes</td><td>No</td></tr>
+            <tr><td>RDP client needed</td><td>Yes</td><td>No — browser only</td></tr>
+            <tr><td>Cost</td><td>Included in Defender for Servers</td><td>Separate Azure Bastion cost</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that JIT closes management ports by default and only opens them temporarily on request. Know that JIT requires the Defender for Servers plan. Know that JIT manages NSG rules automatically. Know Azure Bastion as a no-public-port alternative to JIT for VM access.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What does Just-in-Time VM Access do to management ports when no access is active?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT closes management ports by default — it is the opposite of keeping them open.')">A — Keeps ports open but monitors for suspicious activity</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! JIT keeps management ports (RDP 3389, SSH 22) closed by default via an NSG deny rule. Ports only open temporarily when a specific user requests access, and automatically close when the time window expires.')">B — Closes management ports via an NSG deny rule — ports only open when explicitly requested</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT manages NSG rules — it does not delete VMs.')">C — Shuts down the VM completely</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT blocks internet access to management ports — it does not redirect to a VPN.')">D — Redirects traffic through a VPN gateway</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What Microsoft Defender plan is required to use Just-in-Time VM Access?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for SQL protects SQL databases — JIT requires Defender for Servers.')">A — Defender for SQL</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Just-in-Time VM Access requires the Defender for Servers plan. This is a paid plan that enables workload protection for VMs including JIT access, vulnerability assessment, and endpoint detection and response.')">B — Defender for Servers</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for Storage protects storage accounts — not VMs.')">C — Defender for Storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT is not free — it requires the paid Defender for Servers plan.')">D — The free CSPM tier</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> How does JIT implement temporary access when a request is approved?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT does not restart the VM — it modifies NSG rules to temporarily allow access.')">A — It restarts the VM with a temporary configuration</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! JIT temporarily adds a high-priority allow rule to the NSG for the specific source IP and port. When the time window expires, the allow rule is automatically removed and the deny rule takes effect again — closing the port.')">B — It adds a temporary allow rule to the NSG for the specific source IP and port</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT does not use VPN tunnels — it modifies NSG rules for the specific VM.')">C — It creates a temporary VPN tunnel for the user</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT does not modify firewall rules on the OS — it manages the Azure NSG rules.')">D — It modifies the Windows Firewall rules inside the VM</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What is Azure Bastion and how does it differ from JIT access?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Bastion provides browser-based access without opening any ports — it is not the same as JIT.')">A — Azure Bastion is the same as JIT — both temporarily open RDP/SSH ports</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Azure Bastion provides browser-based RDP/SSH access through the Azure Portal over SSL — the VM requires no public IP and no open management ports at all. JIT still opens management ports temporarily. Bastion is more secure as no port ever needs to be open on the internet.')">B — Azure Bastion provides browser-based access with no open ports needed; JIT temporarily opens ports on request</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Bastion provides secure browser-based VM access — it is not a DDoS protection service.')">C — Azure Bastion is a DDoS protection service; JIT is for VM access</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Bastion works with both Windows and Linux VMs — not just Linux.')">D — Azure Bastion is only for Linux VMs; JIT is only for Windows VMs</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Are JIT access requests logged for audit purposes?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Every JIT access request is logged — including who requested access, from which IP address, for which port, and for how long. This audit trail is visible in Defender for Cloud and the Azure Activity Log, making JIT fully auditable for compliance and security investigations.')">A — Yes — all requests are logged with user, IP, port, and duration details</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT access is fully logged — all requests are audited.')">B — No — JIT access is not logged to avoid performance overhead</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. All JIT access is logged — not just denied requests.')">C — Only denied requests are logged</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. JIT logging is included in the Defender for Servers plan — there is no extra charge for audit logs.')">D — Only with an additional Azure Monitor Log Analytics workspace at extra cost</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="defender-for-cloud.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Defender for Cloud</span></a>
+        <a class="related-card" href="rbac.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Azure RBAC</span></a>
+        <a class="related-card" href="zero-trust.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Zero Trust Model</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="defender-for-cloud.html"><span class="nav-label">← Previous</span><span class="nav-title">Microsoft Defender for Cloud</span></a>
+        <a class="nav-card next" href="sentinel.html"><span class="nav-label">Next →</span><span class="nav-title">Microsoft Sentinel</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

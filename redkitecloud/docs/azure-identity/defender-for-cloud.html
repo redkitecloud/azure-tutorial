@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microsoft Defender for Cloud | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Microsoft Defender for Cloud — Secure Score, security recommendations, threat protection, compliance, and workload protections." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Microsoft Defender for Cloud</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Microsoft Defender for Cloud</h1>
+      <p class="page-intro">Microsoft Defender for Cloud is a Cloud Security Posture Management (CSPM) and Cloud Workload Protection Platform (CWPP). It continuously assesses your Azure resources against security best practices, gives you a Secure Score, and provides threat detection and alerts when attacks are underway. It is the central security dashboard for Azure.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        CSPM vs CWPP · Secure Score — what it measures and how to improve it · Security recommendations · Regulatory compliance dashboard · Defender plans — which resources they protect · Security alerts and incidents · Just-in-time VM access (overview) · Multi-cloud support
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#what-is-defender">What is Defender for Cloud?</a></li>
+        <li><a href="#secure-score">Secure Score</a></li>
+        <li><a href="#recommendations">Security Recommendations</a></li>
+        <li><a href="#compliance">Regulatory Compliance</a></li>
+        <li><a href="#defender-plans">Defender Plans</a></li>
+        <li><a href="#alerts">Security Alerts and Incidents</a></li>
+        <li><a href="#multicloud">Multi-Cloud Support</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="what-is-defender">What is Defender for Cloud?</h2>
+        <p>Defender for Cloud has two main capabilities:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Capability</th><th>What it Does</th></tr></thead>
+          <tbody>
+            <tr><td><strong>CSPM (Cloud Security Posture Management)</strong></td><td>Assess and improve your security posture — Secure Score, recommendations, compliance. Free tier available.</td></tr>
+            <tr><td><strong>CWPP (Cloud Workload Protection Platform)</strong></td><td>Detect and respond to threats against VMs, containers, databases, storage, Key Vault. Paid Defender plans.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="secure-score">Secure Score</h2>
+        <p>Secure Score is a percentage (0–100%) that measures how well your Azure environment follows security best practices. Higher is better.</p>
+        <ul>
+          <li>Each recommendation has a point value based on its security impact</li>
+          <li>Implementing recommendations increases your score</li>
+          <li>Score is calculated: points achieved / max possible points</li>
+          <li>Visible per subscription, management group, or overall</li>
+        </ul>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Secure Score Goal</strong> Microsoft recommends targeting at least 60% Secure Score for a reasonable baseline. High-security environments should aim for 70%+. A score of 100% is theoretical — some recommendations may not apply to your workload.</div>
+        </div>
+
+        <h2 id="recommendations">Security Recommendations</h2>
+        <p>Defender for Cloud analyses your resources and generates recommendations. Each recommendation includes:</p>
+        <ul>
+          <li><strong>Description</strong> — What the issue is</li>
+          <li><strong>Affected resources</strong> — Which resources have the issue</li>
+          <li><strong>Severity</strong> — High, Medium, Low</li>
+          <li><strong>Remediation steps</strong> — How to fix it</li>
+          <li><strong>Score impact</strong> — How many points fixing it adds</li>
+          <li><strong>Quick fix</strong> — One-click remediation for many recommendations</li>
+        </ul>
+
+        <p>Common high-severity recommendations:</p>
+        <ul>
+          <li>Enable MFA for accounts with subscription access</li>
+          <li>Remove deprecated accounts from subscriptions</li>
+          <li>Enable disk encryption on VMs</li>
+          <li>Restrict RDP/SSH access (close port 3389/22 from internet)</li>
+          <li>Enable Azure Defender for SQL</li>
+        </ul>
+
+        <h2 id="compliance">Regulatory Compliance</h2>
+        <p>The Regulatory Compliance dashboard maps your Azure resources against compliance standards — showing which controls are passing and failing:</p>
+        <ul>
+          <li>Microsoft Cloud Security Benchmark (default)</li>
+          <li>ISO 27001</li>
+          <li>PCI DSS</li>
+          <li>HIPAA / HITRUST</li>
+          <li>NIST SP 800-53</li>
+          <li>CIS Benchmarks</li>
+        </ul>
+
+        <h2 id="defender-plans">Defender Plans</h2>
+        <p>Enhanced threat protection requires paid Defender plans, enabled per resource type:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Plan</th><th>Protects</th><th>Key Features</th></tr></thead>
+          <tbody>
+            <tr><td>Defender for Servers</td><td>VMs and servers</td><td>JIT access, vulnerability assessment, EDR</td></tr>
+            <tr><td>Defender for SQL</td><td>Azure SQL, SQL on VMs</td><td>SQL injection detection, anomalous access</td></tr>
+            <tr><td>Defender for Storage</td><td>Storage accounts</td><td>Malware scanning, anomalous access detection</td></tr>
+            <tr><td>Defender for Containers</td><td>AKS, ACR, container workloads</td><td>Image vulnerability scanning, runtime threat detection</td></tr>
+            <tr><td>Defender for Key Vault</td><td>Key Vault</td><td>Unusual access patterns, credential abuse detection</td></tr>
+            <tr><td>Defender for App Service</td><td>App Service apps</td><td>Malicious requests, dangling DNS detection</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="alerts">Security Alerts and Incidents</h2>
+        <p>When Defender detects a threat, it generates a security alert with:</p>
+        <ul>
+          <li>Alert severity (High, Medium, Low, Informational)</li>
+          <li>Affected resource</li>
+          <li>Attack description and tactics (MITRE ATT&amp;CK framework)</li>
+          <li>Remediation steps</li>
+          <li>Related alerts grouped into incidents</li>
+        </ul>
+        <p>Alerts can trigger automated responses via Logic Apps or workflow automation.</p>
+
+        <h2 id="multicloud">Multi-Cloud Support</h2>
+        <p>Defender for Cloud extends beyond Azure — connect AWS and GCP accounts to assess and protect resources across all clouds from a single dashboard. This uses Azure Arc under the hood for non-Azure resources.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know that Defender for Cloud has free CSPM (Secure Score, recommendations) and paid CWPP (threat detection per resource type). Know that Secure Score measures security posture as a percentage. Know that regulatory compliance dashboard maps resources to standards. Know that Defender plans are per resource type.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What does the Secure Score in Microsoft Defender for Cloud measure?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Secure Score measures security posture — not network performance or latency.')">A — The performance and latency of your Azure network</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Secure Score is a percentage (0-100%) measuring how well your Azure resources follow security best practices. Implementing security recommendations increases your score. Higher score = stronger security posture.')">B — How well your Azure resources follow security best practices as a percentage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Secure Score measures security posture — not compliance with SLAs.')">C — Your compliance with Azure service SLAs</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Secure Score measures your current security posture — not attack attempts.')">D — The number of security attacks blocked in the last 30 days</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> Is the CSPM (Secure Score and recommendations) feature of Defender for Cloud free?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The CSPM capabilities of Defender for Cloud — Secure Score, security recommendations, and the regulatory compliance dashboard — are free for all Azure subscriptions. The paid Defender plans add threat detection and protection for specific resource types.')">A — Yes — CSPM including Secure Score and recommendations is free</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CSPM is free — only the Defender workload protection plans have a cost.')">B — No — all Defender for Cloud features require paid plans</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CSPM is free for all subscriptions — not just new ones.')">C — Only for the first 30 days on new subscriptions</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. CSPM is free regardless of subscription type — not limited to Enterprise Agreement customers.')">D — Only for Enterprise Agreement customers</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> Which Defender plan should you enable to detect SQL injection attacks against Azure SQL Database?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for Servers protects VMs — not SQL databases.')">A — Defender for Servers</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Defender for SQL detects threats against Azure SQL databases including SQL injection attacks, anomalous access patterns, and potential data exfiltration. It applies to Azure SQL Database, SQL Managed Instance, and SQL Server on VMs.')">B — Defender for SQL</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for Storage protects storage accounts — not SQL databases.')">C — Defender for Storage</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for Key Vault protects Key Vault — not SQL databases.')">D — Defender for Key Vault</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Can Microsoft Defender for Cloud protect resources in AWS and GCP?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Defender for Cloud supports multi-cloud — you can connect AWS and GCP accounts to assess and protect non-Azure resources from the same Defender for Cloud dashboard. It uses Azure Arc to onboard non-Azure resources.')">A — Yes — it supports AWS and GCP through multi-cloud connectivity</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for Cloud has extended beyond Azure to support AWS and GCP.')">B — No — Defender for Cloud is Azure-only</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-cloud support is available on all Defender for Cloud tiers — not just premium.')">C — Only in the premium tier</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Multi-cloud support covers both AWS and GCP — not just AWS.')">D — Only AWS is supported — not GCP</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> A security team wants to see which Azure resources are failing PCI DSS compliance controls. Which Defender for Cloud feature shows this?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Secure Score measures overall security posture — not specific regulatory compliance controls.')">A — Secure Score</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The Regulatory Compliance dashboard in Defender for Cloud maps your Azure resources against compliance standards like PCI DSS, ISO 27001, HIPAA, and NIST. It shows which controls are passing and failing, making it easy to identify and address compliance gaps.')">B — Regulatory Compliance dashboard</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Security alerts show active threats — not compliance status against standards.')">C — Security Alerts</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Workload protections detect threats at runtime — not compliance assessment.')">D — Workload protections</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="jit-access.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Just-in-Time VM Access</span></a>
+        <a class="related-card" href="sentinel.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Sentinel</span></a>
+        <a class="related-card" href="key-vault.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Azure Key Vault</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="key-vault.html"><span class="nav-label">← Previous</span><span class="nav-title">Azure Key Vault</span></a>
+        <a class="nav-card next" href="jit-access.html"><span class="nav-label">Next →</span><span class="nav-title">Just-in-Time VM Access</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

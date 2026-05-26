@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microsoft Sentinel (SIEM) | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to Microsoft Sentinel — cloud-native SIEM and SOAR, data connectors, analytics rules, incidents, playbooks, and threat hunting." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Microsoft Sentinel</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Intermediate</span><span class="badge badge-exam">AZ-500</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Microsoft Sentinel (SIEM &amp; SOAR)</h1>
+      <p class="page-intro">Microsoft Sentinel is a cloud-native Security Information and Event Management (SIEM) and Security Orchestration, Automation, and Response (SOAR) platform. It collects security data from across your entire organisation — Azure, Microsoft 365, on-premises, and other clouds — correlates it to detect threats, and automates responses. It replaces traditional on-premises SIEM solutions with a scalable, AI-powered cloud alternative.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        SIEM vs SOAR — what each does · How Sentinel works · Data connectors — what feeds data in · Analytics rules — how threats are detected · Incidents and alerts · Playbooks — automated response with Logic Apps · Threat hunting with KQL · Workbooks — dashboards · Pricing model
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#siem-soar">SIEM vs SOAR</a></li>
+        <li><a href="#how-sentinel-works">How Sentinel Works</a></li>
+        <li><a href="#data-connectors">Data Connectors</a></li>
+        <li><a href="#analytics-rules">Analytics Rules</a></li>
+        <li><a href="#incidents">Incidents and Alerts</a></li>
+        <li><a href="#playbooks">Playbooks (Automated Response)</a></li>
+        <li><a href="#threat-hunting">Threat Hunting</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="siem-soar">SIEM vs SOAR</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>SIEM</th><th>SOAR</th></tr></thead>
+          <tbody>
+            <tr><td>Full name</td><td>Security Information and Event Management</td><td>Security Orchestration, Automation, and Response</td></tr>
+            <tr><td>What it does</td><td>Collect, correlate, and analyse security data to detect threats</td><td>Automate response to detected threats — run playbooks</td></tr>
+            <tr><td>In Sentinel</td><td>Data connectors, analytics rules, incidents</td><td>Playbooks (Logic Apps), automation rules</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="how-sentinel-works">How Sentinel Works</h2>
+        <ol>
+          <li><strong>Collect</strong> — Data connectors feed security logs into a Log Analytics workspace</li>
+          <li><strong>Detect</strong> — Analytics rules run queries over ingested data and generate alerts when threats are found</li>
+          <li><strong>Investigate</strong> — Related alerts are grouped into incidents; analysts investigate using entity timelines and attack maps</li>
+          <li><strong>Respond</strong> — Playbooks (Logic Apps) automate responses — block user, isolate VM, notify team</li>
+          <li><strong>Hunt</strong> — Security analysts proactively query data to find hidden threats</li>
+        </ol>
+
+        <h2 id="data-connectors">Data Connectors</h2>
+        <p>Sentinel ingests data from hundreds of sources via built-in connectors:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Category</th><th>Examples</th></tr></thead>
+          <tbody>
+            <tr><td>Microsoft services</td><td>Entra ID, Microsoft 365, Defender for Cloud, Azure Activity</td></tr>
+            <tr><td>Microsoft Defender XDR</td><td>Defender for Endpoint, Defender for Identity, Defender for Office 365</td></tr>
+            <tr><td>Third-party</td><td>Palo Alto, Cisco, Fortinet, AWS CloudTrail, GCP</td></tr>
+            <tr><td>Syslog / CEF</td><td>Any Linux appliance via Syslog or Common Event Format</td></tr>
+            <tr><td>REST API / Logic Apps</td><td>Custom data sources via Azure Monitor Data Collector API</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="analytics-rules">Analytics Rules</h2>
+        <p>Analytics rules define when Sentinel creates an alert. Three types:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>How It Works</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Scheduled</strong></td><td>Run a KQL query on a schedule — alert when results match conditions</td></tr>
+            <tr><td><strong>Microsoft Security</strong></td><td>Import alerts from other Microsoft security products (Defender for Cloud, etc.)</td></tr>
+            <tr><td><strong>Machine Learning</strong></td><td>Built-in ML models detect anomalies and suspicious behaviour patterns</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">KQL</span><span class="code-label">Example analytics rule — detect multiple failed logins</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>SigninLogs
+| where ResultType != 0                    // Failed sign-ins only
+| summarize FailedAttempts = count()
+    by UserPrincipalName, bin(TimeGenerated, 10m)
+| where FailedAttempts >= 10              // 10+ failures in 10 minutes
+| project TimeGenerated, UserPrincipalName, FailedAttempts</code></pre>
+        </div>
+
+        <h2 id="incidents">Incidents and Alerts</h2>
+        <p>When analytics rules trigger, they create <strong>alerts</strong>. Related alerts are automatically grouped into <strong>incidents</strong> — a single incident may represent multiple related alerts about the same attack. Analysts work incidents, not individual alerts.</p>
+        <p>Each incident has:</p>
+        <ul>
+          <li>Severity (High, Medium, Low, Informational)</li>
+          <li>Status (New, Active, Closed)</li>
+          <li>Assigned analyst</li>
+          <li>Entity map — users, IPs, hosts involved</li>
+          <li>Investigation graph — visualise attack progression</li>
+          <li>Comments and evidence timeline</li>
+        </ul>
+
+        <h2 id="playbooks">Playbooks (Automated Response)</h2>
+        <p>Playbooks are Logic Apps that automate response actions when incidents or alerts are triggered:</p>
+        <ul>
+          <li>Block a user in Entra ID when account compromise is detected</li>
+          <li>Isolate a VM from the network when malware is detected</li>
+          <li>Send a Teams/email notification to the security team</li>
+          <li>Create a ticket in ServiceNow automatically</li>
+          <li>Enrich an alert with threat intelligence from external feeds</li>
+        </ul>
+
+        <h2 id="threat-hunting">Threat Hunting</h2>
+        <p>Proactive security analysts use Sentinel Hunting to write and run KQL queries searching for threats that have not yet triggered alerts — looking for low-and-slow attacks, lateral movement, or unusual patterns that rules might miss.</p>
+
+        <h2 id="pricing">Pricing</h2>
+        <p>Sentinel pricing has two components:</p>
+        <ul>
+          <li><strong>Data ingestion</strong> — Pay per GB of data ingested into the Log Analytics workspace</li>
+          <li><strong>Log Analytics</strong> — Storage and query costs for the underlying workspace</li>
+        </ul>
+        <p>Commitment tiers (100 GB/day, 200 GB/day, etc.) provide discounts over pay-as-you-go for high-volume ingestion.</p>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know Sentinel is a cloud-native SIEM and SOAR. Know that data connectors feed logs in, analytics rules detect threats, incidents group related alerts, and playbooks automate response. Know that Sentinel is built on Log Analytics and uses KQL for queries. Know the difference between Sentinel (SIEM) and Defender for Cloud (CSPM/CWPP).</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What is the difference between SIEM and SOAR capabilities in Microsoft Sentinel?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! SIEM (data connectors, analytics rules, incidents) collects and correlates security data to detect threats. SOAR (playbooks, automation rules) automates the response to detected threats — blocking users, isolating VMs, notifying teams. Sentinel provides both in one platform.')">A — SIEM collects and detects threats; SOAR automates the response to those threats</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SIEM is for detection and correlation — not just storage. SOAR is for automated response — not just alerting.')">B — SIEM stores logs; SOAR sends alerts to administrators</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SIEM covers multiple security domains — not just network. SOAR automates responses — not just endpoint protection.')">C — SIEM protects network traffic; SOAR protects endpoints</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SIEM is about security intelligence — not compliance. SOAR is about automated response — not reporting.')">D — SIEM handles compliance reporting; SOAR handles security monitoring</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> What are Playbooks in Microsoft Sentinel?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Analytics rules detect threats — playbooks automate the response.')">A — KQL queries that detect threats in ingested data</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Playbooks are Logic Apps that automate response actions when Sentinel incidents or alerts are triggered. They can block users, isolate VMs, send notifications, create tickets, or enrich alerts — all automatically without analyst intervention.')">B — Logic Apps that automate response actions when incidents are triggered</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Playbooks automate response — workbooks are for visualisation and dashboards.')">C — Dashboards for visualising security data</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Data connectors feed data into Sentinel — playbooks act on detected threats.')">D — Connectors that feed security data into Sentinel</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What is the difference between Microsoft Sentinel and Microsoft Defender for Cloud?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Both are security services — Sentinel is for SIEM/SOAR and Defender for Cloud is for posture management and workload protection.')">A — They are the same service with different names</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Defender for Cloud is CSPM (security posture, Secure Score, recommendations) and CWPP (threat detection per workload type). Sentinel is a full SIEM/SOAR — collects security data from across the entire organisation, correlates threats, and automates response. Defender for Cloud alerts can be fed INTO Sentinel.')">B — Defender for Cloud manages security posture and workload protection; Sentinel is a full SIEM/SOAR for the entire organisation</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Sentinel is not only for Azure — it is a multi-cloud, multi-source SIEM.')">C — Sentinel is for Azure only; Defender for Cloud covers multi-cloud</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Defender for Cloud is not a firewall — it is a security posture and workload protection service.')">D — Defender for Cloud is a firewall; Sentinel is an identity protection service</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> What query language does Microsoft Sentinel use for analytics rules and threat hunting?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SQL is used for relational databases — Sentinel uses KQL (Kusto Query Language).')">A — SQL</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft Sentinel uses KQL (Kusto Query Language) — the same language used across Azure Monitor, Log Analytics, and Application Insights. KQL is optimised for querying large volumes of telemetry and log data quickly.')">B — KQL (Kusto Query Language)</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Python is used for general programming — KQL is the query language for Sentinel and Log Analytics.')">C — Python</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. SPL (Search Processing Language) is used by Splunk — Sentinel uses KQL.')">D — SPL (Splunk Processing Language)</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> How are multiple related alerts grouped in Microsoft Sentinel?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Alerts are grouped into incidents — not workbooks.')">A — Into workbooks for visualisation</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Related alerts are automatically grouped into incidents in Sentinel. An incident may contain multiple alerts about the same attack — for example, a suspicious login alert and a data exfiltration alert both related to the same user. Analysts work at the incident level, not individual alerts.')">B — Into incidents — analysts investigate at the incident level</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Playbooks respond to incidents — they do not group alerts.')">C — Into playbooks for automated response</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Alerts are grouped into incidents — not data connector feeds.')">D — Into data connector feeds for archiving</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="defender-for-cloud.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Defender for Cloud</span></a>
+        <a class="related-card" href="zero-trust.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Zero Trust Model</span></a>
+        <a class="related-card" href="jit-access.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Just-in-Time VM Access</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="jit-access.html"><span class="nav-label">← Previous</span><span class="nav-title">Just-in-Time VM Access</span></a>
+        <a class="nav-card next" href="zero-trust.html"><span class="nav-label">Next →</span><span class="nav-title">Zero Trust Model</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>

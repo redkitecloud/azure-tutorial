@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zero Trust Model | Identity & Security | RedKiteCloud</title>
+  <meta name="description" content="Complete guide to the Zero Trust security model — principles, pillars, implementation in Azure, and how Azure services support Zero Trust." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>" />
+</head>
+<body>
+  <header class="topbar" id="rkc-topbar"></header><script src="../../js/topbar.js"></script>
+  <div class="layout">
+    <nav class="sidebar" id="rkc-sidebar"></nav><script src="../../js/sidebar.js"></script>
+    <main class="main"><div class="content-area">
+      <div class="breadcrumb"><a href="../../index.html">Home</a><span class="sep">›</span><a href="../../index.html">Identity &amp; Security</a><span class="sep">›</span><span class="current">Zero Trust Model</span></div>
+      <div class="last-updated">Last updated: May 2026</div>
+      <div class="badge-row"><span class="badge badge-module">Identity &amp; Security</span><span class="badge badge-beginner">Beginner</span><span class="badge badge-exam">AZ-104</span><span class="badge badge-read">⏱ 11 min read</span></div>
+
+      <h1 class="page-title">Zero Trust Security Model</h1>
+      <p class="page-intro">Zero Trust is a security model built on one principle: never trust, always verify. Traditional security assumed everything inside the corporate network was safe. Zero Trust assumes breach — every request must be verified regardless of where it comes from. With the shift to cloud, remote work, and mobile devices, the old perimeter-based model is obsolete. Zero Trust is the modern replacement.</p>
+
+      <div class="learn-box"><strong>What you'll learn</strong>
+        Zero Trust principles — verify explicitly, least privilege, assume breach · The six pillars of Zero Trust · How Zero Trust differs from traditional perimeter security · Azure services that implement Zero Trust · Practical Zero Trust implementation steps · Zero Trust maturity model
+      </div>
+
+      <div class="toc"><div class="toc-title">Table of Contents</div><ol>
+        <li><a href="#principles">Zero Trust Principles</a></li>
+        <li><a href="#traditional-vs-zero">Traditional vs Zero Trust</a></li>
+        <li><a href="#pillars">The Six Pillars</a></li>
+        <li><a href="#azure-implementation">Azure Services Supporting Zero Trust</a></li>
+        <li><a href="#implementation-steps">Implementation Steps</a></li>
+        <li><a href="#maturity-model">Zero Trust Maturity Model</a></li>
+        <li><a href="#practice">Practice Questions</a></li>
+      </ol></div>
+
+      <div class="content">
+
+        <h2 id="principles">Zero Trust Principles</h2>
+        <p>Zero Trust is built on three core principles:</p>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Principle</th><th>Meaning</th><th>In Practice</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Verify Explicitly</strong></td><td>Always authenticate and authorise based on all available data points</td><td>Use MFA, device compliance, location, and risk signals — not just username/password</td></tr>
+            <tr><td><strong>Use Least Privilege Access</strong></td><td>Limit user access to only what is needed, when it is needed</td><td>RBAC with minimum permissions, JIT access, just-enough-access</td></tr>
+            <tr><td><strong>Assume Breach</strong></td><td>Design as if the breach has already happened</td><td>Segment networks, encrypt everything, monitor continuously, minimise blast radius</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="traditional-vs-zero">Traditional vs Zero Trust</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Traditional (Castle and Moat)</th><th>Zero Trust</th></tr></thead>
+          <tbody>
+            <tr><td>Trust model</td><td>Trust inside the network perimeter</td><td>Trust nothing — verify everything</td></tr>
+            <tr><td>Network perimeter</td><td>Hard outer shell — soft inside</td><td>No perimeter — identity is the control plane</td></tr>
+            <tr><td>Access decision</td><td>Based on network location (inside/outside)</td><td>Based on identity, device, location, risk</td></tr>
+            <tr><td>Lateral movement</td><td>Easy — trusted inside network</td><td>Hard — micro-segmentation, continuous verification</td></tr>
+            <tr><td>Remote work</td><td>VPN to get inside the perimeter</td><td>Direct access with strong identity verification</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box info">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-body"><strong>Why Zero Trust Now?</strong> The traditional model assumed your office network was safe. Today: employees work from home, apps run in the cloud, data is on SaaS platforms, and attackers can be inside the network (insider threats, compromised accounts). There is no meaningful perimeter to protect anymore.</div>
+        </div>
+
+        <h2 id="pillars">The Six Pillars</h2>
+        <p>Microsoft defines six technology pillars where Zero Trust must be applied:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Pillar</th><th>Zero Trust Approach</th><th>Azure Services</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Identities</strong></td><td>Verify every identity with strong auth, monitor for risk</td><td>Entra ID, MFA, Conditional Access, Identity Protection</td></tr>
+            <tr><td><strong>Devices</strong></td><td>Only allow compliant, healthy devices</td><td>Intune, Defender for Endpoint, Conditional Access</td></tr>
+            <tr><td><strong>Applications</strong></td><td>Discover shadow IT, enforce controls, monitor usage</td><td>Defender for Cloud Apps, Conditional Access App Control</td></tr>
+            <tr><td><strong>Data</strong></td><td>Classify, label, and protect data wherever it lives</td><td>Microsoft Purview, Azure Information Protection</td></tr>
+            <tr><td><strong>Infrastructure</strong></td><td>Assess config, JIT access, threat detection</td><td>Defender for Cloud, JIT VM Access, Azure Policy</td></tr>
+            <tr><td><strong>Networks</strong></td><td>Micro-segment, encrypt in transit, limit lateral movement</td><td>NSGs, Azure Firewall, Private Endpoints, VNet peering</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="azure-implementation">Azure Services Supporting Zero Trust</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Zero Trust Goal</th><th>Azure Service</th></tr></thead>
+          <tbody>
+            <tr><td>Strong identity verification</td><td>Entra ID + MFA + Conditional Access</td></tr>
+            <tr><td>Device health verification</td><td>Microsoft Intune + Entra ID device compliance</td></tr>
+            <tr><td>Least privilege access</td><td>Azure RBAC + Privileged Identity Management (PIM)</td></tr>
+            <tr><td>Secrets off code/config</td><td>Azure Key Vault</td></tr>
+            <tr><td>Network micro-segmentation</td><td>NSGs + Azure Firewall + Private Endpoints</td></tr>
+            <tr><td>Posture management</td><td>Microsoft Defender for Cloud</td></tr>
+            <tr><td>Threat detection and response</td><td>Microsoft Sentinel + Defender XDR</td></tr>
+            <tr><td>JIT privileged access</td><td>JIT VM Access + PIM</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="implementation-steps">Implementation Steps</h2>
+        <p>A practical Zero Trust implementation typically follows this order:</p>
+        <ol>
+          <li><strong>Secure identity first</strong> — Enable MFA, Conditional Access, block legacy auth</li>
+          <li><strong>Secure endpoints</strong> — Enrol devices in Intune, require device compliance</li>
+          <li><strong>Least privilege access</strong> — Audit RBAC assignments, remove excessive permissions, enable PIM</li>
+          <li><strong>Protect data</strong> — Classify and label sensitive data, apply encryption</li>
+          <li><strong>Secure applications</strong> — Review app registrations, enable Conditional Access for apps</li>
+          <li><strong>Network controls</strong> — Implement micro-segmentation, move to private endpoints</li>
+          <li><strong>Continuous monitoring</strong> — Enable Sentinel, Defender for Cloud, configure alerts</li>
+        </ol>
+
+        <h2 id="maturity-model">Zero Trust Maturity Model</h2>
+        <p>Microsoft defines a maturity model with three stages for each pillar:</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Stage</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Traditional</strong></td><td>Implicit trust in network location — minimal Zero Trust controls</td></tr>
+            <tr><td><strong>Advanced</strong></td><td>Strong authentication, device compliance, some segmentation</td></tr>
+            <tr><td><strong>Optimal</strong></td><td>Continuous validation, automated response, full visibility and control</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="box tip">
+          <span class="box-icon">💡</span>
+          <div class="box-body"><strong>AZ-104 Exam Tip</strong> Know the three Zero Trust principles: verify explicitly, least privilege, assume breach. Know that identity is the primary control plane in Zero Trust. Know the six pillars (identities, devices, applications, data, infrastructure, networks). Know that Zero Trust replaces perimeter-based security — location is no longer a trust signal.</div>
+        </div>
+
+      </div>
+
+      <div class="practice-section" id="practice">
+        <div class="practice-header">📝 Practice Questions</div>
+        <div class="practice-subtext">Click an option to check your answer.</div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q1.</span> What are the three core principles of Zero Trust?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. These are general security concepts but not the three Zero Trust principles.')">A — Encrypt, monitor, respond</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! The three Zero Trust principles are: Verify Explicitly (always authenticate with all data points), Use Least Privilege (minimum access needed), and Assume Breach (design as if already compromised — segment, monitor, minimise blast radius).')">B — Verify explicitly, use least privilege, assume breach</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Authenticate, authorise, audit are security concepts but not the three Zero Trust principles.')">C — Authenticate, authorise, audit</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. These are cloud principles — not the Zero Trust principles.')">D — Scalability, availability, reliability</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q2.</span> In the Zero Trust model, what replaces the network location as the primary trust signal?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. IP address is a network location signal — Zero Trust moves away from location-based trust.')">A — IP address and subnet</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! In Zero Trust, identity is the primary control plane. Access decisions are based on who you are (verified identity), what device you are using (device health), and contextual signals (location risk, sign-in risk) — not just where you are on the network.')">B — Identity — verified through MFA, device health, and risk signals</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Physical location is still a factor but not the primary trust signal — identity and device health are.')">C — Physical location — office vs home</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Time of day can be a Conditional Access condition but is not the primary trust signal.')">D — Time of day — business hours vs after hours</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q3.</span> What does the "Assume Breach" principle mean in practice?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Assume breach means designing security assuming attackers are already inside — not accepting that breaches are inevitable without response.')">A — Accept that breaches will happen and do not invest in prevention</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Assume breach means designing your security architecture as if attackers are already inside your network. This leads to network micro-segmentation (limits lateral movement), end-to-end encryption, continuous monitoring, and minimising the blast radius of any single compromised account or resource.')">B — Design security as if attackers are already inside — micro-segment, encrypt, monitor, minimise blast radius</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Assume breach is about defensive architecture — not incident response after a breach occurs.')">C — Immediately respond to all security incidents as if they are active breaches</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Assume breach means strengthening internal security controls — not reducing investment.')">D — Reduce security investment since breaches cannot be prevented</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q4.</span> Which Azure service primarily addresses the Identity pillar of Zero Trust?</div>
+          <div class="options">
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Microsoft Entra ID with MFA and Conditional Access is the primary Azure service for the Identity pillar. It provides strong authentication (MFA), contextual access policies (Conditional Access), risk detection (Identity Protection), and privileged access management (PIM).')">A — Microsoft Entra ID with MFA and Conditional Access</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Firewall addresses the Network pillar — not the Identity pillar.')">B — Azure Firewall</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Azure Policy addresses the Infrastructure pillar — not the Identity pillar.')">C — Azure Policy</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. NSGs address the Network pillar — not the Identity pillar.')">D — Network Security Groups</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+
+        <div class="question">
+          <div class="question-text"><span class="question-num">Q5.</span> Why is traditional perimeter-based security insufficient in the modern cloud era?</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Cost is not the reason perimeter security is insufficient — the architecture is the issue.')">A — It is too expensive compared to Zero Trust</div>
+            <div class="option" data-correct="true" onclick="checkAnswer(this, true, 'Correct! Traditional perimeter security assumed everything inside the corporate network was safe. Today there is no clear perimeter — employees work from home, apps run in cloud SaaS platforms, data is everywhere, and attackers can be inside through compromised accounts or insider threats. Identity and device verification must replace network location as the trust signal.')">B — There is no clear perimeter anymore — users work remotely, apps are in the cloud, and attackers can be inside via compromised accounts</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Perimeter security can be technically complex too — complexity is not the reason it is insufficient.')">C — Perimeter security is too technically complex to implement</div>
+            <div class="option" onclick="checkAnswer(this, false, 'Incorrect. Perimeter security works for on-premises infrastructure — the issue is that modern work has eliminated clear network perimeters.')">D — Perimeter security only works for cloud environments</div>
+          </div>
+          <div class="answer-reveal"></div>
+        </div>
+      </div>
+
+      <div class="related-section"><div class="related-title">Related Topics</div><div class="related-grid">
+        <a class="related-card" href="entra-id.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Entra ID</span></a>
+        <a class="related-card" href="conditional-access.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Conditional Access</span></a>
+        <a class="related-card" href="defender-for-cloud.html"><span class="related-card-label">Identity &amp; Security</span><span class="related-card-title">Microsoft Defender for Cloud</span></a>
+      </div></div>
+
+      <div class="page-nav">
+        <a class="nav-card" href="sentinel.html"><span class="nav-label">← Previous</span><span class="nav-title">Microsoft Sentinel</span></a>
+        <a class="nav-card next" href="../../index.html"><span class="nav-label">Next →</span><span class="nav-title">Back to All Modules</span></a>
+      </div>
+
+      <div class="comments-section"><div class="comments-label">Comments</div>
+        <script src="https://giscus.app/client.js" data-repo="redkitecloud/azure-tutorial" data-repo-id="R_kgDOSUIK8A" data-category="General" data-category-id="DIC_kwDOSUIK8M4C8YmM" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en" crossorigin="anonymous" async></script>
+      </div>
+      <div class="tut-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation.</div>
+    </div></main>
+  </div>
+  <footer class="footer">
+    <p class="footer-disclaimer">Disclaimer: RedKite Cloud is an independent educational resource and is not affiliated with Microsoft Corporation, Amazon Web Services, Inc., or Google LLC.</p>
+    <div class="footer-bottom"><span class="footer-logo"><span style="color:#E50914">Red</span><span style="color:#E50914">Kite</span><span style="color:#4285F4">C</span><span style="color:#EA4335">l</span><span style="color:#FBBC05">o</span><span style="color:#34A853">u</span><span style="color:#4285F4">d</span> &nbsp;© 2026 All rights reserved.</span><span class="footer-tag">Independent · Educational · Community</span></div>
+  </footer>
+</body>
+</html>
